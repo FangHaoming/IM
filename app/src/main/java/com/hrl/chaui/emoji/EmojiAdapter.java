@@ -1,6 +1,7 @@
 package com.hrl.chaui.emoji;
 
-import android.support.annotation.Nullable;
+ import androidx.annotation.Nullable;
+
  import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.hrl.chaui.R;
@@ -10,7 +11,7 @@ import java.util.List;
 public class EmojiAdapter extends BaseQuickAdapter< EmojiBean,BaseViewHolder> {
 
 
-    public EmojiAdapter( @Nullable List<EmojiBean> data, int index, int pageSize) {
+    public EmojiAdapter(@Nullable List<EmojiBean> data, int index, int pageSize) {
          super(R.layout.item_emoji,  data);
      }
 

@@ -7,11 +7,13 @@ import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
-  import com.hrl.chaui.R;
+
+import androidx.appcompat.widget.AppCompatImageView;
+
+import com.hrl.chaui.R;
 
 
 /**

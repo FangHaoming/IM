@@ -20,13 +20,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.AppCompatButton;
+
 import com.hrl.chaui.util.LogUtil;
 import com.hrl.chaui.R;
 
 import java.io.File;
 import java.io.IOException;
 
-public class RecordButton extends android.support.v7.widget.AppCompatButton {
+public class RecordButton extends AppCompatButton {
 
 
 
