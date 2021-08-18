@@ -3,7 +3,7 @@ package com.hrl.chaui.util;
 
 import android.util.Log;
 
-import com.example.chat.util.ConnectionOptionWrapper;
+import com.hrl.chaui.util.ConnectionOptionWrapper;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -23,7 +23,7 @@ public class MqttByAli {
     /**
      * AccessKey ID，阿里云身份验证，在阿里云RAM控制台创建。
      */
-    private static final String accessKey = "LTAI5tEUG7Jw2FvkSpSL3vxV";
+    private static final String accessKey = value.access_key;
     /**
      * AccessKey Secret，阿里云身份验证，在阿里云RAM控制台创建。仅在签名鉴权模式下需要设置。
      */
