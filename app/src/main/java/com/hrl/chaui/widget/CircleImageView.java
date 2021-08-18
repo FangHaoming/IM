@@ -22,11 +22,11 @@ public class CircleImageView extends AppCompatImageView {
     private Matrix matrix;
 
     public CircleImageView(Context context) {
-        this(context, null);
+        super(context, null);
     }
 
     public CircleImageView(Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs, 0);
+        super(context, attrs, 0);
     }
 
     public CircleImageView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {

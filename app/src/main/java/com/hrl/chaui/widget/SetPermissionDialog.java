@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -29,6 +30,7 @@ public class SetPermissionDialog extends Dialog implements View.OnClickListener 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setBackgroundDrawable(new ColorDrawable(0x00000000));
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
