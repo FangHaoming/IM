@@ -27,7 +27,7 @@ public class MqttByAli {
     /**
      * AccessKey Secret，阿里云身份验证，在阿里云RAM控制台创建。仅在签名鉴权模式下需要设置。
      */
-    private static final String secretKey = "DTtXJ97uOv974Z7y3A4FoF8d2mrRTM";
+    private static final String secretKey = value.secret_key;
     /**
      * MQTT客户端ID，由业务系统分配，需要保证每个TCP连接都不一样，保证全局唯一，如果不同的客户端对象（TCP连接）使用了相同的clientId会导致连接异常断开。
      * clientId由两部分组成，格式为GroupID@@@DeviceID，其中GroupID在微消息队列MQTT版控制台创建，DeviceID由业务方自己设置，clientId总长度不得超过64个字符。
