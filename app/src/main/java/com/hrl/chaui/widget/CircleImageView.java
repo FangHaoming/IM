@@ -18,8 +18,9 @@ public class CircleImageView extends AppCompatImageView {
     private float width;
     private float height;
     private float radius;
-    private Paint paint;
-    private Matrix matrix;
+    private Paint paint=new Paint();
+    private Matrix matrix=new Matrix();
+
 
     public CircleImageView(Context context) {
         super(context, null);
@@ -49,6 +50,7 @@ public class CircleImageView extends AppCompatImageView {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        paint.setAntiAlias(true);
         paint.setShader(initBitmapShader());//将着色器设置给画笔
         canvas.drawCircle(width / 2, height / 2, radius, paint);//使用画笔在画布上画圆
     }

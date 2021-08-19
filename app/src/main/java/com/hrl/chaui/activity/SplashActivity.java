@@ -45,7 +45,7 @@ public class SplashActivity extends AppCompatActivity {
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
-                            startActivity(new Intent(SplashActivity.this,ChatActivity.class));
+                            startActivity(new Intent(SplashActivity.this,LoginActivity.class));
                             finish();
                          } else {
 
