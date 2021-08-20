@@ -1,6 +1,5 @@
 package com.hrl.chaui.activity;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -15,7 +14,6 @@ import com.hrl.chaui.adapter.FragmentAdapter;
 import com.hrl.chaui.fragment.ContactFragment;
 import com.hrl.chaui.fragment.MessageFragment;
 import com.hrl.chaui.fragment.MineFragment;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +53,7 @@ public class MainActivity extends FragmentActivity {
         message.setSelected(true);
         current=message;
         title.setText("消息");
-        t_message.setTextColor(Color.parseColor("#2196F3"));
+        t_message.setTextColor(this.getResources().getColor(R.color.navigation_text_selected));
         listener=new View.OnClickListener() {
             @Override
             public void onClick(View v) {
