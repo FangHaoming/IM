@@ -51,6 +51,8 @@ public class LoginActivity extends AppCompatActivity {
 
         SharedPreferences sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
         editor=sharedPreferences.edit();
+
+        System.out.println("this is user_name:"+sharedPreferences.getString("user_name",""));
         if(sharedPreferences.getBoolean("isCheck",false)){
             phone.setText(sharedPreferences.getString("user_phone",""));
             pwd.setText(sharedPreferences.getString("user_pwd",""));

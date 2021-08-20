@@ -1,5 +1,6 @@
 package com.hrl.chaui.activity;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -25,7 +26,7 @@ public class MainActivity extends FragmentActivity {
     private List<Fragment> fragments=new ArrayList<Fragment>();
     private ViewPager viewPager;
     private ImageView message,contact,mine,current;
-    private TextView title;
+    private TextView title,t_mine,t_message,t_contact;
     private View.OnClickListener listener;
     private int currentID=0;
 
@@ -33,7 +34,6 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main);
-
         initView();
         fragments.add(new MessageFragment());
         fragments.add(new ContactFragment());
@@ -44,6 +44,9 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void initView(){
+        t_contact=findViewById(R.id.t_contact);
+        t_message=findViewById(R.id.t_message);
+        t_mine=findViewById(R.id.t_mine);
         viewPager=findViewById(R.id.vp);
         message=findViewById(R.id.message);
         contact=findViewById(R.id.contact);
@@ -52,6 +55,7 @@ public class MainActivity extends FragmentActivity {
         message.setSelected(true);
         current=message;
         title.setText("消息");
+        t_message.setTextColor(Color.parseColor("#2196F3"));
         listener=new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,20 +99,29 @@ public class MainActivity extends FragmentActivity {
         switch(id){
             case R.id.message:
                 title.setText("消息");
+                t_message.setTextColor(this.getResources().getColor(R.color.navigation_text_selected));
+                t_contact.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
+                t_mine.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
                 viewPager.setCurrentItem(0);
             case 0:
                 message.setSelected(true);
                 currentID=0;
                 break;
             case R.id.contact:
-                title.setText("好友");
+                title.setText("通讯录");
+                t_contact.setTextColor(this.getResources().getColor(R.color.navigation_text_selected));
+                t_message.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
+                t_mine.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
                 viewPager.setCurrentItem(1);
             case 1:
                 contact.setSelected(true);
                 currentID=1;
                 break;
             case R.id.mine:
-                title.setText("个人中心");
+                t_mine.setTextColor(this.getResources().getColor(R.color.navigation_text_selected));
+                t_message.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
+                t_contact.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
+                title.setText("我");
                 viewPager.setCurrentItem(2);
             case 2:
                 mine.setSelected(true);
