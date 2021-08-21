@@ -167,6 +167,7 @@ public class MqttByAli {
         }
     }
 
+    //发送好友申请
     public void friendRequest(User user,String targetClientId){
         JSONObject object=(JSONObject)JSONObject.toJSON(user);
         object.put("msg","friendRequest");
@@ -218,5 +219,13 @@ public class MqttByAli {
 
     public int getQosLevel() {
         return qosLevel;
+    }
+
+    public void disconnect() throws MqttException {
+        if(mqttClient!=null) {
+            mqttClient.disconnect();
+            mqttClient.close();
+            mqttClient=null;
+        }
     }
 }

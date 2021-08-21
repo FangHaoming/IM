@@ -63,6 +63,11 @@ public class MqttService extends Service {
         editor.putString("friReqMessage", JSONObject.toJSONString(friReqMessage));
         //editor.putString("chatMessage",JSONObject.toJSONString(chatMessage));
         editor.apply();
+        try {
+            mqtt.disconnect();
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
