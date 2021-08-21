@@ -3,6 +3,8 @@ package com.hrl.chaui.util;
 
 import android.util.Log;
 
+import com.alibaba.fastjson.JSONObject;
+import com.hrl.chaui.bean.User;
 import com.hrl.chaui.util.ConnectionOptionWrapper;
 
 import java.security.InvalidKeyException;
@@ -163,6 +165,13 @@ public class MqttByAli {
         } catch (MqttException e) {
             e.printStackTrace();
         }
+    }
+
+    public void friendRequest(User user,String targetClientId){
+        JSONObject object=(JSONObject)JSONObject.toJSON(user);
+        object.put("msg","friendRequest");
+        String message=JSONObject.toJSONString(object);
+        sendMessageP2P(message,targetClientId);
     }
 
     public static String getInstanceId() {
