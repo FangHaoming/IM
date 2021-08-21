@@ -23,6 +23,9 @@ public class User extends BaseIndexPinyinBean {
     public String getName(){
         return name;
     }
+    public String getImg(){
+        return img;
+    }
     public void setName(String name){
         this.name=name;
     }

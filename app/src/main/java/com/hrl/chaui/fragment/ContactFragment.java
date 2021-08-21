@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hrl.chaui.R;
-import com.hrl.chaui.adapter.ContacAdapter;
+import com.hrl.chaui.adapter.ContactAdapter;
 import com.hrl.chaui.bean.User;
 import com.mcxtzhang.indexlib.IndexBar.widget.IndexBar;
 import com.mcxtzhang.indexlib.suspension.SuspensionDecoration;
@@ -30,7 +30,7 @@ public class ContactFragment extends Fragment {
     private LinearLayoutManager mManager;
     private List<User> mDatas=new ArrayList<>();
     private SuspensionDecoration mDecoration;
-    private ContacAdapter mAdapter;
+    private ContactAdapter mAdapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,15 +49,18 @@ public class ContactFragment extends Fragment {
         mRv.setLayoutManager(mManager = new LinearLayoutManager(getContext()));
         TextView mTvSideBarHint = (TextView) root.findViewById(R.id.tvSideBarHint);//HintTextView
         IndexBar mIndexBar = (IndexBar) root.findViewById(R.id.indexBar);//IndexBar
-        mAdapter = new ContacAdapter(getContext(), mDatas);
+        mAdapter = new ContactAdapter(getContext(), mDatas);
         mRv.setAdapter(mAdapter);
         mRv.addItemDecoration(mDecoration = new SuspensionDecoration(getContext(), mDatas));
-        //如果add两个，那么按照先后顺序，依次渲染。
-        mRv.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
+        mRv.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+
+
+        mIndexBar.setmPressedShowTextView(mTvSideBarHint)//设置HintTextView
+                .setNeedRealIndex(true)//设置需要真实的索引
+                .setmLayoutManager(mManager);//设置RecyclerView的LayoutManager
+
         mDatas.add((User) new User("新的朋友").setTop(true).setBaseIndexTag("↑"));
         mDatas.add((User) new User("群聊").setTop(true).setBaseIndexTag("↑"));
-        mDatas.add((User) new User("标签").setTop(true).setBaseIndexTag("↑"));
-        mDatas.add((User) new User("公众号").setTop(true).setBaseIndexTag("↑"));
         String[] data=getContext().getResources().getStringArray(R.array.provinces);
         for (int i = 0; i < data.length; i++) {
             User user = new User();
@@ -70,10 +73,7 @@ public class ContactFragment extends Fragment {
         mIndexBar.setmSourceDatas(mDatas)//设置数据
                 .invalidate();
         mDecoration.setmDatas(mDatas);
-        mIndexBar.setmPressedShowTextView(mTvSideBarHint)//设置HintTextView
-                .setNeedRealIndex(true)//设置需要真实的索引
-                .setmLayoutManager(mManager)//设置RecyclerView的LayoutManager
-                .setmSourceDatas(mDatas);//设置数据源
+
         return root;
     }
 }

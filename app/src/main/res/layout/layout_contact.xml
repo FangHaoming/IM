@@ -8,15 +8,19 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@android:color/white">
 
     </androidx.recyclerview.widget.RecyclerView>
 
     <com.mcxtzhang.indexlib.IndexBar.widget.IndexBar
         android:id="@+id/indexBar"
         android:layout_width="24dp"
+        android:layout_marginVertical="60dp"
         android:layout_height="match_parent"
-        android:layout_gravity="right"
+        android:layout_gravity="center|right"
+        app:indexBarPressBackground="@color/partTranslucent"
+        app:indexBarTextSize="15sp"
          />
 
     <TextView
