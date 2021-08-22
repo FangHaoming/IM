@@ -68,6 +68,7 @@ public class MqttService extends Service {
         } catch (MqttException e) {
             e.printStackTrace();
         }
+        mqtt=null;
     }
 
     @Override
