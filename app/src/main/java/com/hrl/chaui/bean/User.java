@@ -16,16 +16,28 @@ public class User extends BaseIndexPinyinBean {
     public User(String name){
         this.name=name;
     }
+
+    public boolean isTop(){
+        return isTop;
+    }
+
     public User setTop(boolean top) {
         isTop = top;
         return this;
     }
+
     public String getName(){
         return name;
     }
+
+    public String getImg(){
+        return img;
+    }
+
     public void setName(String name){
         this.name=name;
     }
+
     @Override
     public String getTarget() {
         return name;
@@ -38,6 +50,6 @@ public class User extends BaseIndexPinyinBean {
 
     @Override
     public boolean isShowSuspension() {
-        return isTop;
+        return !isTop;
     }
 }
