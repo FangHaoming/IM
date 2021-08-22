@@ -8,16 +8,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
 
 import java.util.List;
 
 
-public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHolder> {
+public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     protected Context mContext;
     protected List<User> mDatas;
     protected LayoutInflater mInflater;
@@ -38,18 +38,18 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new ViewHolder(mInflater.inflate(R.layout.item_user, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull  RecyclerView.ViewHolder holder, int position) {
         final User user = mDatas.get(position);
-        holder.name.setText(user.getName());
-
+        ((ViewHolder)holder).name.setText(user.getName());
+        ((ViewHolder)holder).img.setImageResource(R.drawable.default0);
         if(user.getName().equals("新的朋友")){
-            holder.img.setImageResource(R.drawable.friend);
-            holder.content.setOnClickListener(new View.OnClickListener() {
+            ((ViewHolder)holder).img.setImageResource(R.drawable.friend);
+            ((ViewHolder)holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(mContext.getApplicationContext(), "新的朋友",Toast.LENGTH_SHORT).show();
@@ -57,8 +57,8 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
             });
         }
         else if(user.getName().equals("群聊")){
-            holder.img.setImageResource(R.drawable.group);
-            holder.content.setOnClickListener(new View.OnClickListener() {
+            ((ViewHolder)holder).img.setImageResource(R.drawable.group);
+            ((ViewHolder)holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(mContext.getApplicationContext(), "群聊",Toast.LENGTH_SHORT).show();
@@ -66,15 +66,14 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
             });
         }
         else{
-            Glide.with(mContext).load(mContext.getString(R.string.app_prefix_img)+mDatas.get(position).getImg()).into(holder.img);
-            holder.content.setOnClickListener(new View.OnClickListener() {
+            //Glide.with(mContext).load(mContext.getString(R.string.app_prefix_img)+mDatas.get(position).getImg()).into(holder.img);
+            ((ViewHolder)holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(mContext, "pos:" + position, Toast.LENGTH_SHORT).show();
                 }
             });
         }
-
     }
 
     @Override

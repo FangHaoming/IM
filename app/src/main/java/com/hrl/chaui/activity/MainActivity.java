@@ -1,10 +1,14 @@
 package com.hrl.chaui.activity;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager.widget.ViewPager;
@@ -28,6 +32,7 @@ public class MainActivity extends FragmentActivity {
     private View.OnClickListener listener;
     private int currentID=0;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +43,13 @@ public class MainActivity extends FragmentActivity {
         fragments.add(new MineFragment());
         FragmentAdapter adapter=new FragmentAdapter(getSupportFragmentManager(),fragments);
         viewPager.setAdapter(adapter);
-
+        Window window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
+        window.setNavigationBarColor(getResources().getColor(R.color.top_bottom));
+        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
     }
 
     private void initView(){
@@ -96,32 +107,32 @@ public class MainActivity extends FragmentActivity {
         }
         switch(id){
             case R.id.message:
+            case 0:
                 title.setText("消息");
                 t_message.setTextColor(this.getResources().getColor(R.color.navigation_text_selected));
                 t_contact.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
                 t_mine.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
                 viewPager.setCurrentItem(0);
-            case 0:
                 message.setSelected(true);
                 currentID=0;
                 break;
             case R.id.contact:
+            case 1:
                 title.setText("通讯录");
                 t_contact.setTextColor(this.getResources().getColor(R.color.navigation_text_selected));
                 t_message.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
                 t_mine.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
                 viewPager.setCurrentItem(1);
-            case 1:
                 contact.setSelected(true);
                 currentID=1;
                 break;
             case R.id.mine:
+            case 2:
                 t_mine.setTextColor(this.getResources().getColor(R.color.navigation_text_selected));
                 t_message.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
                 t_contact.setTextColor(this.getResources().getColor(R.color.navigation_text_normal));
                 title.setText("我");
                 viewPager.setCurrentItem(2);
-            case 2:
                 mine.setSelected(true);
                 currentID=2;
                 break;

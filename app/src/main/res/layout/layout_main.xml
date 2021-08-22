@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    >
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="45dp"
         android:text="Title"
-        android:textSize="20sp"
+        android:textSize="15sp"
         android:textColor="#000000"
         android:gravity="center"
-        android:background="#F1F3F2"
+        android:background="@color/top_bottom"
         android:id="@+id/title"/>
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/vp"
@@ -19,9 +20,9 @@
         android:layout_weight="1"/>
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="67dp"
+        android:layout_height="50dp"
         android:paddingVertical="10dp"
-        android:background="#F1F3F2"
+        android:background="@color/top_bottom"
         android:orientation="horizontal">
         <FrameLayout
             android:layout_weight="1"
@@ -32,6 +33,7 @@
                 android:id="@+id/message"
                 android:layout_width="wrap_content"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginTop="-11dp"
                 android:layout_height="40dp"
                 android:src="@drawable/selector_message" />
             <TextView
@@ -40,8 +42,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:textColor="@color/navigation_text_normal"
-                android:layout_marginTop="30dp"
-                android:textSize="12sp"
+                android:layout_marginTop="19dp"
+                android:textSize="8sp"
                 android:text="消息"/>
         </FrameLayout>
 
@@ -55,6 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_height="43dp"
+                android:layout_marginTop="-11dp"
                 android:src="@drawable/selector_contact" />
             <TextView
                 android:id="@+id/t_contact"
@@ -62,8 +65,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:textColor="@color/navigation_text_normal"
-                android:layout_marginTop="30dp"
-                android:textSize="12sp"
+                android:layout_marginTop="19dp"
+                android:textSize="8sp"
                 android:text="通讯录"/>
         </FrameLayout>
 
@@ -76,6 +79,7 @@
                 android:id="@+id/mine"
                 android:layout_width="wrap_content"
                 android:layout_height="43dp"
+                android:layout_marginTop="-11dp"
                 android:layout_gravity="center_horizontal"
                 android:src="@drawable/selector_mine" />
             <TextView
@@ -84,8 +88,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:textColor="@color/navigation_text_normal"
-                android:layout_marginTop="30dp"
-                android:textSize="12sp"
+                android:layout_marginTop="19dp"
+                android:textSize="8sp"
                 android:text="我"/>
         </FrameLayout>
 
