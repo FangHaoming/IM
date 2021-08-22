@@ -16,9 +16,11 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.io.File;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MqttService extends Service {
     private final IBinder mBinder = new LocalBinder();
@@ -126,9 +128,29 @@ public class MqttService extends Service {
                     break;
                 case "p2pText":  //私聊文本消息
                     break;
-                case "p2pImg":   //私聊图片消息
-                    break;
                 case "p2pFile":  //私聊文件消息
+                    int total = object.getInteger("total");
+                    int order = object.getInteger("order");
+                    byte[] data =  object.getBytes("data");
+                    if (total == 1 && order == 0)
+                        FileUtils.bytesToFile(data, value.imgLocalPath, object.getString("name"));
+                    else {
+                        String hex = object.getString("hex");
+                        if(order==0) {
+                            HashMap<Integer, byte[]> map = new HashMap<>();
+                            map.put(order, data);
+                            FileCache.createNewCache(hex, map);
+                        }
+                        else FileCache.add2Cache(hex,order,data);
+                        System.out.println(FileCache.getCount(hex)+"//"+total);
+                        if (FileCache.getCount(hex)==total) {
+                            String name = object.getString("name");
+                            int length = object.getInteger("length");
+                            File file=FileCache.mergeToFile(hex,total,length,value.imgLocalPath,name);
+                            System.out.println("create file");
+                            Log.e(TAG,"create file");
+                        }
+                    }
                     break;
             }
 

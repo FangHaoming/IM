@@ -7,9 +7,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.util.ConnectionOptionWrapper;
 
+import java.io.File;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
@@ -164,6 +167,38 @@ public class MqttByAli {
             mqttClient.publish(p2pTopic, message);
         } catch (MqttException e) {
             e.printStackTrace();
+        }
+    }
+
+    //私聊发送文件
+    public void sendFileP2P(File file, String targetClientId) {
+        if (file.length()<=60*1024){
+            JSONObject object=new JSONObject();
+            object.put("msg","p2pFile");
+            object.put("data",FileUtils.fileToBytes(file));
+            object.put("name",file.getName());
+            object.put("hex", DigestUtils.md5Hex(FileUtils.fileToBytes(file)));
+            object.put("total",1);
+            object.put("order",0);
+            object.put("length",file.length());
+            sendMessageP2P(object.toJSONString(),targetClientId);
+        }
+        else {
+            long totalLen=file.length();
+            int divide=(int)( totalLen%61440==0? totalLen/61440:totalLen/61440+1);
+            byte[] bytes=FileUtils.fileToBytes(file);
+            String hex =clientId+System.currentTimeMillis();//DigestUtils.md5Hex(bytes);
+            JSONObject object=new JSONObject();
+            object.put("msg","p2pFile");
+            object.put("name",file.getName());
+            object.put("hex", hex);
+            object.put("total",divide);
+            object.put("length",file.length());
+            for (int i=0;i<divide;i++){
+                object.put("data", Arrays.copyOfRange(bytes,i*61440,(int)(i==divide-1?file.length():(i+1)*61440)));
+                object.put("order",i);
+                sendMessageP2P(object.toJSONString(),targetClientId);
+            }
         }
     }
 
