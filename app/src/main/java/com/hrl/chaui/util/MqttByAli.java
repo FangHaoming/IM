@@ -3,6 +3,7 @@ package com.hrl.chaui.util;
 
 import android.util.Log;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.util.ConnectionOptionWrapper;
@@ -84,7 +85,7 @@ public class MqttByAli {
             mqttClient.setCallback(new MqttCallbackExtended() {
                 @Override
                 public void connectComplete(boolean reconnect, String serverURI) {
-                    System.out.println("connect success");
+                    Log.e("log", serverURI);
                     Log.e("log","connect success");
                 }
 
@@ -170,17 +171,70 @@ public class MqttByAli {
         }
     }
 
-    //私聊发送文件
+    public void sendTextP2P(String text, String targetClient) {
+        if (text.length() >= 0 && text.getBytes().length <= 60 * 1024) { // 在0~60kb之间
+            JSONObject object = new JSONObject();
+            object.put("msg", "p2pText");
+            object.put("data", text.getBytes());
+            sendMessageP2P(object.toJSONString(), targetClient);
+
+        }
+    }
+
+
     public void sendFileP2P(File file, String targetClientId) {
+        sendFileP2P(file, targetClientId, "p2pFile");
+    }
+
+    //私聊发送文件
+    public void sendFileP2P(File file, String targetClientId, String msgType) {
+
+        new Thread(()->{
+            if (file.length()<=60*1024){
+                JSONObject object=new JSONObject();
+                object.put("msg",msgType);
+                object.put("data",FileUtils.fileToBytes(file));
+                object.put("name",file.getName());
+                object.put("hex", DigestUtils.md5Hex(FileUtils.fileToBytes(file)));
+                object.put("total",1);
+                object.put("order",0);
+                object.put("length",file.length());
+                sendMessageP2P(object.toJSONString(),targetClientId);
+            }
+            else {
+                long totalLen=file.length();
+                int divide=(int)( totalLen%61440==0? totalLen/61440:totalLen/61440+1);
+                byte[] bytes=FileUtils.fileToBytes(file);
+                String hex =clientId+System.currentTimeMillis();//DigestUtils.md5Hex(bytes);
+                JSONObject object=new JSONObject();
+                object.put("msg",msgType);
+                object.put("name",file.getName());
+                object.put("hex", hex);
+                object.put("total",divide);
+                object.put("length",file.length());
+                for (int i=0;i<divide;i++){
+                    object.put("order",i);
+                    object.put("data", Arrays.copyOfRange(bytes,i*61440,(int)(i==divide-1?file.length():(i+1)*61440)));
+                    sendMessageP2P(object.toJSONString(),targetClientId);
+                }
+            }
+        }).start();
+
+    }
+
+
+
+    public void sendAudioP2P(File file, String targetClientId, int time) {
         if (file.length()<=60*1024){
             JSONObject object=new JSONObject();
-            object.put("msg","p2pFile");
+            object.put("msg","p2pAudio");
             object.put("data",FileUtils.fileToBytes(file));
             object.put("name",file.getName());
             object.put("hex", DigestUtils.md5Hex(FileUtils.fileToBytes(file)));
             object.put("total",1);
             object.put("order",0);
             object.put("length",file.length());
+            object.put("time", time);
             sendMessageP2P(object.toJSONString(),targetClientId);
         }
         else {
@@ -189,18 +243,19 @@ public class MqttByAli {
             byte[] bytes=FileUtils.fileToBytes(file);
             String hex =clientId+System.currentTimeMillis();//DigestUtils.md5Hex(bytes);
             JSONObject object=new JSONObject();
-            object.put("msg","p2pFile");
+            object.put("msg","p2pAudio");
             object.put("name",file.getName());
             object.put("hex", hex);
             object.put("total",divide);
             object.put("length",file.length());
             for (int i=0;i<divide;i++){
-                object.put("data", Arrays.copyOfRange(bytes,i*61440,(int)(i==divide-1?file.length():(i+1)*61440)));
                 object.put("order",i);
+                object.put("data", Arrays.copyOfRange(bytes,i*61440,(int)(i==divide-1?file.length():(i+1)*61440)));
                 sendMessageP2P(object.toJSONString(),targetClientId);
             }
         }
     }
+
 
     //发送好友申请
     public void friendRequest(User user,String targetClientId){
