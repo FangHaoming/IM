@@ -7,4 +7,5 @@
     <color name="navigation_text_selected">#2196F3</color>
     <color name="partTranslucent">#2D000000</color>
     <color name="top_bottom">#F1F3F2</color>
+    <color name="click">#D7CFCBCB</color>
 </resources>

@@ -2,12 +2,15 @@ package com.hrl.chaui;
 
 import android.app.Application;
 
+import com.hrl.chaui.bean.User;
 
-
-import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MyApplication extends Application {
     public static Application		mApplication;
+    public static List<User> contactData=new ArrayList<>();
+    public static List<User> groupData=new ArrayList<>();
 
     @Override
     public void onCreate() {
