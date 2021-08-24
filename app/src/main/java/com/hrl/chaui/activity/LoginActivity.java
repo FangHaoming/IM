@@ -1,12 +1,8 @@
 package com.hrl.chaui.activity;
 
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
@@ -62,6 +58,7 @@ public class LoginActivity extends AppCompatActivity {
             phone.setText(sharedPreferences.getString("user_phone",""));
             pwd.setText(sharedPreferences.getString("user_pwd",""));
             remember.setChecked(true);
+            sendByPost(phone.getText().toString().trim(),pwd.getText().toString().trim());
         }
         //注册按钮
         register.setOnClickListener(new View.OnClickListener() {
@@ -127,14 +124,14 @@ public class LoginActivity extends AppCompatActivity {
                 System.out.println("**********info"+info);
                 switch (Integer.parseInt(json.get("status").toString())){
                     case 2:
-                        Looper.prepare();
-                        Toast.makeText(LoginActivity.this, "登陆成功!", Toast.LENGTH_SHORT).show();
+
                         editor.putString("user_gender", (String) json.get("user_gender"));
-                        editor.putInt("user_id",Integer.parseInt(json.get("user_id").toString()));
+                        editor.putInt("user_id", (int) json.get("user_id"));
                         editor.putString("user_img",(String)json.get("user_img"));
                         editor.putString("user_name",(String)json.get("user_name"));
                         editor.putString("user_phone",(String)json.get("user_phone"));
                         editor.putString("user_sign",(String)json.get("user_sign"));
+                        editor.putString("user_pwd",pwd.getText().toString());
                         editor.apply();
 
                         Intent intent2=new Intent(LoginActivity.this,MqttService.class);
@@ -143,7 +140,6 @@ public class LoginActivity extends AppCompatActivity {
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
                         finish();
-                        Looper.loop();
                         break;
                     case 1:
                         Looper.prepare();

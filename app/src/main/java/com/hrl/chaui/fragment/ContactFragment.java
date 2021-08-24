@@ -2,13 +2,13 @@ package com.hrl.chaui.fragment;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,22 +17,37 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
 import com.hrl.chaui.adapter.ContactAdapter;
 import com.hrl.chaui.bean.User;
 import com.mcxtzhang.indexlib.IndexBar.widget.IndexBar;
 import com.mcxtzhang.indexlib.suspension.SuspensionDecoration;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
+
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+import static com.hrl.chaui.MyApplication.contactData;
+import static com.hrl.chaui.MyApplication.groupData;
 
 public class ContactFragment extends Fragment {
     private RecyclerView mRv;
     private LinearLayoutManager mManager;
-    private List<User> mDatas=new ArrayList<>();
     private SuspensionDecoration mDecoration;
     private ContactAdapter mAdapter;
+    public SharedPreferences recv;
+    public SharedPreferences.Editor editor;
+    public TextView mTvSideBarHint;
+    public IndexBar mIndexBar;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,38 +59,96 @@ public class ContactFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root=inflater.inflate(R.layout.layout_contact,container,false);
-        SharedPreferences sharedPreferences = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        recv = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
+        editor = recv.edit();
+        sendByPost(recv.getInt("user_id",0));
         //使用indexBar
         mRv = (RecyclerView) root.findViewById(R.id.rv);
         mRv.setLayoutManager(mManager = new LinearLayoutManager(getContext()));
-        TextView mTvSideBarHint = (TextView) root.findViewById(R.id.tvSideBarHint);//HintTextView
-        IndexBar mIndexBar = (IndexBar) root.findViewById(R.id.indexBar);//IndexBar
-        mAdapter = new ContactAdapter(getContext(), mDatas);
-        mRv.setAdapter(mAdapter);
-        mRv.addItemDecoration(mDecoration = new SuspensionDecoration(getContext(), mDatas));
-        mRv.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+        mTvSideBarHint = (TextView) root.findViewById(R.id.tvSideBarHint);//HintTextView
+        mIndexBar = (IndexBar) root.findViewById(R.id.indexBar);//IndexBar
+
+        return root;
+    }
+    private void sendByPost(Integer user_id) {
+        JSONObject json=new JSONObject();
+        json.put("user_id",user_id);
+        String path = "http://40f730q296.qicp.vip/userContacts";
+        OkHttpClient client = new OkHttpClient();
+        final FormBody formBody = new FormBody.Builder()
+                .add("json", json.toJSONString())
+                .build();
+        System.out.println("*********"+json.toJSONString());
+        Request request = new Request.Builder()
+                .url(path)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                Looper.prepare();
+                Toast.makeText(getContext(), "服务器连接失败", Toast.LENGTH_SHORT).show();
+                Looper.loop();
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                String info=response.body().string();
+                JSONObject json= JSON.parseObject(info);
+                JSONArray contacts= json.getJSONArray("contacts");
+                contactData=new ArrayList<>();
+                groupData=new ArrayList<>();
+                contactData.add((User) new User("新的朋友").setTop(true).setBaseIndexTag("↑"));
+                contactData.add((User) new User("群聊").setTop(true).setBaseIndexTag("↑"));
+                for(int i=0;i<contacts.size();i++){
+                    JSONObject obj= contacts.getJSONObject(i);
+                    if(obj.getInteger("type")==0){
+                        contactData.add(new User(obj.getInteger("contact_id"),obj.getString("contact_img"),obj.getString("contact_name"),obj.getInteger("type")));
+                    }
+                    else{
+                        groupData.add(new User(obj.getInteger("contact_id"),obj.getString("contact_img"),obj.getString("contact_name"),obj.getInteger("type")));
+
+                    }
+                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAdapter = new ContactAdapter(getContext(), contactData);
+                                mRv.setAdapter(mAdapter);
+                                mRv.addItemDecoration(mDecoration = new SuspensionDecoration(getContext(), contactData));
+                                mRv.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
 
 
-        mIndexBar.setmPressedShowTextView(mTvSideBarHint)//设置HintTextView
-                .setNeedRealIndex(true)//设置需要真实的索引
-                .setmLayoutManager(mManager);//设置RecyclerView的LayoutManager
+                                mIndexBar.setmPressedShowTextView(mTvSideBarHint)//设置HintTextView
+                                        .setNeedRealIndex(true)//设置需要真实的索引
+                                        .setmLayoutManager(mManager);//设置RecyclerView的LayoutManager
 
-        mDatas.add((User) new User("新的朋友").setTop(true).setBaseIndexTag("↑"));
-        mDatas.add((User) new User("群聊").setTop(true).setBaseIndexTag("↑"));
+
+        /*
         String[] data=getContext().getResources().getStringArray(R.array.provinces);
         for (int i = 0; i < data.length; i++) {
             User user = new User();
             user.setName(data[i]);//设置城市名称
             mDatas.add(user);
         }
-        mAdapter.setDatas(mDatas);
-        mAdapter.notifyDataSetChanged();
 
-        mIndexBar.setmSourceDatas(mDatas)//设置数据
-                .invalidate();
-        mDecoration.setmDatas(mDatas);
+         */
+                                mAdapter.setDatas(contactData);
+                                mAdapter.notifyDataSetChanged();
 
-        return root;
+                                mIndexBar.setmSourceDatas(contactData)//设置数据
+                                        .invalidate();
+                                mDecoration.setmDatas(contactData);
+
+                            }
+                        });
+                    }
+                }).start();
+
+            }
+        });
     }
 }
