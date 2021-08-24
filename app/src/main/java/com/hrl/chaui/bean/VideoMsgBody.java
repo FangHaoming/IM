@@ -10,6 +10,8 @@ public class VideoMsgBody extends FileMsgBody{
     //宽度
     private int width;
 
+    // VideoMsgBody 里的Extras 通常存放的是视频的缩略图
+
 
 
 

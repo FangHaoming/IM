@@ -3,6 +3,7 @@ package com.hrl.chaui.adapter;
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ImageView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
@@ -87,6 +88,7 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
                 .registerItemType(TYPE_RECEIVE_AUDIO, RECEIVE_AUDIO);
     }
 
+
     @Override
     protected void convert(BaseViewHolder helper, Message item) {
         setContent(helper, item);
@@ -127,8 +129,6 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
 
             }
         }
-
-
     }
 
         private void setContent(BaseViewHolder helper, Message item) {
@@ -148,8 +148,9 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
                             }
                         }
                 }else if(item.getMsgType().equals(MsgType.VIDEO)){
+                    Log.e("chattest", "item:" + item + "  msgBody:" + item.getBody() + "  msgBody.getExtra:" + ((VideoMsgBody)item.getBody()).getExtra());
                     VideoMsgBody msgBody = (VideoMsgBody) item.getBody();
-                    File file = new File(msgBody.getExtra());
+                    File file = new File(msgBody.getExtra()); // 获取缩略图
                     if (file.exists()) {
                         GlideUtils.loadChatImage(mContext,msgBody.getExtra(),(ImageView) helper.getView(R.id.bivPic));
                     }else {
@@ -167,10 +168,18 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
 
 
 
-    private void setOnClick(BaseViewHolder helper, Message item) {
+    private void setOnClick(BaseViewHolder helper, Message item) { // 点击事件
         MsgBody msgContent = item.getBody();
         if (msgContent instanceof AudioMsgBody){
             helper.addOnClickListener(R.id.rlAudio);
+        } else if (msgContent instanceof TextMsgBody) {
+            helper.addOnClickListener(R.id.chat_item_content_text);
+        } else if (msgContent instanceof ImageMsgBody) {
+            helper.addOnClickListener(R.id.bivPic);
+        } else if (msgContent instanceof VideoMsgBody) {
+            helper.addOnClickListener(R.id.ivPlay);
+        } else if (msgContent instanceof FileMsgBody) {
+            helper.addOnClickListener(R.id.rc_msg_iv_file_type_image);
         }
     }
 

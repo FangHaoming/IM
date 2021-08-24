@@ -9,6 +9,8 @@ import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 
+import java.util.regex.Pattern;
+
 /**
  * TODO
  *
@@ -124,9 +126,13 @@ public class PictureFileUtil {
         new MaterialFilePicker()
                 .withActivity(mContext)
                 .withRequestCode(requestCode)
-                //       .withFilter(Pattern.compile(".*\\.txt$")) // Filtering files and directories by file name using regexp
+//                .withFilter(Pattern.compile(".*\\.txt$")) // Filtering files and directories by file name using regexp
+                .withFilter(Pattern.compile(".*\\.(jpg|jpeg)$")) // 只过滤 .jpg/.jpeg文件
                 .withFilterDirectories(true) // Set directories filterable (false by default)
                 .withHiddenFiles(true) // Show hidden files and folders
                 .start();
     }
+
+
+
 }

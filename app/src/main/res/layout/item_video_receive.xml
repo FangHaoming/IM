@@ -53,7 +53,7 @@
                 android:scaleType="centerCrop"
                 app:angle="6dp"
                 app:arrowHeight="8dp"
-                 app:arrowLocation="left"
+                app:arrowLocation="left"
                 app:arrowPosition="15dp"
                 app:arrowWidth="5dp" />
 

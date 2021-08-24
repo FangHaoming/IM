@@ -1,20 +1,13 @@
 package com.hrl.chaui.activity;
 
 import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -49,7 +42,6 @@ import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.util.ChatUiHelper;
 import com.hrl.chaui.util.FileUtils;
 import com.hrl.chaui.util.MqttByAli;
-import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
@@ -61,7 +53,6 @@ import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -115,12 +106,12 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     // mqtt相关配置。
     //AVD
-    private String targetClientID = "GID_test@@@10086";
-    private String userClientID = "GID_test@@@10000";
+//    private String targetClientID = "GID_test@@@10086";
+//    private String userClientID = "GID_test@@@10000";
 
     // realme
-//    private String userClientID = "GID_test@@@10086";
-//    private String targetClientID = "GID_test@@@10000";
+    private String userClientID = "GID_test@@@10086";
+    private String targetClientID = "GID_test@@@10000";
 
     private String topic = "testtopic";
     private final String TAG = "chatTest";
@@ -140,17 +131,13 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         permissions.add(Manifest.permission.INTERNET);
 
 
-        int check = 1;
 
         for (String s : permissions) { // 请求权限
             if (ContextCompat.checkSelfPermission(this, s) != PackageManager.PERMISSION_GRANTED) {
-                check = 0;
                 ActivityCompat.requestPermissions(this, new String[]{s}, 1);
             }
         }
-        if (check == 0) {
-            finish();
-        }
+
 
         // 初始化mqtt相关组件
         try {
@@ -171,6 +158,12 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
 
+    @Override
+    protected void onDestroy() {
+        Log.e(TAG, "ChatActivity Destory!!");
+        super.onDestroy();
+    }
+
     private ImageView ivAudio;
 
     protected void initContent() {
@@ -182,44 +175,108 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         mSwipeRefresh.setOnRefreshListener(this);
         initChatUi();
 
-        mAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() { // RecyclerView
+        ChatActivity chatActivity = this;
+        mAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() { // RecyclerView Item 点击事件
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) { // 播放音频、视频
 
                 Toast.makeText(ChatActivity.this, "ItemClick & position" + position, Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "view:" + view);
 
-                final boolean isSend = mAdapter.getItem(position).getSenderId().equals(ChatActivity.mSenderId);
-                if (ivAudio != null) {
-                    if (isSend) {
-                        ivAudio.setBackgroundResource(R.mipmap.audio_animation_list_right_3);
-                    } else {
-                        ivAudio.setBackgroundResource(R.mipmap.audio_animation_list_left_3);
-                    }
-                    ivAudio = null;
-                    MediaManager.reset();
-                } else {
-                    ivAudio = view.findViewById(R.id.ivAudio);
-                    MediaManager.reset();
-                    if (isSend) {
-                        ivAudio.setBackgroundResource(R.drawable.audio_animation_right_list);
-                    } else {
-                        ivAudio.setBackgroundResource(R.drawable.audio_animation_left_list);
-                    }
-                    AnimationDrawable drawable = (AnimationDrawable) ivAudio.getBackground();
-                    drawable.start();
-                    MediaManager.playSound(ChatActivity.this, ((AudioMsgBody) mAdapter.getData().get(position).getBody()).getLocalPath(), new MediaPlayer.OnCompletionListener() {
-                        @Override
-                        public void onCompletion(MediaPlayer mp) {
+
+                switch(view.getId()) {
+                    case R.id.rlAudio: {
+                        // Audio Item的点击事件
+                        // 播放音频
+                        final boolean isSend = mAdapter.getItem(position).getSenderId().equals(ChatActivity.mSenderId);
+                        if (ivAudio != null) {
                             if (isSend) {
                                 ivAudio.setBackgroundResource(R.mipmap.audio_animation_list_right_3);
                             } else {
                                 ivAudio.setBackgroundResource(R.mipmap.audio_animation_list_left_3);
                             }
+                            ivAudio = null;
+                            MediaManager.reset();
+                        } else {
+                            ivAudio = view.findViewById(R.id.ivAudio);
+                            MediaManager.reset();
+                            if (isSend) {
+                                ivAudio.setBackgroundResource(R.drawable.audio_animation_right_list);
+                            } else {
+                                ivAudio.setBackgroundResource(R.drawable.audio_animation_left_list);
+                            }
+                            AnimationDrawable drawable = (AnimationDrawable) ivAudio.getBackground();
+                            drawable.start();
+                            MediaManager.playSound(ChatActivity.this, ((AudioMsgBody) mAdapter.getData().get(position).getBody()).getLocalPath(), new MediaPlayer.OnCompletionListener() {
+                                @Override
+                                public void onCompletion(MediaPlayer mp) {
+                                    if (isSend) {
+                                        ivAudio.setBackgroundResource(R.mipmap.audio_animation_list_right_3);
+                                    } else {
+                                        ivAudio.setBackgroundResource(R.mipmap.audio_animation_list_left_3);
+                                    }
 
-                            MediaManager.release();
+                                    MediaManager.release();
+                                }
+                            });
                         }
-                    });
+                        break;
+                    }
+
+                    case R.id.chat_item_content_text: {
+                        // 点击文本item ，全屏显示该文本
+                        Message msg = mAdapter.getItem(position);
+                        TextMsgBody textMsgBody = (TextMsgBody) msg.getBody();
+                        Intent intent = new Intent(chatActivity, ItemShowActivity.class);
+                        intent.putExtra("msgType", "text");
+                        intent.putExtra("textMsg", textMsgBody.getMessage());
+                        startActivity(intent);
+                        break;
+                    }
+
+                    case R.id.bivPic: {
+                        // 点击图片item，全屏显示
+                        Message msg = mAdapter.getItem(position);
+                        ImageMsgBody imageMsgBody = (ImageMsgBody) msg.getBody();
+                        Intent intent = new Intent(chatActivity, ItemShowActivity.class);
+                        intent.putExtra("msgType", "image");
+                        intent.putExtra("imagePath", imageMsgBody.getThumbUrl());
+                        startActivity(intent);
+                        break;
+                    }
+
+                    case R.id.ivPlay: {
+                        // 视频的点击事件
+                        Message videoMsg = mAdapter.getItem(position);
+                        VideoMsgBody videoMsgBody = (VideoMsgBody) videoMsg.getBody();
+                        String videoPath = videoMsgBody.getLocalPath();
+                        Intent intent = new Intent(chatActivity, ItemShowActivity.class);
+                        intent.putExtra("msgType", "video");
+                        intent.putExtra("videoPath", videoPath);
+                        startActivity(intent);
+                        break;
+                    }
+
+                    case R.id.rc_msg_iv_file_type_image: {
+                        // 文件的点击事件
+                        Message fileMsg = mAdapter.getItem(position);
+                        FileMsgBody fileMsgBody = (FileMsgBody) fileMsg.getBody();
+                        String filePath = fileMsgBody.getLocalPath();
+                        Intent intent = new Intent(chatActivity, ItemShowActivity.class);
+                        intent.putExtra("msgType", "file");
+                        intent.putExtra("filePath", filePath);
+                        startActivity(intent);
+                        break;
+                    }
+
                 }
+
+
+
+
+
+
+
             }
         });
 
@@ -337,8 +394,9 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
 
+    // 接收onViewClicked中的PictureFileUtil方法回调。
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) { // 下个Activity返回的结果
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
@@ -391,6 +449,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         final Message mMessgae = getBaseSendMessage(MsgType.IMAGE);
         ImageMsgBody mImageMsgBody = new ImageMsgBody();
         mImageMsgBody.setThumbUrl(media.getCompressPath()); // 显示压缩图
+        mImageMsgBody.setLocalPath(media.getPath()); // 本地图片
         mMessgae.setBody(mImageMsgBody);
         //开始发送
         mAdapter.addData(mMessgae);
@@ -408,9 +467,9 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     private void sendVedioMessage(final LocalMedia media) {
         final Message mMessgae = getBaseSendMessage(MsgType.VIDEO);
         //生成缩略图路径
-        String vedeoPath = media.getPath();
+        String videoPath = media.getPath();
         MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-        mediaMetadataRetriever.setDataSource(vedeoPath);
+        mediaMetadataRetriever.setDataSource(videoPath);
         Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime();
         String imgname = System.currentTimeMillis() + ".jpg";
 //        String urlpath = Environment.getExternalStorageDirectory() + "/" + imgname;
@@ -431,6 +490,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
         VideoMsgBody mImageMsgBody = new VideoMsgBody();
         mImageMsgBody.setExtra(urlpath);
+        mImageMsgBody.setLocalPath(videoPath);
         mMessgae.setBody(mImageMsgBody);
         //开始发送
         mAdapter.addData(mMessgae);
@@ -439,7 +499,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         updateMsg(mMessgae);
 
         // mqtt 发送
-        File file = new File(vedeoPath);
+        File file = new File(videoPath);
         mqtt.sendFileP2P(file, targetClientID, "p2pVideo");
 
     }
@@ -561,7 +621,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                         runOnUiThread(() -> {
                             List<Message> mReceiveMsgList = new ArrayList<Message>();
                             Message mMessgaeImage = getBaseReceiveMessage(MsgType.IMAGE);
-                            ImageMsgBody mImageMsgBody = new ImageMsgBody(null, finalFile.getPath(), false);
+                            ImageMsgBody mImageMsgBody = ImageMsgBody.obtain(finalFile.getPath(), finalFile.getPath(), true);
                             mMessgaeImage.setBody(mImageMsgBody);
                             mReceiveMsgList.add(mMessgaeImage);
                             mAdapter.addData(mReceiveMsgList);
@@ -577,6 +637,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                             FileMsgBody mFileMsgBody = new FileMsgBody();
                             mFileMsgBody.setDisplayName(file.getName());
                             mFileMsgBody.setSize(file.length());
+                            mFileMsgBody.setLocalPath(file.getPath());
                             mMessgaeFile.setBody(mFileMsgBody);
                             mAdapter.addData(mMessgaeFile);
                         });
@@ -593,6 +654,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                             VideoMsgBody videoMsgBody = new VideoMsgBody();
                             videoMsgBody.setDisplayName(fileVideo.getName());
                             videoMsgBody.setSize(fileVideo.length());
+                            videoMsgBody.setLocalPath(fileVideo.getPath());
 
                             // 获取缩略图
                             MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();

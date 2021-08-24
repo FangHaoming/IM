@@ -13,12 +13,6 @@ public class ImageMsgBody extends FileMsgBody{
     //宽度
     private int width;
 
-
-
-
-
-
-
     public String getThumbPath() {
         return thumbPath;
     }
