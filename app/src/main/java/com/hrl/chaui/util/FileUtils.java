@@ -73,6 +73,7 @@ public final class FileUtils {
         }
         return buffer;
     }
+
     public static File bytesToFile(byte[] bfile, String filePath, String fileName){
         BufferedOutputStream bos = null;
         FileOutputStream fos = null;
@@ -90,6 +91,33 @@ public final class FileUtils {
                 file = new File(filePath,newName);
             }
             fos = new FileOutputStream(file);
+            bos = new BufferedOutputStream(fos);
+            bos.write(bfile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (bos != null) {
+                try {
+                    bos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return file;
+    }
+
+    public static File bytesToFile(byte[] bfile, FileOutputStream fos, String fileName) {
+        BufferedOutputStream bos = null;
+        File file = null;
+        try {
             bos = new BufferedOutputStream(fos);
             bos.write(bfile);
         } catch (Exception e) {

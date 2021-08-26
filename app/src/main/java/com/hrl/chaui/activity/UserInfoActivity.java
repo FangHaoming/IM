@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -75,17 +76,26 @@ public class UserInfoActivity extends AppCompatActivity {
         Bundle bundle = intent.getExtras();
         int friend_id=bundle.getInt("friend_id");
         sendByPost(recv.getInt("user_id",0),friend_id);
+        UserInfoActivity userInfoActivity = this;
 
         View.OnClickListener listener=new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 switch(v.getId()){
                     case R.id.setNote:
-
                         break;
                     case R.id.delete:
                         break;
                     case R.id.send_message:
+                        Intent chatIntent = new Intent(userInfoActivity, ChatActivity.class);
+                        chatIntent.putExtra("user_id", user.getId());
+                        chatIntent.putExtra("user_name", user.getName());
+                        chatIntent.putExtra("user_gender", user.getGender());
+                        chatIntent.putExtra("user_phone", user.getPhone());
+                        chatIntent.putExtra("user_sign", user.getSign());
+                        chatIntent.putExtra("user_img", user.getImg());
+                        chatIntent.putExtra("friend_note", user.getNote());
+                        startActivity(chatIntent);
                         break;
                     case R.id.send_call:
                         break;

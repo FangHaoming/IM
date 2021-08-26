@@ -36,6 +36,8 @@ public class MessageFragment extends Fragment {
         View root=inflater.inflate(R.layout.layout_message,container,false);
         SharedPreferences sharedPreferences = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
+        int user_id = sharedPreferences.getInt("user_id", -1);
+
         recyclerView=root.findViewById(R.id.recyclerView);
         list=new ArrayList<>();
 
@@ -52,6 +54,7 @@ public class MessageFragment extends Fragment {
         adapter=new MessageAdapter(getContext(),list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
+
         return root;
     }
 }

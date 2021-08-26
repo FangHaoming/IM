@@ -1,13 +1,20 @@
 package com.hrl.chaui.activity;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -25,11 +33,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.alibaba.fastjson.JSONObject;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.hrl.chaui.adapter.ChatAdapter;
 import com.hrl.chaui.bean.MsgType;
-import com.hrl.chaui.util.FileCache;
+import com.hrl.chaui.bean.User;
+import com.hrl.chaui.dao.imp.MessageDaoImp;
 import com.hrl.chaui.util.LogUtil;
 import com.hrl.chaui.bean.Message;
 import com.hrl.chaui.R;
@@ -42,6 +50,7 @@ import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.util.ChatUiHelper;
 import com.hrl.chaui.util.FileUtils;
 import com.hrl.chaui.util.MqttByAli;
+import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
@@ -51,17 +60,11 @@ import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-
 import java.io.File;
 import java.io.FileOutputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -98,29 +101,45 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     SwipeRefreshLayout mSwipeRefresh;//下拉刷新
 
     private ChatAdapter mAdapter;
-    public static final String mSenderId = "right";
-    public static final String mTargetId = "left";
     public static final int REQUEST_CODE_IMAGE = 0000;
     public static final int REQUEST_CODE_VEDIO = 1111;
     public static final int REQUEST_CODE_FILE = 2222;
 
-    // mqtt相关配置。
-    //AVD
-//    private String targetClientID = "GID_test@@@10086";
-//    private String userClientID = "GID_test@@@10000";
+    private String targetClientID =  null;
+    private String userClientID = null;
 
-    // realme
-    private String userClientID = "GID_test@@@10086";
-    private String targetClientID = "GID_test@@@10000";
-
-    private String topic = "testtopic";
     private final String TAG = "chatTest";
-    private MqttByAli mqtt;
+    private MqttByAli mqtt = null;
+
+    private User targetUser = null; // 聊天的对象
+    private User srcUser = null;    // 登录用户
+
+    private MessageReceiver messageReceiver = null; // 接收message arrive 广播
+    private MessageDaoImp messageDaoImp = MessageDaoImp.getInstance();
+
+    // 和Service的连接。
+    MqttServiceConnection connection = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+//        // 获取登录用户信息
+        srcUser = new User();
+        SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
+        srcUser.setName(sharedPreferences.getString("user_name", "unknowed"));
+        srcUser.setGender(sharedPreferences.getString("user_gender", "unknowed"));
+        srcUser.setPhone(sharedPreferences.getString("user_phone", "unknowed"));
+        srcUser.setSign(sharedPreferences.getString("user_sign", "unknowed"));
+        srcUser.setImg(sharedPreferences.getString("user_img", "unknowed"));
+        srcUser.setId(sharedPreferences.getInt("user_id", -1));
+        srcUser.setNote(sharedPreferences.getString("friend_note", "unknowed"));
+        userClientID = "GID_test@@@" + srcUser.getId();
+        Log.e(TAG, "srcUser:" + srcUser.toString());
+
+        Log.e(TAG, "chatActivity onCreate()" +  "  userClientID:" + userClientID);
+
+
 
         // 权限请求
         ArrayList<String> permissions = new ArrayList<>();
@@ -130,8 +149,6 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         permissions.add(Manifest.permission.INTERNET);
 
-
-
         for (String s : permissions) { // 请求权限
             if (ContextCompat.checkSelfPermission(this, s) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{s}, 1);
@@ -139,28 +156,87 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
 
 
-        // 初始化mqtt相关组件
-        try {
-            mqtt = new MqttByAli(userClientID, topic, new MyMqttCallBack());
-        } catch (InvalidKeyException e) {
-            Log.e(TAG, "InvalidKeyException");
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            Log.e(TAG, "NoSuchAlgorithmException");
-            e.printStackTrace();
-        } catch (MqttException e) {
-            Log.e(TAG, "MqttException" + e.toString());
-            e.printStackTrace();
-        }
+        // Service可能会被系统回收，同时使用startService 和 bindService 以防 Service被销毁
+        Intent mqttServiceIntent = new Intent(this, MqttService.class);
+        startService(mqttServiceIntent);
+        connection = new MqttServiceConnection();
+        // 绑定MqttService 获取 MqttByAli对象
+        bindService(mqttServiceIntent, connection, Context.BIND_AUTO_CREATE);
 
+
+        // 动态注册 MessageReceiver 广播接收器
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(MqttService.MESSAGEARRIVEACTION);
+        messageReceiver = new MessageReceiver();
+        registerReceiver(messageReceiver, intentFilter);
 
         initContent();
     }
 
 
     @Override
+    public void onResume() {
+        // 准备好交互时调用
+
+        // 获取通信对方的信息
+        Intent intent = getIntent();
+        targetUser = new User();
+        targetUser.setName(intent.getStringExtra("user_name"));
+        targetUser.setGender(intent.getStringExtra("user_gender"));
+        targetUser.setPhone(intent.getStringExtra("user_phone"));
+        targetUser.setSign(intent.getStringExtra("user_sign"));
+        targetUser.setImg(intent.getStringExtra("user_img"));
+        targetUser.setId(intent.getIntExtra("user_id", -1));
+        targetUser.setNote(intent.getStringExtra("friend_note"));
+
+        Log.e(TAG, "ChatActivity onResume()" + "  targetUser:" + targetUser.getName());
+
+//         设置名称
+        targetClientID = "GID_test@@@" + targetUser.getId();
+        TextView textView =(TextView) findViewById(R.id.common_toolbar_title);
+        textView.setText(targetUser.getName());
+
+        // 获取通信记录并显示
+        try {
+            int uncheckedNums =  messageDaoImp.queryUncheckMessageNums(this, userClientID, targetClientID);
+            uncheckedNums = uncheckedNums <= 10 ? 10 : uncheckedNums; // 最少10条
+            List<Message> messageList =  messageDaoImp.queryMessage(this, userClientID, targetClientID, uncheckedNums);
+
+            // 更新数据库消息状态为已查询
+            String[] uuids = new String[messageList.size()];
+            for (int i = 0; i < messageList.size(); i++) {
+                uuids[i] = messageList.get(i).getUuid();
+            }
+            messageDaoImp.checkMessage(this, uuids);
+
+            // 时间大的在后面（新到的消息在最后面）
+            Collections.reverse(messageList);
+            // 显示在显示屏上
+            mAdapter.addData(messageList);
+            // 位置滑到最新消息
+            mRvChat.scrollToPosition(mAdapter.getItemCount()-1);
+
+        } catch (IOException e) {
+            Log.e(TAG,"messageDao query 出错了！！");
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            Log.e(TAG,"messageDao query 出错了！！");
+            e.printStackTrace();
+        }
+
+        super.onResume();
+    }
+
+
+    @Override
     protected void onDestroy() {
         Log.e(TAG, "ChatActivity Destory!!");
+
+        //注销 动态注册的Receiver
+        unregisterReceiver(messageReceiver);
+
+        // 解绑
+        unbindService(connection);
         super.onDestroy();
     }
 
@@ -176,19 +252,23 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         initChatUi();
 
         ChatActivity chatActivity = this;
+
+        // 聊天框消息点击事件
         mAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() { // RecyclerView Item 点击事件
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) { // 播放音频、视频
 
-                Toast.makeText(ChatActivity.this, "ItemClick & position" + position, Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "view:" + view);
+                // 获取点击的Item
+                Message msg = mAdapter.getItem(position);
 
+                // 跳转去 ItemShowActivity
+                Intent intent = new Intent(chatActivity, ItemShowActivity.class);
 
                 switch(view.getId()) {
                     case R.id.rlAudio: {
                         // Audio Item的点击事件
                         // 播放音频
-                        final boolean isSend = mAdapter.getItem(position).getSenderId().equals(ChatActivity.mSenderId);
+                        final boolean isSend = mAdapter.getItem(position).getSenderId().equals(userClientID);
                         if (ivAudio != null) {
                             if (isSend) {
                                 ivAudio.setBackgroundResource(R.mipmap.audio_animation_list_right_3);
@@ -222,92 +302,45 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                         }
                         break;
                     }
-
                     case R.id.chat_item_content_text: {
                         // 点击文本item ，全屏显示该文本
-                        Message msg = mAdapter.getItem(position);
                         TextMsgBody textMsgBody = (TextMsgBody) msg.getBody();
-                        Intent intent = new Intent(chatActivity, ItemShowActivity.class);
                         intent.putExtra("msgType", "text");
                         intent.putExtra("textMsg", textMsgBody.getMessage());
                         startActivity(intent);
                         break;
                     }
-
                     case R.id.bivPic: {
                         // 点击图片item，全屏显示
-                        Message msg = mAdapter.getItem(position);
                         ImageMsgBody imageMsgBody = (ImageMsgBody) msg.getBody();
-                        Intent intent = new Intent(chatActivity, ItemShowActivity.class);
                         intent.putExtra("msgType", "image");
                         intent.putExtra("imagePath", imageMsgBody.getThumbUrl());
                         startActivity(intent);
                         break;
                     }
-
                     case R.id.ivPlay: {
                         // 视频的点击事件
-                        Message videoMsg = mAdapter.getItem(position);
-                        VideoMsgBody videoMsgBody = (VideoMsgBody) videoMsg.getBody();
+                        VideoMsgBody videoMsgBody = (VideoMsgBody) msg.getBody();
                         String videoPath = videoMsgBody.getLocalPath();
-                        Intent intent = new Intent(chatActivity, ItemShowActivity.class);
                         intent.putExtra("msgType", "video");
                         intent.putExtra("videoPath", videoPath);
                         startActivity(intent);
                         break;
                     }
-
                     case R.id.rc_msg_iv_file_type_image: {
                         // 文件的点击事件
-                        Message fileMsg = mAdapter.getItem(position);
-                        FileMsgBody fileMsgBody = (FileMsgBody) fileMsg.getBody();
+                        FileMsgBody fileMsgBody = (FileMsgBody) msg.getBody();
                         String filePath = fileMsgBody.getLocalPath();
-                        Intent intent = new Intent(chatActivity, ItemShowActivity.class);
                         intent.putExtra("msgType", "file");
                         intent.putExtra("filePath", filePath);
                         startActivity(intent);
                         break;
                     }
-
                 }
-
-
-
-
-
-
 
             }
         });
 
-    }
-
-
-    @Override
-    public void onRefresh() {
-        //下拉刷新模拟获取历史消息
-        List<Message> mReceiveMsgList = new ArrayList<Message>();
-        //构建文本消息
-        Message mMessgaeText = getBaseReceiveMessage(MsgType.TEXT);
-        TextMsgBody mTextMsgBody = new TextMsgBody();
-        mTextMsgBody.setMessage("收到的消息");
-        mMessgaeText.setBody(mTextMsgBody);
-        mReceiveMsgList.add(mMessgaeText);
-        //构建图片消息
-        Message mMessgaeImage = getBaseReceiveMessage(MsgType.IMAGE);
-        ImageMsgBody mImageMsgBody = new ImageMsgBody();
-        mImageMsgBody.setThumbUrl("https://c-ssl.duitang.com/uploads/item/201208/30/20120830173930_PBfJE.thumb.700_0.jpeg");
-        mMessgaeImage.setBody(mImageMsgBody);
-        mReceiveMsgList.add(mMessgaeImage);
-        //构建文件消息
-        Message mMessgaeFile = getBaseReceiveMessage(MsgType.FILE);
-        FileMsgBody mFileMsgBody = new FileMsgBody();
-        mFileMsgBody.setDisplayName("收到的文件");
-        mFileMsgBody.setSize(12);
-        mMessgaeFile.setBody(mFileMsgBody);
-        mReceiveMsgList.add(mMessgaeFile);
-        mAdapter.addData(0, mReceiveMsgList);
-        mSwipeRefresh.setRefreshing(false);
     }
 
 
@@ -369,6 +402,61 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     }
 
+
+    // 聊天框上滑查看历史记录
+    @Override
+    public void onRefresh() {
+        //下拉刷新模拟获取历史消息
+
+        // 获取最上面的item
+        if (mAdapter.getItemCount() > 0) {
+            // 聊天框内有元素
+            Message topItem = mAdapter.getItem(0);
+            long sendTime = topItem.getSentTime();
+            try {
+                List<Message> historyMessage = messageDaoImp.queryMessage(this, userClientID, targetClientID, 10, sendTime);
+                if (historyMessage.size() == 0) {
+                    Toast.makeText(this, "没有历史记录", Toast.LENGTH_SHORT).show();
+                } else {
+                    Collections.reverse(historyMessage);
+                    // 消息插入到最前面
+                    mAdapter.addData(0, historyMessage);
+                    mRvChat.scrollToPosition(historyMessage.size()-1);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            // 聊天框内没有元素
+            try {
+                List<Message> historyMessage = messageDaoImp.queryMessage(this, userClientID, targetClientID, 10);
+                if (historyMessage.size() == 0) {
+                    Toast.makeText(this, "没有历史记录", Toast.LENGTH_SHORT).show();
+                } else {
+                    Collections.reverse(historyMessage);
+                    // 消息插入到最前面
+                    mAdapter.addData(0, historyMessage);
+                    mRvChat.scrollToPosition(historyMessage.size()-1);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+
+
+
+        mSwipeRefresh.setRefreshing(false);
+    }
+
+
+    // 点击 ”相册“、”图片“、”视频“、”文件“、”位置“、”通话“ 后触发的点击事件。
     @OnClick({R.id.btn_send, R.id.rlPhoto, R.id.rlVideo, R.id.rlLocation, R.id.rlFile, R.id.rlPhone})
     public void onViewClicked(View view) {
         switch (view.getId()) {
@@ -394,7 +482,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
 
-    // 接收onViewClicked中的PictureFileUtil方法回调。
+    // 接收onViewClicked中的PictureFileUtil方法回调。(即获取图片、视频、文件选择Activity的选择结果)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -403,7 +491,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 case REQUEST_CODE_FILE:
                     String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
                     LogUtil.d("获取到的文件路径:" + filePath);
-                    sendFileMessage(mSenderId, mTargetId, filePath);
+                    sendFileMessage(userClientID, targetClientID, filePath);
                     break;
                 case REQUEST_CODE_IMAGE:
                     // 图片选择结果回调
@@ -427,7 +515,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
 
     //文本消息
-    private void sendTextMsg(String hello) {
+    private void sendTextMsg(String hello)  {
         final Message mMessgae = getBaseSendMessage(MsgType.TEXT);
         TextMsgBody mTextMsgBody = new TextMsgBody();
         mTextMsgBody.setMessage(hello);
@@ -437,12 +525,20 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         //更新在聊天框内
         updateMsg(mMessgae);
 
+        // 将message存储数据库
+        try {
+            messageDaoImp.insertMessage(this, mMessgae);
+        } catch (IOException e) {
+            Log.e(TAG, "text message insert err, message:" + mMessgae);
+            e.printStackTrace();
+        }
+
+
         // 通过mqtt发送
         Log.e(TAG, "sendTextMsg:" + hello + " targerClientID:" + targetClientID);
         mqtt.sendTextP2P(hello, targetClientID);
 
     }
-
 
     //图片消息
     private void sendImageMessage(final LocalMedia media) {
@@ -456,12 +552,19 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         //显示在聊天框中
         updateMsg(mMessgae);
 
+        // 将message存储数据库
+        try {
+            messageDaoImp.insertMessage(this, mMessgae);
+        } catch (IOException e) {
+            Log.e(TAG, "image message insert err, message:" + mMessgae);
+            e.printStackTrace();
+        }
+
         // 通过 mqtt 发送图片文件
         File file = new File(media.getPath());
         mqtt.sendFileP2P(file, targetClientID, "p2pImage");
 
     }
-
 
     //视频消息
     private void sendVedioMessage(final LocalMedia media) {
@@ -498,6 +601,14 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         //更新item
         updateMsg(mMessgae);
 
+        // 将message存储数据库
+        try {
+            messageDaoImp.insertMessage(this, mMessgae);
+        } catch (IOException e) {
+            Log.e(TAG, "text message insert err, message:" + mMessgae);
+            e.printStackTrace();
+        }
+
         // mqtt 发送
         File file = new File(videoPath);
         mqtt.sendFileP2P(file, targetClientID, "p2pVideo");
@@ -517,6 +628,14 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         // 发送
         updateMsg(mMessgae);
 
+        // 将message存储数据库
+        try {
+            messageDaoImp.insertMessage(this, mMessgae);
+        } catch (IOException e) {
+            Log.e(TAG, "text message insert err, message:" + mMessgae);
+            e.printStackTrace();
+        }
+
         File file = new File(path);
         mqtt.sendFileP2P(file, targetClientID, "p2pFile");
 
@@ -534,19 +653,30 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         //模拟两秒后发送成功
         updateMsg(mMessgae);
 
+        // 将message存储数据库
+        try {
+            messageDaoImp.insertMessage(this, mMessgae);
+        } catch (IOException e) {
+            Log.e(TAG, "text message insert err, message:" + mMessgae);
+            e.printStackTrace();
+        }
+
         File file = new File(path);
         mqtt.sendAudioP2P(file, targetClientID, time);
     }
 
 
+    // 设置发送的Message的基本信息
     private Message getBaseSendMessage(MsgType msgType) {
         Message mMessgae = new Message();
         mMessgae.setUuid(UUID.randomUUID() + "");
-        mMessgae.setSenderId(mSenderId);
-        mMessgae.setTargetId(mTargetId);
+        mMessgae.setSenderId(userClientID);
+        mMessgae.setTargetId(targetClientID);
         mMessgae.setSentTime(System.currentTimeMillis());
         mMessgae.setSentStatus(MsgSendStatus.SENDING);
         mMessgae.setMsgType(msgType);
+        mMessgae.setCheck(true);
+        mMessgae.setMsgId(null);
         return mMessgae;
     }
 
@@ -554,8 +684,8 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     private Message getBaseReceiveMessage(MsgType msgType) {
         Message mMessgae = new Message();
         mMessgae.setUuid(UUID.randomUUID() + "");
-        mMessgae.setSenderId(mTargetId);
-        mMessgae.setTargetId(mSenderId);
+        mMessgae.setSenderId(targetClientID);
+        mMessgae.setTargetId(userClientID);
         mMessgae.setSentTime(System.currentTimeMillis());
         mMessgae.setSentStatus(MsgSendStatus.SENDING);
         mMessgae.setMsgType(msgType);
@@ -579,167 +709,43 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
 
-    class MyMqttCallBack implements MqttCallbackExtended {
+    private class MqttServiceConnection implements ServiceConnection {
 
         @Override
-        public void connectComplete(boolean reconnect, String serverURI) {
-            Log.e(TAG, "connectComplete" + "  reconnect:" + reconnect + "  serverURI:" + serverURI);
-        }
-
-        @Override
-        public void connectionLost(Throwable cause) {
-            Log.e(TAG, "connectionLost" + "  Throwable:" + cause);
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MqttService.LocalBinder localBinder = (MqttService.LocalBinder) service;
+            mqtt = localBinder.getService().getMqtt();
         }
 
         @Override
-        public void messageArrived(String topic, MqttMessage message) throws Exception {
-            Log.e(TAG, "messageArrived" + "  topic:" + topic + " MqttMessage:" + message);
-            String payloadString = new String(message.getPayload());
-            JSONObject object = JSONObject.parseObject(payloadString);
-            String msg = object.getString("msg");
-            Log.e(TAG, "messageArrived:" + msg);
-            switch (msg) {
-                case "p2pText": // 已经完成
-                    byte[] dataText = object.getBytes("data");
-                    String text = new String(dataText); // 该文本就是私聊文本消息
-                    runOnUiThread(() -> { // 显示在聊天框内
-                        Message messageText = getBaseReceiveMessage(MsgType.TEXT);
-                        TextMsgBody textMsgBody = new TextMsgBody();
-                        textMsgBody.setMessage(text);
-                        messageText.setBody(textMsgBody);
-                        mAdapter.addData(messageText);
-                    });
-                    break;
-
-                case "p2pImage":
-                    File fileImage = receiveFile(object);
-
-                    if (fileImage != null) { // 接收完成，就显示在文件中
-                        Log.e("chattest", fileImage.getName() + " : " + fileImage.getPath());
-                        // 更新在聊天框中
-                        File finalFile = fileImage;
-                        runOnUiThread(() -> {
-                            List<Message> mReceiveMsgList = new ArrayList<Message>();
-                            Message mMessgaeImage = getBaseReceiveMessage(MsgType.IMAGE);
-                            ImageMsgBody mImageMsgBody = ImageMsgBody.obtain(finalFile.getPath(), finalFile.getPath(), true);
-                            mMessgaeImage.setBody(mImageMsgBody);
-                            mReceiveMsgList.add(mMessgaeImage);
-                            mAdapter.addData(mReceiveMsgList);
-                        });
-                    }
-                    break;
-
-                case "p2pFile":
-                    File file = receiveFile(object);
-                    if (file != null) {
-                        runOnUiThread(()->{
-                            Message mMessgaeFile = getBaseReceiveMessage(MsgType.FILE);
-                            FileMsgBody mFileMsgBody = new FileMsgBody();
-                            mFileMsgBody.setDisplayName(file.getName());
-                            mFileMsgBody.setSize(file.length());
-                            mFileMsgBody.setLocalPath(file.getPath());
-                            mMessgaeFile.setBody(mFileMsgBody);
-                            mAdapter.addData(mMessgaeFile);
-                        });
-                    }
-
-                    break;
-
-                case "p2pVideo":
-
-                    File fileVideo = receiveFile(object);
-                    if (fileVideo != null) {
-                        runOnUiThread(()-> {
-                            Message mMessageFile = getBaseReceiveMessage(MsgType.VIDEO);
-                            VideoMsgBody videoMsgBody = new VideoMsgBody();
-                            videoMsgBody.setDisplayName(fileVideo.getName());
-                            videoMsgBody.setSize(fileVideo.length());
-                            videoMsgBody.setLocalPath(fileVideo.getPath());
-
-                            // 获取缩略图
-                            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-                            mediaMetadataRetriever.setDataSource(fileVideo.getPath());
-                            Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime();
-                            String imgname = System.currentTimeMillis() + ".jpg";
-                            String urlpath = value.imgLocalPath + "/" + imgname;
-                            File f = new File(urlpath);
-                            try {
-                                if (f.exists()) {
-                                    f.delete();
-                                }
-                                FileOutputStream out = new FileOutputStream(f);
-                                bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
-                                out.flush();
-                                out.close();
-                            } catch (Exception e) {
-                                LogUtil.d("视频缩略图路径获取失败：" + e.toString());
-                                e.printStackTrace();
-                            }
-
-                            videoMsgBody.setExtra(urlpath);
-                            mMessageFile.setBody(videoMsgBody);
-
-                            // 更新recyclerView
-                            mAdapter.addData(mMessageFile);
-                        });
-
-                    }
-
-                    break;
-
-                case "p2pAudio":
-                    File fileAudio = receiveFile(object);
-                    int time = object.getIntValue("time"); // 语音的时间
-                    if (fileAudio != null) {
-                        runOnUiThread(() ->{
-                            Message audioMessage = getBaseReceiveMessage(MsgType.AUDIO);
-                            AudioMsgBody audioMsgBody = new AudioMsgBody();
-                            audioMsgBody.setDuration(time);
-                            audioMsgBody.setLocalPath(fileAudio.getPath());
-                            audioMessage.setBody(audioMsgBody);
-                            mAdapter.addData(audioMessage);
-
-                        });
-                    }
-
-                    break;
-            }
+        public void onServiceDisconnected(ComponentName name) {
 
         }
-
-        @Override
-        public void deliveryComplete(IMqttDeliveryToken token) {
-            Log.e(TAG, "deliveryComplete" + "  token:" + token);
-        }
-
-        // 接收 文件
-        private File receiveFile(JSONObject object) {
-            int total = object.getInteger("total");
-            int order = object.getInteger("order");
-            byte[] dataFile = object.getBytes("data");
-            String filePath = "data/data/" + getApplication().getPackageName() + "/files/"; // 文件存储目录
-            File file = null; // 最终文件的对象
-            if (total == 1 && order == 0) {
-                file = FileUtils.bytesToFile(dataFile, filePath, object.getString("name"));
-            } else {
-                String hex = object.getString("hex");
-                if (order == 0) {
-                    HashMap<Integer, byte[]> map = new HashMap<>();
-                    map.put(order, dataFile);
-                    FileCache.createNewCache(hex, map);
-                } else FileCache.add2Cache(hex, order, dataFile);
-                System.out.println(FileCache.getCount(hex) + "//" + total);
-                if (FileCache.getCount(hex) == total) { // 接收完成
-                    String name = object.getString("name");
-                    int length = object.getInteger("length");
-                    file = FileCache.mergeToFile(hex, total, length, filePath, name);
-                    System.out.println("create file");
-                    Log.e(TAG, "create file");
-                }
-            }
-            return file;
-        }
-
     }
 
+
+    private class MessageReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // 接收mqttService接收的消息
+            Message message = (Message) intent.getSerializableExtra("message");
+
+            // 如果该消息的通信双方 和 该私聊通信双方吻合，就显示出来。
+            if(message.getSenderId().equals(targetClientID) || message.getTargetId().equals(targetClientID)) {
+                mAdapter.addData(message);
+                // 把数据库中该消息状态改为已经查看
+                messageDaoImp = MessageDaoImp.getInstance();
+                messageDaoImp.checkMessage(ChatActivity.this, message.getUuid());
+            }
+        }
+    }
+
+
+    public String getTargetClientID() {
+        return targetClientID;
+    }
+
+    public String getUserClientID() {
+        return userClientID;
+    }
 }

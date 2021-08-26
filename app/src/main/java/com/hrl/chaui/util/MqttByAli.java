@@ -1,6 +1,7 @@
 package com.hrl.chaui.util;
 
 
+import android.provider.Settings;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
@@ -54,7 +55,7 @@ public class MqttByAli {
     /**
      * QoS参数代表传输质量，可选0，1，2。详细信息，请参见名词解释。
      */
-    private final int qosLevel = 1;
+    private final int qosLevel = 0;
     //mqtt客户端
     private MqttClient mqttClient;
 
@@ -175,9 +176,14 @@ public class MqttByAli {
         if (text.length() >= 0 && text.getBytes().length <= 60 * 1024) { // 在0~60kb之间
             JSONObject object = new JSONObject();
             object.put("msg", "p2pText");
+            object.put("sendTime", System.currentTimeMillis());
+            object.put("senderID", clientId);
             object.put("data", text.getBytes());
             sendMessageP2P(object.toJSONString(), targetClient);
-
+        } else {
+            // 截断
+            text = text.substring(0, 60 * 1024-1);
+            sendTextP2P(text, targetClient);
         }
     }
 
@@ -199,6 +205,8 @@ public class MqttByAli {
                 object.put("total",1);
                 object.put("order",0);
                 object.put("length",file.length());
+                object.put("senderID", clientId);
+                object.put("sendTime", System.currentTimeMillis());
                 sendMessageP2P(object.toJSONString(),targetClientId);
             }
             else {
@@ -212,6 +220,8 @@ public class MqttByAli {
                 object.put("hex", hex);
                 object.put("total",divide);
                 object.put("length",file.length());
+                object.put("senderID", clientId);
+                object.put("sendTime", System.currentTimeMillis());
                 for (int i=0;i<divide;i++){
                     object.put("order",i);
                     object.put("data", Arrays.copyOfRange(bytes,i*61440,(int)(i==divide-1?file.length():(i+1)*61440)));
@@ -234,6 +244,8 @@ public class MqttByAli {
                 object.put("order",0);
                 object.put("length",file.length());
                 object.put("time", time);
+                object.put("senderID", clientId);
+                object.put("sendTime", System.currentTimeMillis());
                 sendMessageP2P(object.toJSONString(),targetClientId);
             }
             else {
@@ -247,6 +259,8 @@ public class MqttByAli {
                 object.put("hex", hex);
                 object.put("total",divide);
                 object.put("length",file.length());
+                object.put("senderID", clientId);
+                object.put("sendTime", System.currentTimeMillis());
                 for (int i=0;i<divide;i++){
                     object.put("order",i);
                     object.put("data", Arrays.copyOfRange(bytes,i*61440,(int)(i==divide-1?file.length():(i+1)*61440)));
