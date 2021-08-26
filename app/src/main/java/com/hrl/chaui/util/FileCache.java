@@ -13,8 +13,15 @@ public class FileCache {
     private static HashMap<String, Integer> fileCount=new HashMap<>();
 
     public static void createNewCache(String hex,HashMap<Integer,byte[]> map){
-        fileCache.put(hex,map);
-        fileCount.put(hex,1);
+        HashMap<Integer, byte[]> tmpMap = fileCache.get(hex);
+        if (tmpMap == null) {
+            fileCache.put(hex,map);
+            fileCount.put(hex,1);
+        } else {
+            fileCache.get(hex).put(1, map.get(1));
+            int count = fileCount.get(hex);
+            fileCount.put(hex,count+1);
+        }
     }
 
     public static void add2Cache(String hex,int order,byte[] data) {
@@ -23,14 +30,19 @@ public class FileCache {
         HashMap<Integer, byte[]> integerHashMap = fileCache.get(hex);
 
         Log.e("FileCache", "integerHashMap:" + integerHashMap);
+
         if (integerHashMap != null) {
             fileCache.get(hex).put(order,data);
             int count=fileCount.get(hex);
             fileCount.put(hex,count+1);
         } else {
-            // 如果integerHashMap == null ,就是createNewCache那里出了问题, 没有将对应的hex存入fileCache中.
-            // 应对措施: 不做处理,但是接收所有的文件.
+            HashMap<Integer, byte[]> map = new HashMap<>();
+            map.put(order, data);
+            fileCache.put(hex, map);
+            fileCount.put(hex, 1);
         }
+
+
     }
 
     public static int getCount(String hex){
