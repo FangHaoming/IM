@@ -52,7 +52,7 @@
                 android:layout_marginStart="0dp"
                 android:adjustViewBounds="true"
                 android:scaleType="centerCrop"
-                 android:transitionName="sharedView"
+                android:transitionName="sharedView"
                 app:angle="6dp"
                 app:arrowHeight="8dp"
                 app:arrowLocation="right"

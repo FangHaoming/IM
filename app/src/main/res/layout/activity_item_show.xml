@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.ItemShowActivity">
+
+    <RelativeLayout
+        android:id="@+id/itemshowLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:ignore="DuplicateIds">
+
+        <TextView
+            android:id="@+id/textItemshow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:visibility="gone"
+            android:layout_centerInParent="true" />
+
+        <ImageView
+            android:id="@+id/imageItemshow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:visibility="gone"/>
+
+        <VideoView
+            android:id="@+id/videoItemshow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+
+    </RelativeLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

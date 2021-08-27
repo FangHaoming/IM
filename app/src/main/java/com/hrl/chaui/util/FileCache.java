@@ -1,6 +1,8 @@
 package com.hrl.chaui.util;
 
 
+import android.util.Log;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,18 +13,44 @@ public class FileCache {
     private static HashMap<String, Integer> fileCount=new HashMap<>();
 
     public static void createNewCache(String hex,HashMap<Integer,byte[]> map){
-        fileCache.put(hex,map);
-        fileCount.put(hex,1);
+        HashMap<Integer, byte[]> tmpMap = fileCache.get(hex);
+        if (tmpMap == null) {
+            fileCache.put(hex,map);
+            fileCount.put(hex,1);
+        } else {
+            fileCache.get(hex).put(1, map.get(1));
+            int count = fileCount.get(hex);
+            fileCount.put(hex,count+1);
+        }
     }
 
-    public static void add2Cache(String hex,int order,byte[] data){
-        fileCache.get(hex).put(order,data);
-        int count=fileCount.get(hex);
-        fileCount.put(hex,count+1);
+    public static void add2Cache(String hex,int order,byte[] data) {
+        // 如果 hex 不在fileCache中,这里会出错.
+
+        HashMap<Integer, byte[]> integerHashMap = fileCache.get(hex);
+
+        Log.e("FileCache", "integerHashMap:" + integerHashMap);
+
+        if (integerHashMap != null) {
+            fileCache.get(hex).put(order,data);
+            int count=fileCount.get(hex);
+            fileCount.put(hex,count+1);
+        } else {
+            HashMap<Integer, byte[]> map = new HashMap<>();
+            map.put(order, data);
+            fileCache.put(hex, map);
+            fileCount.put(hex, 1);
+        }
+
+
     }
 
     public static int getCount(String hex){
-        return fileCount.get(hex);
+        int res = 0;
+        if (fileCount.get(hex) != null)
+            res = fileCount.get(hex);
+
+        return res;
     }
 
     public static File mergeToFile(String hex, int total,int length,String filePath, String fileName){
@@ -38,4 +66,7 @@ public class FileCache {
         fileCount.remove(hex);
         return FileUtils.bytesToFile(bfile,filePath,fileName);
     }
+
 }
+
+

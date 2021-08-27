@@ -1,5 +1,6 @@
 package com.hrl.chaui.widget;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
@@ -11,6 +12,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.app.ActivityCompat;
 
 import com.hrl.chaui.util.LogUtil;
 import com.hrl.chaui.R;
@@ -68,6 +71,7 @@ public class RecordButton extends AppCompatButton {
 
     private TextView mStateTV;
 
+    // 录音状态图
     private ImageView mStateIV;
 
     private MediaRecorder mRecorder;
@@ -100,9 +104,11 @@ public class RecordButton extends AppCompatButton {
             @Override
             public void handleMessage(Message msg) {
                 if(msg.what == -100){
+                    // msg的what字段等于-100就停止录音
                     stopRecording();
-                    recordDialog.dismiss();
+                    recordDialog.dismiss(); // 解除对话框
                 }else if(msg.what != -1){
+                    // 显示相应的音量
                     mStateIV.setImageResource(res[msg.what]);
                 }
             }
@@ -113,21 +119,23 @@ public class RecordButton extends AppCompatButton {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        //按钮触发Touch事件时的处理。
+
         int action = event.getAction();
         y = event.getY();
-        if(mStateTV!=null && mStateIV!=null &&y<0){
+        if(mStateTV!=null && mStateIV!=null &&y<0){ // 在按钮上方
             mStateTV.setText("松开手指,取消发送");
             mStateIV.setImageDrawable(getResources().getDrawable(R.drawable.ic_volume_cancel));
         }else if(mStateTV != null){
             mStateTV.setText("手指上滑,取消发送");
         }
         switch (action) {
-            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_DOWN: // 按下按钮
                 setText("松开发送");
                 initDialogAndStartRecord();
                 break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:   // 松开按钮
+            case MotionEvent.ACTION_CANCEL: // 相当于ACTION_UP
                 this.setText("按住录音");
                  if(y>=0 && (System.currentTimeMillis() - startTime <= MAX_INTERVAL_TIME)){
                     LogUtil.d("结束录音:");
@@ -149,7 +157,7 @@ public class RecordButton extends AppCompatButton {
          startTime = System.currentTimeMillis();
          recordDialog = new Dialog(getContext(), R.style.like_toast_dialog_style);
        // view = new ImageView(getContext());
-         view = View.inflate(getContext(), R.layout.dialog_record, null);
+         view = View.inflate(getContext(), R.layout.dialog_record, null); // 获取layout渲染
          mStateIV = (ImageView) view.findViewById(R.id.rc_audio_state_image);
          mStateTV = (TextView) view.findViewById(R.id.rc_audio_state_text);
          mStateIV.setImageDrawable(getResources().getDrawable(R.drawable.anim_mic));
@@ -162,9 +170,10 @@ public class RecordButton extends AppCompatButton {
          recordDialog.setContentView(view, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
-        recordDialog.setOnDismissListener(onDismiss);
+        recordDialog.setOnDismissListener(onDismiss); // 解除监听器
         WindowManager.LayoutParams lp = recordDialog.getWindow().getAttributes();
         lp.gravity = Gravity.CENTER;
+
         startRecording();
         recordDialog.show();
     }
@@ -223,11 +232,12 @@ public class RecordButton extends AppCompatButton {
      */
     //int num = 0 ;
     private void startRecording() {
-          if (mRecorder != null) {
+        if (mRecorder != null) {
             mRecorder.reset();
         } else {
             mRecorder = new MediaRecorder();
         }
+
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);

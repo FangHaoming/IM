@@ -3,6 +3,7 @@ package com.hrl.chaui.adapter;
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ImageView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
@@ -51,16 +52,19 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
     private static final int SEND_LOCATION = R.layout.item_location_send;
     private static final int RECEIVE_LOCATION = R.layout.item_location_receive;*/
 
-
-
-
+    private String targetClientID =  null;
+    private String userClientID = null;
 
     public ChatAdapter(Context context, List<Message> data) {
         super(data);
+
+        targetClientID = ((ChatActivity)context).getTargetClientID();
+        userClientID = ((ChatActivity)context).getUserClientID();
+
         setMultiTypeDelegate(new MultiTypeDelegate<Message>() {
             @Override
             protected int getItemType(Message entity) {
-              boolean isSend = entity.getSenderId().equals(ChatActivity.mSenderId);
+              boolean isSend = entity.getSenderId().equals(userClientID);
                if (MsgType.TEXT==entity.getMsgType()) {
                     return isSend ? TYPE_SEND_TEXT : TYPE_RECEIVE_TEXT;
                 }else if(MsgType.IMAGE==entity.getMsgType()){
@@ -87,6 +91,7 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
                 .registerItemType(TYPE_RECEIVE_AUDIO, RECEIVE_AUDIO);
     }
 
+
     @Override
     protected void convert(BaseViewHolder helper, Message item) {
         setContent(helper, item);
@@ -102,7 +107,7 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
                 || msgContent instanceof AudioMsgBody ||msgContent instanceof VideoMsgBody ||msgContent instanceof FileMsgBody) {
             //只需要设置自己发送的状态
             MsgSendStatus sentStatus = item.getSentStatus();
-            boolean isSend = item.getSenderId().equals(ChatActivity.mSenderId);
+            boolean isSend = item.getSenderId().equals(userClientID);
             if (isSend){
                 if (sentStatus == MsgSendStatus.SENDING) {
                     helper.setVisible(R.id.chat_item_progress, true).setVisible(R.id.chat_item_fail, false);
@@ -113,7 +118,7 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
                 }
             }
         } else if (msgContent instanceof ImageMsgBody) {
-            boolean isSend = item.getSenderId().equals(ChatActivity.mSenderId);
+            boolean isSend = item.getSenderId().equals(userClientID);
             if (isSend) {
                 MsgSendStatus sentStatus = item.getSentStatus();
                 if (sentStatus == MsgSendStatus.SENDING) {
@@ -127,11 +132,9 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
 
             }
         }
-
-
     }
 
-        private void setContent(BaseViewHolder helper, Message item) {
+    private void setContent(BaseViewHolder helper, Message item) {
                 if (item.getMsgType().equals(MsgType.TEXT)){
                    TextMsgBody msgBody = (TextMsgBody) item.getBody();
                    helper.setText(R.id.chat_item_content_text, msgBody.getMessage() );
@@ -148,8 +151,9 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
                             }
                         }
                 }else if(item.getMsgType().equals(MsgType.VIDEO)){
+                    Log.e("chattest", "item:" + item + "  msgBody:" + item.getBody() + "  msgBody.getExtra:" + ((VideoMsgBody)item.getBody()).getExtra());
                     VideoMsgBody msgBody = (VideoMsgBody) item.getBody();
-                    File file = new File(msgBody.getExtra());
+                    File file = new File(msgBody.getExtra()); // 获取缩略图
                     if (file.exists()) {
                         GlideUtils.loadChatImage(mContext,msgBody.getExtra(),(ImageView) helper.getView(R.id.bivPic));
                     }else {
@@ -165,12 +169,18 @@ public class ChatAdapter extends BaseQuickAdapter<Message,BaseViewHolder> {
                 }
     }
 
-
-
-    private void setOnClick(BaseViewHolder helper, Message item) {
+    private void setOnClick(BaseViewHolder helper, Message item) { // 点击事件
         MsgBody msgContent = item.getBody();
         if (msgContent instanceof AudioMsgBody){
             helper.addOnClickListener(R.id.rlAudio);
+        } else if (msgContent instanceof TextMsgBody) {
+            helper.addOnClickListener(R.id.chat_item_content_text);
+        } else if (msgContent instanceof ImageMsgBody) {
+            helper.addOnClickListener(R.id.bivPic);
+        } else if (msgContent instanceof VideoMsgBody) {
+            helper.addOnClickListener(R.id.ivPlay);
+        } else if (msgContent instanceof FileMsgBody) {
+            helper.addOnClickListener(R.id.rc_msg_iv_file_type_image);
         }
     }
 

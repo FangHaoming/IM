@@ -1,15 +1,30 @@
 package com.hrl.chaui.util;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
 import android.nfc.Tag;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
+import com.hrl.chaui.activity.ChatActivity;
+import com.hrl.chaui.bean.AudioMsgBody;
+import com.hrl.chaui.bean.FileMsgBody;
+import com.hrl.chaui.bean.ImageMsgBody;
+import com.hrl.chaui.bean.Message;
+import com.hrl.chaui.bean.MsgSendStatus;
+import com.hrl.chaui.bean.MsgType;
+import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
+import com.hrl.chaui.bean.VideoMsgBody;
+import com.hrl.chaui.dao.MessageDao;
+import com.hrl.chaui.dao.imp.MessageDaoImp;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -17,10 +32,12 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class MqttService extends Service {
     private final IBinder mBinder = new LocalBinder();
@@ -28,6 +45,9 @@ public class MqttService extends Service {
     private MqttByAli mqtt;
     private ArrayList<User> friReqMessage;  //好友申请消息队列
     private ArrayList<String> chatMessage;  //聊天消息队列
+    public static final String MESSAGEARRIVEACTION = "MESSAGEARRIVEACTION";
+    private MessageDaoImp messageDao = MessageDaoImp.getInstance();
+    private String clientID = null;
 
     public MqttService() {
     }
@@ -46,16 +66,17 @@ public class MqttService extends Service {
 
     @Override
     public void onCreate() {
-        Log.e(TAG, "onCreate");
         SharedPreferences sharedPreferences = getApplication().getSharedPreferences("data", MODE_PRIVATE);
         int user_id = sharedPreferences.getInt("user_id", -1);
         friReqMessage = (ArrayList<User>) JSONObject.parseArray(sharedPreferences.getString("friReqMessage", ""), User.class);
-        String clientId = "GID_test@@@" + user_id;
+        clientID = "GID_test@@@" + user_id;
+
         try {
-            mqtt = new MqttByAli(clientId, "testtopic", new MyMqttCallback());
+            mqtt = new MqttByAli(clientID, "testtopic", new MyMqttCallback());
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     @Override
@@ -75,7 +96,7 @@ public class MqttService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e(TAG, "onStartCommand");
+        Log.e(TAG, "onStartCommand()");
         return START_STICKY;
     }
 
@@ -111,55 +132,204 @@ public class MqttService extends Service {
 
         @Override
         public void connectionLost(Throwable cause) {
-            Log.e(TAG, "connectionLost");
+            Log.e(TAG, "connectionLost + cause: " + cause);
         }
 
         @Override
         public void messageArrived(String topic, MqttMessage message) throws Exception {
+            Log.e(TAG, "messageArrived() + topic:" + topic + " message:" + message);
+
             String payloadString = new String(message.getPayload());
             JSONObject object = JSONObject.parseObject(payloadString);
+
+            // 获取发送时间
+            long sendTime = object.getLong("sendTime");
+
+            // 发送方clientID (这里其实是用户的ID)
+            String sendID = object.getString("senderID");
+
+            // 登录用户的clientID
+            String targetID = clientID;
+
+            // 接收对方发来的信息
+            Message localMessage =new Message();;
+            localMessage.setUuid(UUID.randomUUID() + "");
+            localMessage.setSenderId(sendID);
+            localMessage.setTargetId(targetID);
+            localMessage.setSentStatus(MsgSendStatus.SENDING);
+            localMessage.setSentTime(sendTime);
+            localMessage.setCheck(false);
+
             String msg = object.getString("msg");
-            Log.e(TAG, "messageArrived:" + msg);
+
+            Log.e(TAG, "messageArrived:" + msg + "message:" + message);
             switch (msg) {
                 case "friendRequest":  //好友申请消息
                     //保存信息到文件中
                     User user = JSONObject.parseObject(payloadString, User.class);
                     friReqMessage.add(user);
                     break;
-                case "p2pText":  //私聊文本消息
+
+                case "p2pText": {
+                    //私聊文本消息
+                    // 接收消息
+                    byte[] dataText = object.getBytes("data");
+                    String text = new String(dataText); // 该文本就是私聊文本消息
+                    localMessage.setMsgType(MsgType.TEXT);
+                    TextMsgBody textMsgBody = new TextMsgBody();
+                    textMsgBody.setMessage(text);
+                    localMessage.setBody(textMsgBody);
+                    // 将Message存储在数据库中
+                    messageDao.insertMessage(MqttService.this, localMessage);
+                    // 发出广播
+                    sendMessageBroadcast(localMessage);
                     break;
-                case "p2pFile":  //私聊文件消息
-                    int total = object.getInteger("total");
-                    int order = object.getInteger("order");
-                    byte[] data =  object.getBytes("data");
-                    if (total == 1 && order == 0)
-                        FileUtils.bytesToFile(data, value.imgLocalPath, object.getString("name"));
-                    else {
-                        String hex = object.getString("hex");
-                        if(order==0) {
-                            HashMap<Integer, byte[]> map = new HashMap<>();
-                            map.put(order, data);
-                            FileCache.createNewCache(hex, map);
-                        }
-                        else FileCache.add2Cache(hex,order,data);
-                        System.out.println(FileCache.getCount(hex)+"//"+total);
-                        if (FileCache.getCount(hex)==total) {
-                            String name = object.getString("name");
-                            int length = object.getInteger("length");
-                            File file=FileCache.mergeToFile(hex,total,length,value.imgLocalPath,name);
-                            System.out.println("create file");
-                            Log.e(TAG,"create file");
-                        }
+                }
+                case "p2pFile":  {
+                    //私聊文件消息
+                    File file = receiveFile(object);
+                    if (file != null) {
+                        // 文件接收完后
+                        localMessage.setMsgType(MsgType.FILE);
+                        FileMsgBody mFileMsgBody = new FileMsgBody();
+                        mFileMsgBody.setDisplayName(file.getName());
+                        mFileMsgBody.setSize(file.length());
+                        mFileMsgBody.setLocalPath(file.getPath());
+                        localMessage.setBody(mFileMsgBody);
+                        // 将Message存储在数据库中
+                        messageDao.insertMessage(MqttService.this, localMessage);
+
+                        // 发出广播
+                        sendMessageBroadcast(localMessage);
                     }
                     break;
+                }
+                case "p2pImage" : {
+                    // 私聊图片消息
+                    File fileImage = receiveFile(object);
+                    if(fileImage != null) {
+                        // 文件接收完后
+                        localMessage .setMsgType(MsgType.IMAGE);
+                        ImageMsgBody mImageMsgBody = ImageMsgBody.obtain(fileImage.getPath(), fileImage.getPath(), true);
+                        localMessage.setBody(mImageMsgBody);
+                        // 将Message存储在数据库中
+                        messageDao.insertMessage(MqttService.this, localMessage);
+
+                        // 发出广播
+                        sendMessageBroadcast(localMessage);
+                    }
+                    break;
+                }
+                case "p2pVideo" : {
+                    File fileVideo = receiveFile(object);
+                    if (fileVideo != null) {
+
+                        localMessage.setMsgType(MsgType.VIDEO);
+                        VideoMsgBody videoMsgBody = new VideoMsgBody();
+                        videoMsgBody.setDisplayName(fileVideo.getName());
+                        videoMsgBody.setSize(fileVideo.length());
+                        videoMsgBody.setLocalPath(fileVideo.getPath());
+
+                        // 获取缩略图
+                        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+                        mediaMetadataRetriever.setDataSource(fileVideo.getPath());
+                        Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime();
+                        String imgname = System.currentTimeMillis() + ".jpg";
+                        String urlpath = value.imgLocalPath + "/" + imgname;
+                        File f = new File(urlpath);
+                        try {
+                            if (f.exists()) {
+                                f.delete();
+                            }
+                            FileOutputStream out = new FileOutputStream(f);
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+                            out.flush();
+                            out.close();
+                        } catch (Exception e) {
+                            LogUtil.d("视频缩略图路径获取失败：" + e.toString());
+                            e.printStackTrace();
+                        }
+
+                        videoMsgBody.setExtra(urlpath);
+                        localMessage.setBody(videoMsgBody);
+
+                        // 将Message存储在数据库中
+                        messageDao.insertMessage(MqttService.this, localMessage);
+
+                        // 发出广播
+                        sendMessageBroadcast(localMessage);
+                    }
+                    break;
+                }
+                case "p2pAudio" : {
+                    File fileAudio = receiveFile(object);
+                    int time = object.getIntValue("time"); // 语音的时间
+                    if (fileAudio != null) {
+                        localMessage.setMsgType(MsgType.AUDIO);
+                        AudioMsgBody audioMsgBody = new AudioMsgBody();
+                        audioMsgBody.setDuration(time);
+                        audioMsgBody.setLocalPath(fileAudio.getPath());
+                        localMessage.setBody(audioMsgBody);
+                        // 将Message存储在数据库中
+                        messageDao.insertMessage(MqttService.this, localMessage);
+
+                        // 发出广播
+                        sendMessageBroadcast(localMessage);
+                    }
+                    break;
+                }
             }
+
 
         }
 
         @Override
         public void deliveryComplete(IMqttDeliveryToken token) {
-            Log.e(TAG, "deliveryComplete");
+            Log.e(TAG, "deliveryComplete  token :" + token );
         }
+
+        // 接收接收文件，并返回File
+        private File receiveFile(JSONObject object) {
+            int total = object.getInteger("total");
+            int order = object.getInteger("order");
+            byte[] dataFile = object.getBytes("data");
+            Log.e("Service", "(1)  byte[]:" + (dataFile == null) + "order:" + order);
+            String filePath = "data/data/" + getApplication().getPackageName() + "/files/"; // 文件存储目录
+            File file = null; // 最终文件的对象
+            if (total == 1 && order == 0) {
+                file = FileUtils.bytesToFile(dataFile, filePath, object.getString("name"));
+            } else {
+                String hex = object.getString("hex");
+                if (order == 0) {
+                    HashMap<Integer, byte[]> map = new HashMap<>();
+                    Log.e("createNewCache", "(2)  byte[]:" + dataFile +  "  order:" + order + " hex:" + hex + " map:" + map);
+                    map.put(order, dataFile);
+                    FileCache.createNewCache(hex, map);
+                } else {
+                    Log.e("add2Cache", "(3)  byte[]:" + dataFile +  "  order:" + order + " hex:" + hex);
+                    FileCache.add2Cache(hex, order, dataFile);
+                }
+                System.out.println(FileCache.getCount(hex) + "//" + total);
+                if (FileCache.getCount(hex) == total) { // 接收完成
+                    String name = object.getString("name");
+                    int length = object.getInteger("length");
+                    file = FileCache.mergeToFile(hex, total, length, filePath, name);
+                    System.out.println("create file");
+                    Log.e(TAG, "create file");
+                }
+            }
+            return file;
+        }
+
+        private void sendMessageBroadcast(Message localMessage) {
+            // 发出广播(将消息对象放入Intent中)
+            Intent msgArriveIntent = new Intent(MESSAGEARRIVEACTION);
+            msgArriveIntent.setPackage(getPackageName()); // 只发给本应用的接收器
+            msgArriveIntent.putExtra("message", localMessage);
+            sendBroadcast(msgArriveIntent);
+            Log.e(TAG, "发出广播");
+        }
+
     }
 
 }
