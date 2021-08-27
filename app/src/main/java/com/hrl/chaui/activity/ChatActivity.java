@@ -1,20 +1,13 @@
 package com.hrl.chaui.activity;
 
 import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -34,22 +27,21 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.alibaba.fastjson.JSONObject;
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.hrl.chaui.adapter.ChatAdapter;
-import com.hrl.chaui.bean.MsgType;
-import com.hrl.chaui.util.FileCache;
-import com.hrl.chaui.util.LogUtil;
-import com.hrl.chaui.bean.Message;
 import com.hrl.chaui.R;
+import com.hrl.chaui.adapter.ChatAdapter;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
+import com.hrl.chaui.bean.Message;
 import com.hrl.chaui.bean.MsgSendStatus;
+import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.util.ChatUiHelper;
+import com.hrl.chaui.util.FileCache;
 import com.hrl.chaui.util.FileUtils;
+import com.hrl.chaui.util.LogUtil;
 import com.hrl.chaui.util.MqttByAli;
-import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
@@ -61,7 +53,6 @@ import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -312,7 +303,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     }
 
-    @OnClick({R.id.btn_send, R.id.rlPhoto, R.id.rlVideo, R.id.rlLocation, R.id.rlFile, R.id.rlPhone})
+    @OnClick({R.id.btn_send, R.id.rlPhoto, R.id.rlVideo, R.id.rlLocation, R.id.rlFile})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_send:
@@ -330,9 +321,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 break;
             case R.id.rlLocation:
                 break;
-            case R.id.rlPhone:
-                // 语音通话
-                break;
+
         }
     }
 

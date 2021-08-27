@@ -1,5 +1,6 @@
 package com.hrl.chaui.activity;
 
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -18,6 +19,7 @@ import com.hrl.chaui.adapter.FragmentAdapter;
 import com.hrl.chaui.fragment.ContactFragment;
 import com.hrl.chaui.fragment.MessageFragment;
 import com.hrl.chaui.fragment.MineFragment;
+import com.hrl.chaui.util.http;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,8 @@ public class MainActivity extends FragmentActivity {
     private TextView title,t_mine,t_message,t_contact;
     private View.OnClickListener listener;
     private int currentID=0;
+    private SharedPreferences rev;
+    private SharedPreferences.Editor editor;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -38,6 +42,8 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main);
         initView();
+        rev=getSharedPreferences("data",MODE_PRIVATE);
+        editor=rev.edit();
         fragments.add(new MessageFragment());
         fragments.add(new ContactFragment());
         fragments.add(new MineFragment());
@@ -50,6 +56,7 @@ public class MainActivity extends FragmentActivity {
         window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         window.setNavigationBarColor(getResources().getColor(R.color.top_bottom));
+        http.sendByPost(MainActivity.this,rev.getInt("user_id",0));
 
     }
 
@@ -141,5 +148,6 @@ public class MainActivity extends FragmentActivity {
         }
 
     }
+
 
 }

@@ -61,24 +61,24 @@ public class ContactFragment extends Fragment {
         View root=inflater.inflate(R.layout.layout_contact,container,false);
         recv = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
         editor = recv.edit();
-        sendByPost(recv.getInt("user_id",0));
         //使用indexBar
         mRv = (RecyclerView) root.findViewById(R.id.rv);
         mRv.setLayoutManager(mManager = new LinearLayoutManager(getContext()));
         mTvSideBarHint = (TextView) root.findViewById(R.id.tvSideBarHint);//HintTextView
         mIndexBar = (IndexBar) root.findViewById(R.id.indexBar);//IndexBar
+        sendByPost(recv.getInt("user_id",0));
+
 
         return root;
     }
     private void sendByPost(Integer user_id) {
-        JSONObject json=new JSONObject();
-        json.put("user_id",user_id);
+        JSONObject json = new JSONObject();
+        json.put("user_id", user_id);
         String path = "http://40f730q296.qicp.vip/userContacts";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())
                 .build();
-        System.out.println("*********"+json.toJSONString());
         Request request = new Request.Builder()
                 .url(path)
                 .post(formBody)
@@ -91,22 +91,23 @@ public class ContactFragment extends Fragment {
                 Looper.loop();
                 e.printStackTrace();
             }
+
             @Override
             public void onResponse(okhttp3.Call call, Response response) throws IOException {
-                String info=response.body().string();
-                JSONObject json= JSON.parseObject(info);
-                JSONArray contacts= json.getJSONArray("contacts");
-                contactData=new ArrayList<>();
-                groupData=new ArrayList<>();
+                String info = response.body().string();
+                JSONObject json = JSON.parseObject(info);
+                JSONArray contacts = json.getJSONArray("contacts");
+                System.out.println("*********contact" + json.toJSONString());
+                contactData = new ArrayList<>();
+                groupData = new ArrayList<>();
                 contactData.add((User) new User("新的朋友").setTop(true).setBaseIndexTag("↑"));
                 contactData.add((User) new User("群聊").setTop(true).setBaseIndexTag("↑"));
-                for(int i=0;i<contacts.size();i++){
-                    JSONObject obj= contacts.getJSONObject(i);
-                    if(obj.getInteger("type")==0){
-                        contactData.add(new User(obj.getInteger("contact_id"),obj.getString("contact_img"),obj.getString("contact_name"),obj.getInteger("type")));
-                    }
-                    else{
-                        groupData.add(new User(obj.getInteger("contact_id"),obj.getString("contact_img"),obj.getString("contact_name"),obj.getInteger("type")));
+                for (int i = 0; i < contacts.size(); i++) {
+                    JSONObject obj = contacts.getJSONObject(i);
+                    if (obj.getInteger("type") == 0) {
+                        contactData.add(new User(obj.getInteger("contact_id"), obj.getString("contact_img"), obj.getString("contact_name"), obj.getInteger("type")));
+                    } else {
+                        groupData.add(new User(obj.getInteger("contact_id"), obj.getString("contact_img"), obj.getString("contact_name"), obj.getInteger("type")));
 
                     }
                 }
@@ -125,24 +126,12 @@ public class ContactFragment extends Fragment {
                                 mIndexBar.setmPressedShowTextView(mTvSideBarHint)//设置HintTextView
                                         .setNeedRealIndex(true)//设置需要真实的索引
                                         .setmLayoutManager(mManager);//设置RecyclerView的LayoutManager
-
-
-        /*
-        String[] data=getContext().getResources().getStringArray(R.array.provinces);
-        for (int i = 0; i < data.length; i++) {
-            User user = new User();
-            user.setName(data[i]);//设置城市名称
-            mDatas.add(user);
-        }
-
-         */
                                 mAdapter.setDatas(contactData);
                                 mAdapter.notifyDataSetChanged();
 
                                 mIndexBar.setmSourceDatas(contactData)//设置数据
                                         .invalidate();
                                 mDecoration.setmDatas(contactData);
-
                             }
                         });
                     }

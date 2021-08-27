@@ -8,4 +8,6 @@
     <color name="partTranslucent">#2D000000</color>
     <color name="top_bottom">#F1F3F2</color>
     <color name="click">#D7CFCBCB</color>
+    <color name="btn_unable">#90B6B6B6</color>
+    <color name="btn_enable">#6A00FF00</color>
 </resources>

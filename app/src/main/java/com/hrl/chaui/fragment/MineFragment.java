@@ -29,6 +29,7 @@ import java.util.Objects;
 public class MineFragment extends Fragment {
     TextView name;
     TextView sign;
+    TextView phone;
     ImageView img;
     SharedPreferences sp;
     SQLiteDatabase db;
@@ -36,9 +37,10 @@ public class MineFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull  LayoutInflater inflater, @Nullable  ViewGroup container, @Nullable  Bundle savedInstanceState) {
         View root=inflater.inflate(R.layout.layout_mine,container,false);
-        img=root.findViewById(R.id.img);
-        name=root.findViewById(R.id.name);
-        sign=root.findViewById(R.id.sign);
+        img=root.findViewById(R.id.user_img);
+        name=root.findViewById(R.id.user_name);
+        sign=root.findViewById(R.id.user_sign);
+        phone=root.findViewById(R.id.user_phone);
         TextView modify=root.findViewById(R.id.modify);
         TextView modify_pwd=root.findViewById(R.id.modify_pwd);
         TextView change=root.findViewById(R.id.change);
@@ -47,7 +49,6 @@ public class MineFragment extends Fragment {
         SharedPreferences.Editor editor=sp.edit();
         MyDBHelper dbHelper=new MyDBHelper(getContext(),"DB",null,1);
         db=dbHelper.getWritableDatabase();
-
 
 
         View.OnClickListener listener = new View.OnClickListener() {
@@ -87,18 +88,19 @@ public class MineFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        name.setText(sp.getString("QQname",""));
-        sign.setText("⭐"+sp.getString("QQsign",""));
-        Glide.with(Objects.requireNonNull(getContext())).load(sp.getString("QQimg","")).into(img);
+        name.setText(sp.getString("user_name",""));
+        Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
+        sign.setText("个性签名: "+sp.getString("user_sign",""));
+        phone.setText("手机号: "+sp.getString("user_phone",""));
     }
 
     private void showDialog(){
         final AlertDialog.Builder dialog=new AlertDialog.Builder(getContext());
-        dialog.setMessage("真的要注销账号吗？该过程不可逆");
+        dialog.setMessage("确定要注销账号吗？该过程不可逆");
         dialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                db.delete("QQ_Login","QQname=? AND QQpwd=?",new String[]{sp.getString("QQname",""),sp.getString("QQpwd","")});
+                //db.delete("QQ_Login","QQname=? AND QQpwd=?",new String[]{sp.getString("QQname",""),sp.getString("QQpwd","")});
                 Intent intent4=new Intent(getContext(), LoginActivity.class);
                 startActivity(intent4);
                 Objects.requireNonNull(getActivity()).finish();

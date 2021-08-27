@@ -19,6 +19,7 @@ import com.hrl.chaui.R;
 import com.hrl.chaui.adapter.MessageAdapter;
 import com.hrl.chaui.bean.MessageEntity;
 import com.hrl.chaui.util.MyDBHelper;
+import com.hrl.chaui.util.http;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,17 +30,21 @@ public class MessageFragment extends Fragment {
     List<MessageEntity> list;
     MessageAdapter adapter;
     MyDBHelper dbHelper;
+    SharedPreferences rev;
+    SharedPreferences.Editor editor;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root=inflater.inflate(R.layout.layout_message,container,false);
-        SharedPreferences sharedPreferences = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        rev = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
+        editor = rev.edit();
+        http.sendByPost(getContext(),rev.getInt("user_id",0));
+
         recyclerView=root.findViewById(R.id.recyclerView);
         list=new ArrayList<>();
 
-        JSONObject json= JSON.parseObject(sharedPreferences.getString("message",""));
+        JSONObject json= JSON.parseObject(rev.getString("message",""));
         //int size= json.getInteger("size");
         int size=0;
         for(int i=0;i<size;i++){

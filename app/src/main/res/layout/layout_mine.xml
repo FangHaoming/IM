@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    android:background="@color/top_bottom"
+    android:orientation="vertical"
     android:layout_height="match_parent">
 
     <LinearLayout
@@ -9,82 +11,91 @@
         android:orientation="vertical">
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="100dp"
-
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:paddingVertical="20dp"
             android:orientation="horizontal">
             <ImageView
-                android:layout_width="80dp"
-                android:layout_height="match_parent"
-                android:id="@+id/img"
-                android:scaleType="fitXY"/>
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="15dp"
+                android:src="@drawable/default0"
+                android:id="@+id/user_img"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="45dp"
                 android:orientation="vertical">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:text="name"
-                    android:textStyle="bold"
-                    android:textSize="30sp"
-                    android:id="@+id/name"/>
+                    android:layout_marginVertical="2dp"
+                    android:id="@+id/user_name"
+                    />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="sign"
-                    android:textSize="25sp"
-                    android:id="@+id/sign"/>
+                    android:layout_marginVertical="2dp"
+                    android:id="@+id/user_phone"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="2dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:text="这个人很懒~，什么都没写"
+                    android:id="@+id/user_sign"
+                    />
             </LinearLayout>
-
         </LinearLayout>
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
             android:gravity="center"
+            android:background="@drawable/selector_click"
             android:text="修改个人资料"
-            android:textStyle="bold"
-            android:textSize="25sp"
+            android:textColor="@color/black"
 
             android:id="@+id/modify"/>
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp"
+            android:layout_height="50dp"
+            android:layout_marginVertical="1dp"
             android:gravity="center"
             android:text="修改密码"
-            android:textStyle="bold"
-            android:textSize="25sp"
+            android:textColor="@color/black"
+            android:background="@drawable/selector_click"
 
             android:id="@+id/modify_pwd"/>
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:layout_marginVertical="15dp"
             android:gravity="center"
             android:text="切换账号"
-            android:textStyle="bold"
-            android:textSize="25sp"
+            android:background="@drawable/selector_click"
+            android:textColor="@color/black"
 
             android:id="@+id/change"/>
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
+            android:layout_width="150dp"
+            android:layout_height="35dp"
             android:layout_marginVertical="15dp"
             android:layout_gravity="center"
+            android:gravity="center"
             android:text="注销账号"
             android:textAlignment="center"
             android:textStyle="bold"
             android:textColor="#fff"
-            android:textSize="25sp"
+            android:textSize="15sp"
             android:background="#C8F44336"
             android:id="@+id/delete"/>
 
     </LinearLayout>
 
-</ScrollView>
+</LinearLayout>

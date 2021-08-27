@@ -37,7 +37,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
-                    android:textStyle="bold"
+                    android:textColor="@color/black"
                     android:text=""
                     android:drawablePadding="3dp"
                     android:id="@+id/user_note"/>
@@ -57,6 +57,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="2dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:text="这个人很懒~，什么都没写"
                     android:id="@+id/user_sign"
                     />
             </LinearLayout>
@@ -70,7 +73,7 @@
         android:background="@drawable/selector_click"
         android:text="设置备注"
         android:gravity="center"
-        android:textStyle="bold"
+        android:textColor="@color/black"
         android:layout_marginTop="10dp"/>
     <LinearLayout
         android:layout_width="match_parent"
@@ -88,7 +91,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:textStyle="bold"
+            android:textColor="@color/black"
             android:layout_marginLeft="5dp"
             android:text="发消息" />
     </LinearLayout>
@@ -108,7 +111,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:textStyle="bold"
+            android:textColor="@color/black"
             android:layout_marginLeft="5dp"
             android:text="音频通话" />
     </LinearLayout>

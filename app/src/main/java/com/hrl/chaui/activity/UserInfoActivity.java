@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
 
@@ -37,6 +39,7 @@ public class UserInfoActivity extends AppCompatActivity {
     public TextView user_note;
     public TextView user_phone;
     public TextView user_sign;
+    public ImageView user_img;
     public LinearLayout sendMsg;
     public LinearLayout sendCall;
     public TextView setNote;
@@ -66,14 +69,15 @@ public class UserInfoActivity extends AppCompatActivity {
         user_note=findViewById(R.id.user_note);
         user_phone=findViewById(R.id.user_phone);
         user_sign=findViewById(R.id.user_sign);
+        user_img=findViewById(R.id.user_img);
 
+        user=new User();
 
         recv = getSharedPreferences("data", Context.MODE_PRIVATE);
         editor = recv.edit();
-        user=new User();
         Intent intent=getIntent();
         Bundle bundle = intent.getExtras();
-        int friend_id=bundle.getInt("friend_id");
+        int friend_id=bundle.getInt("contact_id");
         sendByPost(recv.getInt("user_id",0),friend_id);
 
         View.OnClickListener listener=new View.OnClickListener() {
@@ -81,7 +85,6 @@ public class UserInfoActivity extends AppCompatActivity {
             public void onClick(View v) {
                 switch(v.getId()){
                     case R.id.setNote:
-
                         break;
                     case R.id.delete:
                         break;
@@ -171,6 +174,9 @@ public class UserInfoActivity extends AppCompatActivity {
                                 }
                                 if(user.getSign()!=null){
                                     user_sign.setText("个性签名: "+user.getSign());
+                                }
+                                if(user.getImg()!=null){
+                                    Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img)+user.getImg()).into(user_img);
                                 }
                             }
                         });

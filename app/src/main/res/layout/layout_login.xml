@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     android:gravity="center_vertical">
 
     <LinearLayout
@@ -16,7 +17,7 @@
             android:layout_gravity="left"
             android:text="手机号登录"
             android:textSize="30dp"
-            android:textStyle="bold"
+            android:textColor="@color/black"
             android:layout_marginBottom="30dp"
             />
 
@@ -30,7 +31,7 @@
                 android:text="手机号"
                 android:ems="3"
                 android:textSize="18dp"
-                android:textStyle="bold"/>
+                android:textColor="@color/black"/>
             <EditText
                 android:hint="请填写手机号"
                 android:maxLength="11"
@@ -57,7 +58,7 @@
                 android:text="密码"
                 android:ems="3"
                 android:textSize="18dp"
-                android:textStyle="bold"/>
+                android:textColor="@color/black"/>
             <EditText
                 android:hint="填写密码"
                 android:ems="10"
@@ -71,10 +72,13 @@
 
         <Button
             android:id="@+id/loginBtn"
+            android:enabled="false"
             android:layout_marginTop="15dp"
             android:layout_width="250dp"
-            android:layout_height="50dp"
+            android:layout_height="35dp"
             android:layout_gravity="center"
+            android:background="@drawable/btn_is_can"
+            android:textColor="@color/black"
             android:text="登录"
             />
         <LinearLayout
@@ -87,7 +91,14 @@
                 android:id="@+id/checkbox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/black"
                 android:text="记住密码" />
+            <CheckBox
+                android:id="@+id/checkbox_auto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:text="自动登录" />
 
 
             <TextView
@@ -95,8 +106,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="right"
-                android:textStyle="bold"
-                android:text="新用户注册" />
+                android:layout_gravity="center_vertical"
+                android:textColor="@color/black"
+                android:text="@string/register" />
 
 
 

@@ -13,7 +13,7 @@
         android:id="@+id/img"
         android:layout_width="35dp"
         android:layout_height="35dp"
-        tools:src="@drawable/friend"/>
+        tools:src="@drawable/default0"/>
 
     <TextView
         android:id="@+id/name"
@@ -21,5 +21,5 @@
         android:layout_height="match_parent"
         android:gravity="center_vertical"
         android:paddingLeft="15dp"
-        tools:text="安徽"/>
+        tools:text="hhh"/>
 </LinearLayout>

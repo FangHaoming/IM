@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">HRLChatUi</string>
     <string name="app_prefix_img">http://40f730q296.qicp.vip/images/head/</string>
+    <string name="register"><u>新用户注册</u></string>
 </resources>

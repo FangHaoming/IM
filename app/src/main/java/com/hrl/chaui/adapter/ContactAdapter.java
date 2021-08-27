@@ -1,6 +1,5 @@
 package com.hrl.chaui.adapter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,6 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
+import com.hrl.chaui.activity.GroupActivity;
+import com.hrl.chaui.activity.GroupInfoActivity;
 import com.hrl.chaui.activity.UserInfoActivity;
 import com.hrl.chaui.bean.User;
 
@@ -50,9 +51,7 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull  RecyclerView.ViewHolder holder, int position) {
         User user = mDatas.get(position);
-
         ((ViewHolder) holder).name.setText(user.getName());
-        //((ViewHolder)holder).img.setImageResource(user.);
         if (user.getName().equals("新的朋友")) {
             ((ViewHolder) holder).img.setImageResource(R.drawable.friend);
             ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {
@@ -66,7 +65,8 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(mContext.getApplicationContext(), "群聊", Toast.LENGTH_SHORT).show();
+                    Intent intent=new Intent(mContext, GroupActivity.class);
+                    mContext.startActivity(intent);
                 }
             });
         } else {
@@ -74,12 +74,19 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(mContext, UserInfoActivity.class);
+                    Intent intent;
+                    if(user.getType()==0){
+                        intent = new Intent(mContext, UserInfoActivity.class);
+                    }
+                    else {
+                        intent=new Intent(mContext, GroupInfoActivity.class);
+                    }
                     Bundle bundle = new Bundle();
-                    bundle.putInt("friend_id", user.getId());
+                    bundle.putInt("contact_id", user.getId());
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
-                    ((Activity) mContext).overridePendingTransition(R.anim.slide_left_in, 0);
+                    //((Activity) mContext).overridePendingTransition(R.anim.slide_left_in, 0);
+
 
                 }
             });

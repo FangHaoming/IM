@@ -2,9 +2,13 @@ package com.hrl.chaui.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Paint;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -12,12 +16,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
+import com.hrl.chaui.util.EditIsCanUseBtnUtils;
 import com.hrl.chaui.util.MqttService;
+import com.hrl.chaui.util.http;
 
 import java.io.IOException;
 
@@ -33,33 +40,58 @@ public class LoginActivity extends AppCompatActivity {
     private int code = 1;
     private TextView register;
     private CheckBox remember;
+    private CheckBox auto_login;
     private EditText phone;
     private EditText pwd;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_login);
+        Window window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(getResources().getColor(R.color.white));
+        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+
         sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
         editor=sharedPreferences.edit();
+
         loginBtn=findViewById(R.id.loginBtn);
         register =findViewById(R.id.register);
         remember=findViewById(R.id.checkbox);
         phone=findViewById(R.id.phone);
         pwd=findViewById(R.id.pwd);
+        auto_login=findViewById(R.id.checkbox_auto);
+
+        register.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
+        register.getPaint().setAntiAlias(true);
 
         SharedPreferences sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
         editor=sharedPreferences.edit();
 
         System.out.println("this is user_name:"+sharedPreferences.getString("user_name",""));
-        if(sharedPreferences.getBoolean("isCheck",false)){
+        if(sharedPreferences.getBoolean("isRemember",false)){
             phone.setText(sharedPreferences.getString("user_phone",""));
             pwd.setText(sharedPreferences.getString("user_pwd",""));
             remember.setChecked(true);
-            sendByPost(phone.getText().toString().trim(),pwd.getText().toString().trim());
         }
+        if(sharedPreferences.getBoolean("isAuto",false)){
+            auto_login.setChecked(true);
+            if(!sharedPreferences.getBoolean("isChange",false)){
+                sendByPost(phone.getText().toString().trim(),pwd.getText().toString().trim());
+            }
+
+        }
+        EditIsCanUseBtnUtils.getInstance()
+                .addContext(this)
+                .addEdittext(phone)
+                .addEdittext(pwd)
+                .setBtn(loginBtn)
+                .build();
         //注册按钮
         register.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,8 +113,17 @@ public class LoginActivity extends AppCompatActivity {
                 else{
                     if(remember.isChecked()){
                         editor.putBoolean("isCheck",true);
-                        editor.apply();
                     }
+                    else{
+                        editor.putBoolean("isCheck",false);
+                    }
+                    if(auto_login.isChecked()){
+                        editor.putBoolean("isAuto",true);
+                    }
+                    else{
+                        editor.putBoolean("isAuto",false);
+                    }
+                    editor.apply();
                     sendByPost(phone.getText().toString().trim(),pwd.getText().toString().trim());
                 }
 
@@ -124,9 +165,9 @@ public class LoginActivity extends AppCompatActivity {
                 System.out.println("**********info"+info);
                 switch (Integer.parseInt(json.get("status").toString())){
                     case 2:
-
+                        http.sendByPost(LoginActivity.this,json.getInteger("user_id"));
                         editor.putString("user_gender", (String) json.get("user_gender"));
-                        editor.putInt("user_id", (int) json.get("user_id"));
+                        editor.putInt("user_id", json.getInteger("user_id"));
                         editor.putString("user_img",(String)json.get("user_img"));
                         editor.putString("user_name",(String)json.get("user_name"));
                         editor.putString("user_phone",(String)json.get("user_phone"));
@@ -140,6 +181,9 @@ public class LoginActivity extends AppCompatActivity {
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
                         finish();
+                        Looper.prepare();
+                        Toast.makeText(LoginActivity.this, "登录成功!", Toast.LENGTH_SHORT).show();
+                        Looper.loop();
                         break;
                     case 1:
                         Looper.prepare();
@@ -155,6 +199,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
 }

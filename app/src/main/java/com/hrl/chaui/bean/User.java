@@ -12,6 +12,8 @@ public class User extends BaseIndexPinyinBean {
     private String phone;
     private String sign;
     private int type;
+    private int rank;
+    private int notice_rank;
 
     public String getNote() {
         return note;

@@ -2,19 +2,25 @@ package com.hrl.chaui.activity;
 
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
+import com.hrl.chaui.util.EditIsCanUseBtnUtils;
 import com.hrl.chaui.util.MyDBHelper;
 
 import java.io.IOException;
@@ -29,6 +35,7 @@ import okhttp3.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    private TextView back_arrow;
     private EditText pwd;
     private EditText confirm_pwd;
     private EditText name;
@@ -38,15 +45,38 @@ public class RegisterActivity extends AppCompatActivity {
     public String user_pwd;
     public String user_confirm_pwd;
     public String user_phone;
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_register);
+        Window window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(getResources().getColor(R.color.white));
+        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         pwd=findViewById(R.id.pwd);
         confirm_pwd=findViewById(R.id.confirm_pwd);
         phone=findViewById(R.id.phone);
         regiBtn=findViewById(R.id.registerBtn);
         name=findViewById(R.id.name);
+        back_arrow=findViewById(R.id.back_arrow);
+        back_arrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(RegisterActivity.this,LoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+        EditIsCanUseBtnUtils.getInstance()
+                .addContext(this)
+                .setBtn(regiBtn)
+                .addEdittext(pwd)
+                .addEdittext(confirm_pwd)
+                .addEdittext(name)
+                .addEdittext(phone)
+                .build();
 
 
         MyDBHelper dbHelper=new MyDBHelper(getApplicationContext(),"DB",null,1);
