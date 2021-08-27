@@ -24,6 +24,7 @@ import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
 
 public class MessageDaoImp implements MessageDao {
@@ -49,7 +50,13 @@ public class MessageDaoImp implements MessageDao {
     }
 
 
-    // 插入Message
+
+    /**
+     * 该方法用于插入消息Message
+     * @param context : 所在的context
+     * @param message : 需要插入的message
+     * @throws IOException  : 序列化失败时，会抛出该异常
+     */
     public void insertMessage(Context context, Message message) throws IOException {
         MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
@@ -73,13 +80,31 @@ public class MessageDaoImp implements MessageDao {
         db.close();
     }
 
-    // 查询 和某两个ClientID有关 的 Message (按照发送时间排序)。 messageNums是需要查询的数量
+    /**
+     * 该方法用于查找messageNums个 通信双方为clientID1、clientID2的消息
+     * @param context
+     * @param clientID1
+     * @param clientID2
+     * @param messageNums 最多返回的Message个数。
+     * @return 符合条件的消息列表
+     * @throws IOException : MsgBody反序列化失败时会返回该错误
+     * @throws ClassNotFoundException ： MsgBody反序列化失败时会返回该错误
+     */
     public List<Message> queryMessage(Context context, String clientID1, String clientID2, int messageNums) throws IOException, ClassNotFoundException {
         return queryMessage(context, clientID1, clientID2, messageNums, NOTIMELIMIT);
     }
 
-
-    // 查询 和某两个ClientID有关 的 在 sendTime 之前的 Message (按照发送时间排序)。 messageNums是需要查询的数量，
+    /**
+     *  该方法返回 通信双方为clientID1、clientID2、且发送时间小于sendTime的消息。
+     * @param context
+     * @param clientID1
+     * @param clientID2
+     * @param messageNums
+     * @param sendTime ：返回的消息的发送时间，都应小于sendtime
+     * @return 符合条件的消息列表
+     * @throws IOException  反序列化失败时会返回该异常
+     * @throws ClassNotFoundException 反序列化失败时会返回该异常
+     */
     public List<Message> queryMessage(Context context, String clientID1, String clientID2, int messageNums, long sendTime) throws IOException, ClassNotFoundException {
         MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
@@ -129,7 +154,130 @@ public class MessageDaoImp implements MessageDao {
         return messageArrayList;
     }
 
-    // 查询 和两个ClientID有关的 所有未被查看Message
+    /**
+     * 返回所有的消息
+     * @param context
+     * @return 所有消息
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public List<Message> queryAllMessage(Context context) throws IOException, ClassNotFoundException {
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        SQLiteDatabase db = messageDBHelper.getWritableDatabase();
+        ArrayList<Message> messageArrayList = new ArrayList<>();
+        Cursor cursor = db.query(MESSAGETABLENAME,null, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                Message message = new Message();
+                message.setUuid(cursor.getString(cursor.getColumnIndex("uuid")));
+                message.setMsgId(cursor.getString(cursor.getColumnIndex("msgId")));
+                message.setMsgType(MsgType.values()[cursor.getInt(cursor.getColumnIndex("msgType"))]);
+                message.setSenderId(cursor.getString(cursor.getColumnIndex("senderId")));
+                message.setTargetId(cursor.getString(cursor.getColumnIndex("targetId")));
+                message.setSentTime(cursor.getLong(cursor.getColumnIndex("sentTime")));
+                message.setSentStatus(MsgSendStatus.values()[cursor.getInt(cursor.getColumnIndex("sentStatus"))]);
+                message.setCheck(cursor.getInt(cursor.getColumnIndex("checkStatus")) == 1);
+                String msgBodySerialization = cursor.getString(cursor.getColumnIndex("msgBody"));
+                MsgBody msgBody = deserializeMsgBody(msgBodySerialization);
+                message.setBody(msgBody);
+                messageArrayList.add(message);
+            } while(cursor.moveToNext());
+        }
+        db.close();
+        return messageArrayList;
+    }
+
+
+    /**
+     * 返回 不同通话中最新的消息。（A->B 和 B->A 属于一个通话）
+     * @param context
+     * @param userID : 用户的ID
+     * @return
+     */
+    public List<Message> queryLatestDifMessage(Context context, String userID) throws IOException, ClassNotFoundException {
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        SQLiteDatabase db = messageDBHelper.getWritableDatabase();
+        ArrayList<Message> messageArrayList = new ArrayList<>();
+
+
+        HashSet<String> clientIDs = new HashSet<>();
+
+        // 获取记录中出了userID外所有不同的通话ID
+        Cursor cursor = db.query(MESSAGETABLENAME,
+                 new String[]{"senderId"},
+                null,
+                null,
+                "senderId",
+                null,
+                null, // 时间从大到小
+                null); // 只取messageNums个
+
+        Cursor cursor2 = db.query(MESSAGETABLENAME,
+                 new String[] {"targetId"},
+                null,
+                null,
+                "targetId",
+                null,
+                null, // 时间从大到小
+                null); // 只取messageNums个
+
+        if (cursor.moveToFirst()) {
+            do {
+                String id = cursor.getString(0);
+                if (id.equals(userID)) continue;
+                clientIDs.add(id);
+            } while(cursor.moveToNext());
+        }
+        if (cursor2.moveToFirst()) {
+            do {
+                String id = cursor2.getString(0);
+                if (id.equals(userID)) continue;
+                clientIDs.add(id);
+            } while(cursor2.moveToNext());
+        }
+
+
+        // 查找上面ID 与userID 的对话中，最新的消息。
+        for (String clientID : clientIDs) {
+            String selection = "senderId == '" + clientID + "' or targetId == '" + clientID + "'";
+            Cursor cursor3 = db.query(MESSAGETABLENAME,
+                                    null,
+                                    selection,
+                                    null,
+                                    null,
+                                    null,
+                                    "sentTime DESC",
+                                    "1");
+            if (cursor3.moveToFirst()) {
+                Message message = new Message();
+                message.setUuid(cursor3.getString(cursor3.getColumnIndex("uuid")));
+                message.setMsgId(cursor3.getString(cursor3.getColumnIndex("msgId")));
+                message.setMsgType(MsgType.values()[cursor3.getInt(cursor3.getColumnIndex("msgType"))]);
+                message.setSenderId(cursor3.getString(cursor3.getColumnIndex("senderId")));
+                message.setTargetId(cursor3.getString(cursor3.getColumnIndex("targetId")));
+                message.setSentTime(cursor3.getLong(cursor3.getColumnIndex("sentTime")));
+                message.setSentStatus(MsgSendStatus.values()[cursor3.getInt(cursor3.getColumnIndex("sentStatus"))]);
+                message.setCheck(cursor3.getInt(cursor3.getColumnIndex("checkStatus")) == 1);
+                String msgBodySerialization = cursor3.getString(cursor3.getColumnIndex("msgBody"));
+                MsgBody msgBody = deserializeMsgBody(msgBodySerialization);
+                message.setBody(msgBody);
+                messageArrayList.add(message);
+            }
+        }
+
+        return messageArrayList;
+    }
+
+
+    /**
+     *  查找所有通信双方为clientID1、clientID2,且 没有查看的消息。（即checkStatus=0的消息）
+     * @param context
+     * @param clientID1
+     * @param clientID2
+     * @return 符合条件的消息列表
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public List<Message> queryAllUncheckMessage(Context context, String clientID1, String clientID2) throws IOException, ClassNotFoundException {
         MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
@@ -170,7 +318,14 @@ public class MessageDaoImp implements MessageDao {
         return messageArrayList;
     }
 
-    // 查询 通信双方未被查看的Message数量
+
+    /**
+     * 返回通信双方为clientID1、clientID2的没有查看的消息数量
+     * @param context
+     * @param clientID1
+     * @param clientID2
+     * @return 某个对话中没有查看的消息数量。
+     */
     public int queryUncheckMessageNums(Context context, String clientID1, String clientID2) {
         MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
@@ -195,7 +350,15 @@ public class MessageDaoImp implements MessageDao {
         return cursor.getInt(0);
     }
 
-    // 查询某个用户收到的所有未查看(check)Message
+
+    /**
+     * 返回 消息目标ID = targetID 的 所有未查询消息。
+     * @param context
+     * @param targetID
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public List<Message> queryAllUncheckedMessage(Context context, String targetID) throws IOException, ClassNotFoundException {
         MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
@@ -239,7 +402,11 @@ public class MessageDaoImp implements MessageDao {
 
 
 
-    // 将某个信息的状态改为check
+    /**
+     *  将 以uuid为主键的消息状态设置为已查看
+     * @param context
+     * @param uuid
+     */
     public void checkMessage(Context context, String uuid) {
         MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
@@ -251,6 +418,12 @@ public class MessageDaoImp implements MessageDao {
     }
 
     // 更新多个message的状态
+
+    /**
+     * 将 数据库中 消息uuid在 uuids 中的消息状态设置为已查看
+     * @param context
+     * @param uuids
+     */
     public void checkMessage(Context context, String[] uuids) {
         MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
@@ -291,6 +464,7 @@ public class MessageDaoImp implements MessageDao {
         byteArrayInputStream.close();
         return msgBody;
     }
+
 
 
 

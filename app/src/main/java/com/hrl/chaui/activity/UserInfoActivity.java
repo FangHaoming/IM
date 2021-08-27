@@ -92,13 +92,7 @@ public class UserInfoActivity extends AppCompatActivity {
                         break;
                     case R.id.send_message:
                         Intent chatIntent = new Intent(userInfoActivity, ChatActivity.class);
-                        chatIntent.putExtra("user_id", user.getId());
-                        chatIntent.putExtra("user_name", user.getName());
-                        chatIntent.putExtra("user_gender", user.getGender());
-                        chatIntent.putExtra("user_phone", user.getPhone());
-                        chatIntent.putExtra("user_sign", user.getSign());
-                        chatIntent.putExtra("user_img", user.getImg());
-                        chatIntent.putExtra("friend_note", user.getNote());
+                        chatIntent.putExtra("targetUser",user);
                         startActivity(chatIntent);
                         break;
                     case R.id.send_call:

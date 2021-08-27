@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -176,22 +177,12 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     @Override
     public void onResume() {
-        // 准备好交互时调用
-
         // 获取通信对方的信息
         Intent intent = getIntent();
-        targetUser = new User();
-        targetUser.setName(intent.getStringExtra("user_name"));
-        targetUser.setGender(intent.getStringExtra("user_gender"));
-        targetUser.setPhone(intent.getStringExtra("user_phone"));
-        targetUser.setSign(intent.getStringExtra("user_sign"));
-        targetUser.setImg(intent.getStringExtra("user_img"));
-        targetUser.setId(intent.getIntExtra("user_id", -1));
-        targetUser.setNote(intent.getStringExtra("friend_note"));
-
+        targetUser = (User) intent.getSerializableExtra("targetUser");
         Log.e(TAG, "ChatActivity onResume()" + "  targetUser:" + targetUser.getName());
 
-//         设置名称
+        //  设置名称
         targetClientID = "GID_test@@@" + targetUser.getId();
         TextView textView =(TextView) findViewById(R.id.common_toolbar_title);
         textView.setText(targetUser.getName());
@@ -250,8 +241,66 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         mRvChat.setAdapter(mAdapter);
         mSwipeRefresh.setOnRefreshListener(this);
         initChatUi();
+    }
 
-        ChatActivity chatActivity = this;
+
+    private void initChatUi() {
+        //mBtnAudio
+        final ChatUiHelper mUiHelper = ChatUiHelper.with(this);
+        mUiHelper.bindContentLayout(mLlContent)
+                .bindttToSendButton(mBtnSend)
+                .bindEditText(mEtContent)
+                .bindBottomLayout(mRlBottomLayout)
+                .bindEmojiLayout(mLlEmotion)
+                .bindAddLayout(mLlAdd)
+                .bindToAddButton(mIvAdd)
+                .bindToEmojiButton(mIvEmo)
+                .bindAudioBtn(mBtnAudio)
+                .bindAudioIv(mIvAudio)
+                .bindEmojiData();
+
+        //底部布局弹出,聊天列表上滑
+        mRvChat.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if (bottom < oldBottom) {
+                    mRvChat.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mAdapter.getItemCount() > 0) {
+                                mRvChat.smoothScrollToPosition(mAdapter.getItemCount() - 1);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        //点击空白区域关闭键盘
+        mRvChat.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                mUiHelper.hideBottomLayout(false);
+                mUiHelper.hideSoftInput();
+                mEtContent.clearFocus();
+                mIvEmo.setImageResource(R.mipmap.ic_emoji);
+                return false;
+            }
+        });
+
+        // 录音结束，发送录音文件
+        ((RecordButton) mBtnAudio).setOnFinishedRecordListener(new RecordButton.OnFinishedRecordListener() {
+            @Override
+            public void onFinishedRecord(String audioPath, int time) {
+                LogUtil.d("录音结束回调");
+                File file = new File(audioPath);
+                if (file.exists()) {
+                    sendAudioMessage(audioPath, time);
+                }
+            }
+        });
+
+
 
         // 聊天框消息点击事件
         mAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() { // RecyclerView Item 点击事件
@@ -260,10 +309,8 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                 // 获取点击的Item
                 Message msg = mAdapter.getItem(position);
-
                 // 跳转去 ItemShowActivity
-                Intent intent = new Intent(chatActivity, ItemShowActivity.class);
-
+                Intent intent = new Intent(ChatActivity.this, ItemShowActivity.class);
                 switch(view.getId()) {
                     case R.id.rlAudio: {
                         // Audio Item的点击事件
@@ -337,66 +384,16 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                         break;
                     }
                 }
-
             }
         });
 
-    }
 
-
-    private void initChatUi() {
-        //mBtnAudio
-        final ChatUiHelper mUiHelper = ChatUiHelper.with(this);
-        mUiHelper.bindContentLayout(mLlContent)
-                .bindttToSendButton(mBtnSend)
-                .bindEditText(mEtContent)
-                .bindBottomLayout(mRlBottomLayout)
-                .bindEmojiLayout(mLlEmotion)
-                .bindAddLayout(mLlAdd)
-                .bindToAddButton(mIvAdd)
-                .bindToEmojiButton(mIvEmo)
-                .bindAudioBtn(mBtnAudio)
-                .bindAudioIv(mIvAudio)
-                .bindEmojiData();
-
-        //底部布局弹出,聊天列表上滑
-        mRvChat.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+        // title bar 的返回箭头
+        ImageView titleBack = (ImageView) findViewById(R.id.title_back);
+        titleBack.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (bottom < oldBottom) {
-                    mRvChat.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mAdapter.getItemCount() > 0) {
-                                mRvChat.smoothScrollToPosition(mAdapter.getItemCount() - 1);
-                            }
-                        }
-                    });
-                }
-            }
-        });
-
-        //点击空白区域关闭键盘
-        mRvChat.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                mUiHelper.hideBottomLayout(false);
-                mUiHelper.hideSoftInput();
-                mEtContent.clearFocus();
-                mIvEmo.setImageResource(R.mipmap.ic_emoji);
-                return false;
-            }
-        });
-
-        // 录音结束，发送录音文件
-        ((RecordButton) mBtnAudio).setOnFinishedRecordListener(new RecordButton.OnFinishedRecordListener() {
-            @Override
-            public void onFinishedRecord(String audioPath, int time) {
-                LogUtil.d("录音结束回调");
-                File file = new File(audioPath);
-                if (file.exists()) {
-                    sendAudioMessage(audioPath, time);
-                }
+            public void onClick(View v) {
+                ChatActivity.this.finish();
             }
         });
 
@@ -447,8 +444,6 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 e.printStackTrace();
             }
         }
-
-
 
 
 

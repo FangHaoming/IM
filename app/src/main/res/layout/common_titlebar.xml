@@ -28,6 +28,7 @@
               >
 
             <ImageView
+                android:id="@+id/title_back"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_centerVertical="true"
