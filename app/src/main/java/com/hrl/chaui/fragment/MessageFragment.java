@@ -19,6 +19,7 @@ import com.hrl.chaui.R;
 import com.hrl.chaui.adapter.MessageAdapter;
 import com.hrl.chaui.bean.MessageEntity;
 import com.hrl.chaui.util.MyDBHelper;
+import com.hrl.chaui.util.http;
 
 import java.util.ArrayList;
 import java.util.List;
