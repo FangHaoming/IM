@@ -16,30 +16,31 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="52dp"
+        android:gravity="center_vertical"
+        android:paddingLeft="10dp">
 
         <ImageView
             android:id="@+id/message_item_photo"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="8dp"
-            android:src="@mipmap/ic_head_default_left" />
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@mipmap/ic_head_default_left"
+            android:layout_centerVertical="true"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="70dp"
+            android:layout_marginLeft="1dp"
             android:layout_toRightOf="@id/message_item_photo"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingLeft="10dp">
 
             <LinearLayout
                 android:id="@+id/message_item_text"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -49,7 +50,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:textColor="@color/black"
-                    android:textSize="20sp" />
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/message_item_info"

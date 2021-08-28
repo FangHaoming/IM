@@ -7,17 +7,26 @@ import com.hrl.chaui.bean.MsgType;
 
 import java.io.Serializable;
 
-public  class Message implements Serializable {
+public class Message implements Serializable {
 
-     private String uuid;
-      private String msgId; // 这个暂时没有用处
-     private MsgType msgType;
-     private MsgBody body;
-     private MsgSendStatus sentStatus;
-     private String senderId; // 发送方的ClientID
-     private String targetId; // 接受方的ClientID
-     private long sentTime;
-     private boolean isCheck; // 是否被查看 0:没check  1：check
+    private String uuid;
+    private String msgId; // 这个暂时没有用处
+    private MsgType msgType;
+    private MsgBody body;
+    private MsgSendStatus sentStatus;
+    private String senderId; // 发送方的ClientID
+    private String targetId; // 接受方的ClientID
+    private long sentTime;
+    private boolean isCheck; // 是否被查看 0:没check  1：check
+    private boolean isGroup; // 是否群聊
+
+    public boolean isGroup() {
+        return isGroup;
+    }
+
+    public void setGroup(boolean group) {
+        isGroup = group;
+    }
 
     public boolean isCheck() {
         return isCheck;
@@ -82,7 +91,6 @@ public  class Message implements Serializable {
     public void setSentStatus(MsgSendStatus sentStatus) {
         this.sentStatus = sentStatus;
     }
-
 
 
     public long getSentTime() {

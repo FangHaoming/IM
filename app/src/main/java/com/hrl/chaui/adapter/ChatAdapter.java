@@ -10,6 +10,7 @@ import com.chad.library.adapter.base.BaseViewHolder;
 import com.chad.library.adapter.base.util.MultiTypeDelegate;
 import com.hrl.chaui.R;
 import com.hrl.chaui.activity.ChatActivity;
+import com.hrl.chaui.activity.GroupChatActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
@@ -18,11 +19,15 @@ import com.hrl.chaui.bean.MsgBody;
 import com.hrl.chaui.bean.MsgSendStatus;
 import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
+import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.util.GlideUtils;
 import com.hrl.chaui.widget.BubbleImageView;
 import java.io.File;
 import java.util.List;
+
+import static com.hrl.chaui.MyApplication.groupMemberData;
+import static com.hrl.chaui.MyApplication.contactData;
 
 public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
@@ -55,11 +60,17 @@ public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
     private String targetClientID = null;
     private String userClientID = null;
 
-    public ChatAdapter(Context context, List<Message> data) {
+    public ChatAdapter(Context context, List<Message> data, String msg) {
         super(data);
 
-        targetClientID = ((ChatActivity) context).getTargetClientID();
-        userClientID = ((ChatActivity) context).getUserClientID();
+        if (msg.equals("ChatActivity")) {
+            targetClientID = ((ChatActivity) context).getTargetClientID();
+            userClientID = ((ChatActivity) context).getUserClientID();
+        } else if (msg.equals("GroupChatActivity")){
+            targetClientID = ((GroupChatActivity) context).getTargetGroupID();
+            userClientID = ((GroupChatActivity) context).getUserClientID();
+        }
+
 
         setMultiTypeDelegate(new MultiTypeDelegate<Message>() {
             @Override
@@ -102,6 +113,45 @@ public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
 
     private void setContent(BaseViewHolder helper, Message item) {
+
+        if (item.isGroup() && !item.getSenderId().equals(userClientID)) { // 只当收到群消息时才显示名称
+            // 设置姓名
+            // chat_item_content_sender_name只在接收信息 对应布局里面。
+            Log.e(TAG, "baseViewHolder:" + helper);
+            helper.setVisible(R.id.chat_item_content_sender_name, true);
+
+            String senderID = item.getSenderId();
+            String name = null;
+
+
+            for (User user : groupMemberData) {
+                String userID = "GID_test@@@" +  user.getId();
+                if (userID.equals(senderID)) {
+                    name = user.getName();
+                    break;
+                }
+            }
+
+            if (name == null) {
+                for (User user : contactData) {
+                    String userID;
+                    if (user.getId() != null) {
+                        userID = "GID_test@@@" + user.getId();
+                        if (userID.equals(senderID)) {
+                            name = user.getName();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (name == null) {
+                name = senderID;
+            }
+
+            helper.setText(R.id.chat_item_content_sender_name, name);
+        }
+
         if (item.getMsgType().equals(MsgType.TEXT)) {
             TextMsgBody msgBody = (TextMsgBody) item.getBody();
             helper.setText(R.id.chat_item_content_text, msgBody.getMessage());

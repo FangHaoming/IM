@@ -51,6 +51,13 @@
             android:textSize="16sp" />
 
 
+        <ImageView
+            android:id="@+id/chat_info"
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/chat_menu" />
+
 
     </RelativeLayout>
 

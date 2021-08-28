@@ -21,9 +21,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class MessageDaoImp implements MessageDao {
      * @throws IOException  : 序列化失败时，会抛出该异常
      */
     public void insertMessage(Context context, Message message) throws IOException {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
         MsgBody msgBody = message.getBody();
 
@@ -73,6 +74,7 @@ public class MessageDaoImp implements MessageDao {
         insertValues.put("sentStatus", message.getSentStatus().ordinal());
         insertValues.put("checkStatus", message.isCheck() ? 1:0 );
         insertValues.put("msgBody", msgBodySerialization);
+        insertValues.put("isGroup", message.isGroup()? 1:0);
 
         db.insert(MESSAGETABLENAME, null, insertValues);
 
@@ -94,6 +96,65 @@ public class MessageDaoImp implements MessageDao {
         return queryMessage(context, clientID1, clientID2, messageNums, NOTIMELIMIT);
     }
 
+
+    public List<Message> queryMessage(Context context, String groupID, int messageNums) throws IOException, ClassNotFoundException {
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
+        SQLiteDatabase db = messageDBHelper.getWritableDatabase();
+        ArrayList<Message> messageArrayList = new ArrayList<>();
+
+        String selection = "(targetId == '" + groupID + "')";
+
+        Cursor cursor = db.query(MESSAGETABLENAME,
+                null,
+                selection,
+                null,
+                null,
+                null,
+                "sentTime DESC", // 时间从大到小
+                String.valueOf(messageNums)); // 只取messageNums个
+
+
+        if (cursor.moveToFirst()) {
+            do {
+                Message message = getMessageFromCursor(cursor);
+                messageArrayList.add(message);
+            } while(cursor.moveToNext());
+        }
+
+        db.close();
+
+        return messageArrayList;
+    }
+
+    public List<Message> queryMessage(Context context, String groupID, int messageNums, long sendTime) throws IOException, ClassNotFoundException {
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
+        SQLiteDatabase db = messageDBHelper.getWritableDatabase();
+        ArrayList<Message> messageArrayList = new ArrayList<>();
+
+        String selection = "(targetId == '" + groupID + "') AND sentTime <" + sendTime;
+
+        Cursor cursor = db.query(MESSAGETABLENAME,
+                null,
+                selection,
+                null,
+                null,
+                null,
+                "sentTime DESC", // 时间从大到小
+                String.valueOf(messageNums)); // 只取messageNums个
+
+
+        if (cursor.moveToFirst()) {
+            do {
+                Message message = getMessageFromCursor(cursor);
+                messageArrayList.add(message);
+            } while(cursor.moveToNext());
+        }
+
+        db.close();
+
+        return messageArrayList;
+    }
+
     /**
      *  该方法返回 通信双方为clientID1、clientID2、且发送时间小于sendTime的消息。
      * @param context
@@ -106,7 +167,7 @@ public class MessageDaoImp implements MessageDao {
      * @throws ClassNotFoundException 反序列化失败时会返回该异常
      */
     public List<Message> queryMessage(Context context, String clientID1, String clientID2, int messageNums, long sendTime) throws IOException, ClassNotFoundException {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
         ArrayList<Message> messageArrayList = new ArrayList<>();
 
@@ -133,18 +194,7 @@ public class MessageDaoImp implements MessageDao {
 
         if (cursor.moveToFirst()) {
             do {
-                Message message = new Message();
-                message.setUuid(cursor.getString(cursor.getColumnIndex("uuid")));
-                message.setMsgId(cursor.getString(cursor.getColumnIndex("msgId")));
-                message.setMsgType(MsgType.values()[cursor.getInt(cursor.getColumnIndex("msgType"))]);
-                message.setSenderId(cursor.getString(cursor.getColumnIndex("senderId")));
-                message.setTargetId(cursor.getString(cursor.getColumnIndex("targetId")));
-                message.setSentTime(cursor.getLong(cursor.getColumnIndex("sentTime")));
-                message.setSentStatus(MsgSendStatus.values()[cursor.getInt(cursor.getColumnIndex("sentStatus"))]);
-                message.setCheck(cursor.getInt(cursor.getColumnIndex("checkStatus")) == 1);
-                String msgBodySerialization = cursor.getString(cursor.getColumnIndex("msgBody"));
-                MsgBody msgBody = deserializeMsgBody(msgBodySerialization);
-                message.setBody(msgBody);
+                Message message = getMessageFromCursor(cursor);
                 messageArrayList.add(message);
             } while(cursor.moveToNext());
         }
@@ -162,24 +212,13 @@ public class MessageDaoImp implements MessageDao {
      * @throws ClassNotFoundException
      */
     public List<Message> queryAllMessage(Context context) throws IOException, ClassNotFoundException {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
         ArrayList<Message> messageArrayList = new ArrayList<>();
         Cursor cursor = db.query(MESSAGETABLENAME,null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
-                Message message = new Message();
-                message.setUuid(cursor.getString(cursor.getColumnIndex("uuid")));
-                message.setMsgId(cursor.getString(cursor.getColumnIndex("msgId")));
-                message.setMsgType(MsgType.values()[cursor.getInt(cursor.getColumnIndex("msgType"))]);
-                message.setSenderId(cursor.getString(cursor.getColumnIndex("senderId")));
-                message.setTargetId(cursor.getString(cursor.getColumnIndex("targetId")));
-                message.setSentTime(cursor.getLong(cursor.getColumnIndex("sentTime")));
-                message.setSentStatus(MsgSendStatus.values()[cursor.getInt(cursor.getColumnIndex("sentStatus"))]);
-                message.setCheck(cursor.getInt(cursor.getColumnIndex("checkStatus")) == 1);
-                String msgBodySerialization = cursor.getString(cursor.getColumnIndex("msgBody"));
-                MsgBody msgBody = deserializeMsgBody(msgBodySerialization);
-                message.setBody(msgBody);
+                Message message = getMessageFromCursor(cursor);
                 messageArrayList.add(message);
             } while(cursor.moveToNext());
         }
@@ -195,52 +234,68 @@ public class MessageDaoImp implements MessageDao {
      * @return
      */
     public List<Message> queryLatestDifMessage(Context context, String userID) throws IOException, ClassNotFoundException {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
         ArrayList<Message> messageArrayList = new ArrayList<>();
 
 
         HashSet<String> clientIDs = new HashSet<>();
+        HashSet<String> groupIDs = new HashSet<>();
+
 
         // 获取记录中出了userID外所有不同的通话ID
-        Cursor cursor = db.query(MESSAGETABLENAME,
+        Cursor cursorSender = db.query(MESSAGETABLENAME,
                  new String[]{"senderId"},
-                null,
+                "isGroup == 0",
                 null,
                 "senderId",
                 null,
-                null, // 时间从大到小
-                null); // 只取messageNums个
-
-        Cursor cursor2 = db.query(MESSAGETABLENAME,
-                 new String[] {"targetId"},
                 null,
+                null);
+
+        Cursor cursorTarget = db.query(MESSAGETABLENAME,
+                 new String[] {"targetId"},
+                "isGroup == 0",
                 null,
                 "targetId",
                 null,
-                null, // 时间从大到小
-                null); // 只取messageNums个
+                null,
+                null);
 
-        if (cursor.moveToFirst()) {
+        // 获取所有不同的群聊号
+        Cursor cursorGroup = db.query(MESSAGETABLENAME,
+                new String[]{"targetId"},
+                "isGroup == 1",
+                null,
+                "targetId",
+                null,
+                null);
+
+        if (cursorSender.moveToFirst()) {
             do {
-                String id = cursor.getString(0);
+                String id = cursorSender.getString(0);
                 if (id.equals(userID)) continue;
                 clientIDs.add(id);
-            } while(cursor.moveToNext());
+            } while(cursorSender.moveToNext());
         }
-        if (cursor2.moveToFirst()) {
+        if (cursorTarget.moveToFirst()) {
             do {
-                String id = cursor2.getString(0);
+                String id = cursorTarget.getString(0);
                 if (id.equals(userID)) continue;
                 clientIDs.add(id);
-            } while(cursor2.moveToNext());
+            } while(cursorTarget.moveToNext());
         }
-
+        if (cursorGroup.moveToFirst()) {
+            do {
+                String id = cursorGroup.getString(0);
+                groupIDs.add(id);
+            } while (cursorGroup.moveToNext());
+        }
 
         // 查找上面ID 与userID 的对话中，最新的消息。
         for (String clientID : clientIDs) {
             String selection = "senderId == '" + clientID + "' or targetId == '" + clientID + "'";
-            Cursor cursor3 = db.query(MESSAGETABLENAME,
+            Cursor cursorP2P = db.query(MESSAGETABLENAME,
                                     null,
                                     selection,
                                     null,
@@ -248,23 +303,41 @@ public class MessageDaoImp implements MessageDao {
                                     null,
                                     "sentTime DESC",
                                     "1");
-            if (cursor3.moveToFirst()) {
-                Message message = new Message();
-                message.setUuid(cursor3.getString(cursor3.getColumnIndex("uuid")));
-                message.setMsgId(cursor3.getString(cursor3.getColumnIndex("msgId")));
-                message.setMsgType(MsgType.values()[cursor3.getInt(cursor3.getColumnIndex("msgType"))]);
-                message.setSenderId(cursor3.getString(cursor3.getColumnIndex("senderId")));
-                message.setTargetId(cursor3.getString(cursor3.getColumnIndex("targetId")));
-                message.setSentTime(cursor3.getLong(cursor3.getColumnIndex("sentTime")));
-                message.setSentStatus(MsgSendStatus.values()[cursor3.getInt(cursor3.getColumnIndex("sentStatus"))]);
-                message.setCheck(cursor3.getInt(cursor3.getColumnIndex("checkStatus")) == 1);
-                String msgBodySerialization = cursor3.getString(cursor3.getColumnIndex("msgBody"));
-                MsgBody msgBody = deserializeMsgBody(msgBodySerialization);
-                message.setBody(msgBody);
+            if (cursorP2P.moveToFirst()) {
+                Message message = getMessageFromCursor(cursorP2P);
                 messageArrayList.add(message);
             }
         }
 
+        for (String group : groupIDs) {
+            String selection = "targetId == '" + group + "'";
+            Cursor cursorGroupChat = db.query(MESSAGETABLENAME,
+                                        null,
+                                        selection,
+                                        null,
+                                        null,
+                                        null,
+                                        "sentTime DESC",
+                                        "1");
+
+            if (cursorGroupChat.moveToFirst()) {
+                Message message = getMessageFromCursor(cursorGroupChat);
+                messageArrayList.add(message);
+            }
+        }
+
+
+        // 较新的放前面
+        Collections.sort(messageArrayList, new Comparator<Message>() {
+            @Override
+            public int compare(Message o1, Message o2) {
+                if (o1.getSentTime() > o2.getSentTime()) return -1;
+                else if (o1.getSentTime() < o2.getSentTime()) return 1;
+                else return 0;
+            }
+        });
+
+        db.close();
         return messageArrayList;
     }
 
@@ -279,7 +352,7 @@ public class MessageDaoImp implements MessageDao {
      * @throws ClassNotFoundException
      */
     public List<Message> queryAllUncheckMessage(Context context, String clientID1, String clientID2) throws IOException, ClassNotFoundException {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
 
         ArrayList<Message> messageArrayList = new ArrayList<>();
@@ -298,18 +371,7 @@ public class MessageDaoImp implements MessageDao {
 
         if (cursor.moveToFirst()) {
             do {
-                Message message = new Message();
-                message.setUuid(cursor.getString(cursor.getColumnIndex("uuid")));
-                message.setMsgId(cursor.getString(cursor.getColumnIndex("msgId")));
-                message.setMsgType(MsgType.values()[cursor.getInt(cursor.getColumnIndex("msgType"))]);
-                message.setSenderId(cursor.getString(cursor.getColumnIndex("senderId")));
-                message.setTargetId(cursor.getString(cursor.getColumnIndex("targetId")));
-                message.setSentTime(cursor.getLong(cursor.getColumnIndex("sentTime")));
-                message.setSentStatus(MsgSendStatus.values()[cursor.getInt(cursor.getColumnIndex("sentStatus"))]);
-                message.setCheck(cursor.getInt(cursor.getColumnIndex("checkStatus")) == 1);
-                String msgBodySerialization = cursor.getString(cursor.getColumnIndex("msgBody"));
-                MsgBody msgBody = deserializeMsgBody(msgBodySerialization);
-                message.setBody(msgBody);
+                Message message = getMessageFromCursor(cursor);
                 messageArrayList.add(message);
             } while(cursor.moveToNext());
         }
@@ -327,13 +389,12 @@ public class MessageDaoImp implements MessageDao {
      * @return 某个对话中没有查看的消息数量。
      */
     public int queryUncheckMessageNums(Context context, String clientID1, String clientID2) {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
 
-        ArrayList<Message> messageArrayList = new ArrayList<>();
 
-        String selection = "(senderId == '" + clientID1  + "' AND targetId == '" + clientID2 + "' )"
-                + "Or ( senderId == '" + clientID2 + "' AND targetId == '" + clientID1 + "' )"  ;
+        String selection = "checkStatus == 0" + " AND ((senderId == '" + clientID1  + "' AND targetId == '" + clientID2 + "' )"
+                + "Or ( senderId == '" + clientID2 + "' AND targetId == '" + clientID1 + "' ))"  ;
 
         String[] columns = {"COUNT(*)"};
 
@@ -350,6 +411,27 @@ public class MessageDaoImp implements MessageDao {
         return cursor.getInt(0);
     }
 
+    public int queryUncheckMessageNums(Context context, String groupID) {
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
+        SQLiteDatabase db = messageDBHelper.getWritableDatabase();
+
+
+        String selection = "checkStatus == 0 AND" + "(targetId == '" + groupID + "')";
+
+        String[] columns = {"COUNT(*)"};
+
+        Cursor cursor = db.query(MESSAGETABLENAME,
+                columns,
+                selection,
+                null,
+                null,
+                null,
+                null);
+
+        cursor.moveToFirst();
+        db.close();
+        return cursor.getInt(0);
+    }
 
     /**
      * 返回 消息目标ID = targetID 的 所有未查询消息。
@@ -361,7 +443,7 @@ public class MessageDaoImp implements MessageDao {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public List<Message> queryAllUncheckedMessage(Context context, String targetID) throws IOException, ClassNotFoundException {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
 
         ArrayList<Message> messageArrayList = new ArrayList<>();
@@ -380,18 +462,7 @@ public class MessageDaoImp implements MessageDao {
 
         if (cursor.moveToFirst()) {
             do {
-                Message message = new Message();
-                message.setUuid(cursor.getString(cursor.getColumnIndex("uuid")));
-                message.setMsgId(cursor.getString(cursor.getColumnIndex("msgId")));
-                message.setMsgType(MsgType.values()[cursor.getInt(cursor.getColumnIndex("msgType"))]);
-                message.setSenderId(cursor.getString(cursor.getColumnIndex("senderId")));
-                message.setTargetId(cursor.getString(cursor.getColumnIndex("targetId")));
-                message.setSentTime(cursor.getLong(cursor.getColumnIndex("sentTime")));
-                message.setSentStatus(MsgSendStatus.values()[cursor.getInt(cursor.getColumnIndex("sentStatus"))]);
-                message.setCheck(cursor.getInt(cursor.getColumnIndex("checkStatus")) == 1);
-                String msgBodySerialization = cursor.getString(cursor.getColumnIndex("msgBody"));
-                MsgBody msgBody = deserializeMsgBody(msgBodySerialization);
-                message.setBody(msgBody);
+                Message message = getMessageFromCursor(cursor);
                 messageArrayList.add(message);
             } while(cursor.moveToNext());
         }
@@ -408,7 +479,7 @@ public class MessageDaoImp implements MessageDao {
      * @param uuid
      */
     public void checkMessage(Context context, String uuid) {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
 
         ContentValues updateValues = new ContentValues();
@@ -425,7 +496,7 @@ public class MessageDaoImp implements MessageDao {
      * @param uuids
      */
     public void checkMessage(Context context, String[] uuids) {
-        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, 1);
+        MessageDBHelper messageDBHelper = new MessageDBHelper(context, DATABASENAME, MessageDBHelper.CURVERSION);
         SQLiteDatabase db = messageDBHelper.getWritableDatabase();
 
         ContentValues updateValues = new ContentValues();
@@ -466,6 +537,22 @@ public class MessageDaoImp implements MessageDao {
     }
 
 
+    private Message getMessageFromCursor(Cursor cursor) throws IOException, ClassNotFoundException {
+        Message message = new Message();
+        message.setUuid(cursor.getString(cursor.getColumnIndex("uuid")));
+        message.setMsgId(cursor.getString(cursor.getColumnIndex("msgId")));
+        message.setMsgType(MsgType.values()[cursor.getInt(cursor.getColumnIndex("msgType"))]);
+        message.setSenderId(cursor.getString(cursor.getColumnIndex("senderId")));
+        message.setTargetId(cursor.getString(cursor.getColumnIndex("targetId")));
+        message.setSentTime(cursor.getLong(cursor.getColumnIndex("sentTime")));
+        message.setSentStatus(MsgSendStatus.values()[cursor.getInt(cursor.getColumnIndex("sentStatus"))]);
+        message.setCheck(cursor.getInt(cursor.getColumnIndex("checkStatus")) == 1);
+        message.setGroup(cursor.getInt(cursor.getColumnIndex("isGroup")) == 1);
+        String msgBodySerialization = cursor.getString(cursor.getColumnIndex("msgBody"));
+        MsgBody msgBody = deserializeMsgBody(msgBodySerialization);
+        message.setBody(msgBody);
+        return message;
+    }
 
 
 }

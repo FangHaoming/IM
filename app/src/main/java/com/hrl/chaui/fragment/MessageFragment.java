@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.hrl.chaui.R;
 import com.hrl.chaui.activity.ChatActivity;
+import com.hrl.chaui.activity.GroupChatActivity;
 import com.hrl.chaui.adapter.MessageAdapter;
 import com.hrl.chaui.bean.Message;
 import com.hrl.chaui.bean.User;
@@ -38,6 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import static com.hrl.chaui.MyApplication.contactData;
+import static com.hrl.chaui.MyApplication.groupData;
 
 public class MessageFragment extends Fragment {
 
@@ -97,15 +100,6 @@ public class MessageFragment extends Fragment {
         }
 
         if (list != null) {
-            // 较新的放在前面
-            Collections.sort(list, new Comparator<Message>() {
-                @Override
-                public int compare(Message o1, Message o2) {
-                    if (o1.getSentTime() > o2.getSentTime()) return -1;
-                    else if (o1.getSentTime() < o2.getSentTime()) return 1;
-                    else return 0;
-                }
-            });
             mAdapter.setNewData(list);
         } else {
             Toast.makeText(this.getContext(), "没有消息",Toast.LENGTH_SHORT).show();
@@ -127,30 +121,49 @@ public class MessageFragment extends Fragment {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 Message message = (Message)adapter.getItem(position);
-                String targetID = message.getSenderId().equals(userClientID) ? message.getTargetId() : message.getSenderId();
-                int user_id = Integer.valueOf(targetID.split("@@@")[1]);
 
-                User targetUser = new User();
-                targetUser.setId(user_id);
-                for (User user : contactData) {
-                    if (user.getId() != null && user.getId() == user_id) {
-                        targetUser.setName(user.getName());
-                        targetUser.setNote(user.getNote());
-                        targetUser.setImg(user.getImg());
-                        targetUser.setSign(user.getSign());
-                        targetUser.setGender(user.getGender());
-                        targetUser.setType(user.getType());
-                        targetUser.setTop(user.isTop());
-                        targetUser.setPhone(user.getPhone());
-                        targetUser.setBaseIndexPinyin(user.getBaseIndexPinyin());
-                        targetUser.setBaseIndexTag(user.getBaseIndexTag());
-                        break;
+                if (message.isGroup()) {
+                    // 群聊信息
+                    String targetID = message.getTargetId();
+                    int groupID = Integer.valueOf(targetID);
+                    for (User group : groupData) {
+                        if (group.getId() == groupID) {
+                            Intent groupChatIntent = new Intent(MessageFragment.this.getContext(), GroupChatActivity.class);
+                            groupChatIntent.putExtra("targetUser", group);
+                            startActivity(groupChatIntent);
+                            break;
+                        }
                     }
+                } else {
+                    // 私聊信息
+                    String targetID = message.getSenderId().equals(userClientID) ? message.getTargetId() : message.getSenderId();
+
+                    int target_id = Integer.valueOf(targetID.split("@@@")[1]);
+
+                    User targetUser = new User();
+                    targetUser.setId(target_id);
+                    for (User user : contactData) {
+                        if (user.getId() != null && user.getId() == target_id) {
+                            targetUser.setName(user.getName());
+                            targetUser.setNote(user.getNote());
+                            targetUser.setImg(user.getImg());
+                            targetUser.setSign(user.getSign());
+                            targetUser.setGender(user.getGender());
+                            targetUser.setType(user.getType());
+                            targetUser.setTop(user.isTop());
+                            targetUser.setPhone(user.getPhone());
+                            targetUser.setBaseIndexPinyin(user.getBaseIndexPinyin());
+                            targetUser.setBaseIndexTag(user.getBaseIndexTag());
+                            break;
+                        }
+                    }
+
+                    Intent chatIntent = new Intent(MessageFragment.this.getContext(), ChatActivity.class);
+                    chatIntent.putExtra("targetUser", targetUser);
+                    startActivity(chatIntent);
                 }
 
-                Intent chatIntent = new Intent(MessageFragment.this.getContext(), ChatActivity.class);
-                chatIntent.putExtra("targetUser", targetUser);
-                startActivity(chatIntent);
+
             }
         });
 
@@ -169,8 +182,9 @@ public class MessageFragment extends Fragment {
                     e.printStackTrace();
                 }
 
-                if (list != null)
+                if (list != null) {
                     mAdapter.setNewData(list);
+                }
 
                 mSwipeRefresh.setRefreshing(false);
             }

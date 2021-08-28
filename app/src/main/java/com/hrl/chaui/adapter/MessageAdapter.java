@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.hrl.chaui.MyApplication.contactData;
+import static com.hrl.chaui.MyApplication.groupData;
 
 public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
@@ -41,15 +42,31 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
         // 通话对象
         String userID = "GID_test@@@" + context.getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
-        String otherID = item.getSenderId().equals(userID) ? item.getTargetId() : item.getSenderId();
-        int otherIDInt = Integer.valueOf(otherID.split("@@@")[1]);
-        String name = "陌生人";
-        for(User user : contactData)  {
-            if (user.getId() != null && user.getId() == otherIDInt) {
-                name = user.getName();
-                break;
+        String otherID = null;
+        String name = null;
+
+        if (!item.isGroup()) {
+            otherID = item.getSenderId().equals(userID) ? item.getTargetId() : item.getSenderId();
+            Log.e(TAG, "otherID:" + otherID);
+            String tmp = otherID.split("@@@")[1];
+            int otherIDInt = Integer.valueOf(tmp);
+            for(User user : contactData)  {
+                if (user.getId() != null && user.getId() == otherIDInt) {
+                    name = user.getName();
+                    break;
+                }
+            }
+        } else {
+            otherID = item.getTargetId();
+            for (User group : groupData) {
+                if (String.valueOf(group.getId()).equals(otherID)) {
+                    name = group.getName();
+                }
             }
         }
+
+        if (name == null)
+            name = "陌生人";
         helper.setText(R.id.message_item_title, name);
 
         // 发送时间
@@ -134,8 +151,6 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
                 prevDay = String.valueOf(28);
             }
         }
-
-        Log.e("time", prevDay + "  day:" + day);
 
         if (!year.equals(nowYear)) {
             return year + "年" + month + "月" + day + "日";

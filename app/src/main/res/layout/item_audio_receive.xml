@@ -35,44 +35,62 @@
             android:src="@mipmap/ic_head_default_left"
             />
 
-
-
-
-
         <LinearLayout
-            android:id="@+id/chat_item_layout_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="20dp"
-            android:layout_toRightOf="@id/chat_item_header"
-            android:gravity="right|center_vertical"
-            android:orientation="horizontal">
-
-            <RelativeLayout
-                android:id="@+id/rlAudio"
-                android:layout_width="65dp"
-                android:layout_height="wrap_content"
-                android:background="@drawable/message_text_receive">
-
-                <ImageView
-                    android:id="@+id/ivAudio"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:background="@drawable/audio_animation_left_list"/>
-
-            </RelativeLayout>
+            android:orientation="vertical"
+            android:layout_toRightOf="@id/chat_item_header">
 
             <TextView
-                android:id="@+id/tvDuration"
+                android:id="@+id/chat_item_content_sender_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="0''"/>
+                android:text="hello"
+                android:textSize="10dp"
+                android:layout_gravity="left"
+                android:visibility="gone"
+                />
+
+            <LinearLayout
+                android:id="@+id/chat_item_layout_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="20dp"
+                android:layout_toRightOf="@id/chat_item_header"
+                android:gravity="right|center_vertical"
+                android:orientation="horizontal">
 
 
+
+                <RelativeLayout
+                    android:id="@+id/rlAudio"
+                    android:layout_width="65dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/message_text_receive">
+
+                    <ImageView
+                        android:id="@+id/ivAudio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:background="@drawable/audio_animation_left_list"/>
+
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/tvDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="0''"/>
+
+
+            </LinearLayout>
         </LinearLayout>
+
+
+
 
 
     </RelativeLayout>

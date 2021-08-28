@@ -13,6 +13,8 @@ import java.io.File;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.paho.client.mqttv3.*;
@@ -55,7 +57,7 @@ public class MqttByAli {
     /**
      * QoS参数代表传输质量，可选0，1，2。详细信息，请参见名词解释。
      */
-    private final int qosLevel = 0;
+    private final int qosLevel = 1;
     //mqtt客户端
     private MqttClient mqttClient;
 
@@ -122,7 +124,15 @@ public class MqttByAli {
 
     //订阅主题，即群聊
     public void subscribe(String[] topicFilters, int[] qos) {
+
+        /**
+         *  群聊topic格式： {{parentTopic}}/groupChat/{{groupID}}
+         *  这里topicFilters只需要传进来groupID就可以了。
+         */
         try {
+            for (int i = 0; i < topicFilters.length; i++) {
+                topicFilters[i] = parentTopic + "/groupChat/"+topicFilters[i];
+            }
             mqttClient.subscribe(topicFilters, qos);
         } catch (MqttException e) {
             // TODO Auto-generated catch block
@@ -131,143 +141,206 @@ public class MqttByAli {
 
     }
 
-    public void sendMessage(String msg) {
-        sendMessage(topic, msg);
-    }
-
-    //向群里发送信息
-    public void sendMessage(String topic, String msg){
+    /**
+     * 向topic发送消息msg
+     * @param topic 目标的topic  格式规范： {{parentToppic}}/.../... (子topic可任意)
+     * @param msg 要传输的消息
+     */
+    public void sendMessage(String topic, String msg) {
+        MqttMessage message = new MqttMessage(msg.getBytes());
+        message.setQos(qosLevel);
+        message.setRetained(true);
         try {
-            MqttMessage message = new MqttMessage();
-            message.setQos(qosLevel);
-            message.setRetained(true);
-            message.setPayload(msg.getBytes());
-            /**
-             * 发送普通消息时，Topic必须和接收方订阅的Topic一致，或者符合通配符匹配规则。
-             */
             mqttClient.publish(topic, message);
-        } catch (MqttPersistenceException e) {
-            // TODO 自动生成的 catch 块
-            e.printStackTrace();
         } catch (MqttException e) {
-            // TODO 自动生成的 catch 块
             e.printStackTrace();
         }
     }
 
-    //向单个用户发送信息，私聊
+    /**
+     * 点到点传输消息msg，目标是targetClientId
+     * @param msg :要传输的消息
+     * @param targetClientId ：目标clientID    格式规范：{{GroupID}}@@@{{DriveID}}
+     */
     public void sendMessageP2P(String msg, String targetClientId) {
         /**
          * 微消息队列MQTT版支持点对点消息，即如果发送方明确知道该消息只需要给特定的一个设备接收，且知道对端的clientId，则可以直接发送点对点消息。
          * 点对点消息不需要经过订阅关系匹配，可以简化订阅方的逻辑。点对点消息的topic格式规范是 {{parentTopic}}/p2p/{{targetClientId}}。
          */
         String p2pTopic = parentTopic + "/p2p/" + targetClientId;
-        MqttMessage message = new MqttMessage(msg.getBytes());
-        message.setQos(qosLevel);
-        message.setRetained(true);
-        try {
-            mqttClient.publish(p2pTopic, message);
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+        sendMessage(p2pTopic, msg);
     }
 
-    public void sendTextP2P(String text, String targetClient) {
-        if (text.length() >= 0 && text.getBytes().length <= 60 * 1024) { // 在0~60kb之间
-            JSONObject object = new JSONObject();
-            object.put("msg", "p2pText");
-            object.put("sendTime", System.currentTimeMillis());
-            object.put("senderID", clientId);
-            object.put("data", text.getBytes());
-            sendMessageP2P(object.toJSONString(), targetClient);
+
+    /**
+     * 将data数组中的数据发向targetToppic, 其中jsonAttr是需要附带的消息 (如果数组大于60KB会划分传送)
+     * 传输的json数据中，该方法放入了一下字段：length,sendTime,senderID,total,order,hex,data。  还有jsonAttr中的字段。
+     * @param data
+     * @param targetToppic : 目标最终的toppic  （可以是群聊topic，也可以是客户端topic）    格式规范：{{parentToppic}}/.../... (子topic可任意)
+     * @param jsonAttr ： 可以随意加入需要附带的消息。
+     */
+    public void sendByte(byte[] data, String targetToppic ,Map<String, Object> jsonAttr) {
+        JSONObject object=new JSONObject();
+        object.put("length",data.length);
+        object.put("sendTime", System.currentTimeMillis());
+        object.put("senderID", clientId);
+
+        for (String key : jsonAttr.keySet()) {
+            object.put(key, jsonAttr.get(key));
+        }
+
+        // 设置 hex、total、order、data.
+        if (data.length <= 60*1024) {
+            object.put("total",1);
+            object.put("order",0);
+            object.put("hex", DigestUtils.md5Hex(data));
+            object.put("data",data);
+            sendMessage(targetToppic, object.toJSONString());
         } else {
-            // 截断
-            text = text.substring(0, 60 * 1024-1);
-            sendTextP2P(text, targetClient);
+            long totalLen= data.length;
+            String hex =clientId+System.currentTimeMillis();
+            object.put("hex", hex);
+            int divide=(int)( totalLen%61440==0? totalLen/61440:totalLen/61440+1);
+            object.put("total",divide);
+            new Thread(()->{
+                for (int i=0;i<divide;i++){
+                    object.put("order",i);
+                    object.put("data", Arrays.copyOfRange(data,i*61440,(int)(i==divide-1?data.length:(i+1)*61440)));
+                    sendMessage(targetToppic, object.toJSONString());
+                }
+            }).start();
         }
     }
 
+    /**
+     * 将data数组中的数据发向 clientID 为 targetClientID 的用户。  （在没有附加的消息时，该方法功能大致等于sendMessageP2P，只是该方法会在文件大于60KB时划分传送）
+     * @param data
+     * @param targetClientID
+     * @param jsonAttr ： 需要附带的消息。尽量携带msg字段（接收时会用来辨别消息类别）。其他可按情况随意加入
+     */
+    public void sendByteP2P(byte[] data, String targetClientID, Map<String, Object> jsonAttr) {
+        String p2pTopic = parentTopic + "/p2p/" + targetClientID;
+        sendByte(data, p2pTopic, jsonAttr);
+    }
 
-    public void sendFileP2P(File file, String targetClientId) {
-        sendFileP2P(file, targetClientId, "p2pFile");
+    /**
+     * 将文本 text 发向 clientID 为targetClient 的用户。
+     * @param text
+     * @param targetClient ：目标的clientID     规范格式：{{GroupID}}@@@{{DriveID}}
+     */
+    public void sendTextP2P(String text, String targetClient) {
+        byte[] data = null;
+        if (text.length() >= 0 && text.getBytes().length <= 60 * 1024) { // 在0~60kb之间
+            data = text.getBytes();
+        } else {// 截断
+            text = text.substring(0, 60 * 1024-1);
+            data = text.getBytes();
+        }
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg", "Text");
+        sendByteP2P(data, targetClient, jsonAttr);
+    }
+
+    // 发送图片文件
+    public void sendImageP2P(File file, String targetClientId) {
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg","Image");
+        jsonAttr.put("name",file.getName());
+
+        byte[] data = FileUtils.fileToBytes(file);
+        sendByteP2P(data, targetClientId, jsonAttr);
     }
 
     //私聊发送文件
-    public void sendFileP2P(File file, String targetClientId, String msgType) {
+    public void sendFileP2P(File file, String targetClientId) {
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg","File");
+        jsonAttr.put("name",file.getName());
 
-        new Thread(()->{
-            if (file.length()<=60*1024){
-                JSONObject object=new JSONObject();
-                object.put("msg",msgType);
-                object.put("data",FileUtils.fileToBytes(file));
-                object.put("name",file.getName());
-                object.put("hex", DigestUtils.md5Hex(FileUtils.fileToBytes(file)));
-                object.put("total",1);
-                object.put("order",0);
-                object.put("length",file.length());
-                object.put("senderID", clientId);
-                object.put("sendTime", System.currentTimeMillis());
-                sendMessageP2P(object.toJSONString(),targetClientId);
-            }
-            else {
-                long totalLen=file.length();
-                int divide=(int)( totalLen%61440==0? totalLen/61440:totalLen/61440+1);
-                byte[] bytes=FileUtils.fileToBytes(file);
-                String hex =clientId+System.currentTimeMillis();//DigestUtils.md5Hex(bytes);
-                JSONObject object=new JSONObject();
-                object.put("msg",msgType);
-                object.put("name",file.getName());
-                object.put("hex", hex);
-                object.put("total",divide);
-                object.put("length",file.length());
-                object.put("senderID", clientId);
-                object.put("sendTime", System.currentTimeMillis());
-                for (int i=0;i<divide;i++){
-                    object.put("order",i);
-                    object.put("data", Arrays.copyOfRange(bytes,i*61440,(int)(i==divide-1?file.length():(i+1)*61440)));
-                    sendMessageP2P(object.toJSONString(),targetClientId);
-                }
-            }
-        }).start();
-
+        byte[] data = FileUtils.fileToBytes(file);
+        sendByteP2P(data, targetClientId, jsonAttr);
     }
 
+    //私聊发送视频
+    public void sendVideoP2P(File file, String targetClientId) {
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg","Video");
+        jsonAttr.put("name",file.getName());
+
+        byte[] data = FileUtils.fileToBytes(file);
+        sendByteP2P(data, targetClientId, jsonAttr);
+    }
+
+    //私聊发送语音
     public void sendAudioP2P(File file, String targetClientId, int time) {
-        new Thread(()-> {
-            if (file.length()<=60*1024){
-                JSONObject object=new JSONObject();
-                object.put("msg","p2pAudio");
-                object.put("data",FileUtils.fileToBytes(file));
-                object.put("name",file.getName());
-                object.put("hex", DigestUtils.md5Hex(FileUtils.fileToBytes(file)));
-                object.put("total",1);
-                object.put("order",0);
-                object.put("length",file.length());
-                object.put("time", time);
-                object.put("senderID", clientId);
-                object.put("sendTime", System.currentTimeMillis());
-                sendMessageP2P(object.toJSONString(),targetClientId);
-            }
-            else {
-                long totalLen=file.length();
-                int divide=(int)( totalLen%61440==0? totalLen/61440:totalLen/61440+1);
-                byte[] bytes=FileUtils.fileToBytes(file);
-                String hex =clientId+System.currentTimeMillis();//DigestUtils.md5Hex(bytes);
-                JSONObject object=new JSONObject();
-                object.put("msg","p2pAudio");
-                object.put("name",file.getName());
-                object.put("hex", hex);
-                object.put("total",divide);
-                object.put("length",file.length());
-                object.put("senderID", clientId);
-                object.put("sendTime", System.currentTimeMillis());
-                for (int i=0;i<divide;i++){
-                    object.put("order",i);
-                    object.put("data", Arrays.copyOfRange(bytes,i*61440,(int)(i==divide-1?file.length():(i+1)*61440)));
-                    sendMessageP2P(object.toJSONString(),targetClientId);
-                }
-            }
-        }).start();
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg","Audio");
+        jsonAttr.put("name",file.getName());
+        jsonAttr.put("time", time);
+        byte[] data = FileUtils.fileToBytes(file);
+        sendByteP2P(data, targetClientId, jsonAttr);
+    }
+
+
+    //向群里发送信息
+    public void sendByteToGroup(byte[] data, String groupID, Map<String, Object> jsonAttr) {
+        // 获取最终的group Topic
+        String groupTopic = parentTopic + "/groupChat/" + groupID;
+        sendByte(data, groupTopic, jsonAttr);
+    }
+
+    // 群聊发送文本
+    public void sendTextToGroup(String text, String groupID) {
+        byte[] data = null;
+        if (text.getBytes().length <= 60 * 1024) { // 在0~60kb之间
+            data = text.getBytes();
+        } else {// 截断
+            text = text.substring(0, 60 * 1024-1);
+            data = text.getBytes();
+        }
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg", "Text");
+        sendByteToGroup(data, groupID, jsonAttr);
+    }
+
+    // 群聊发送图片
+    public void sendImageToGroup(File file, String groupID) {
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg","Image");
+        jsonAttr.put("name",file.getName());
+
+        byte[] data = FileUtils.fileToBytes(file);
+        sendByteToGroup(data, groupID, jsonAttr);
+    }
+
+    // 群聊发送文件
+    public void sendFileToGroup(File file, String groupID) {
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg","File");
+        jsonAttr.put("name",file.getName());
+
+        byte[] data = FileUtils.fileToBytes(file);
+        sendByteToGroup(data, groupID, jsonAttr);
+    }
+
+    // 群聊发送语音
+    public void sendAudioToGroup(File file, String groupID, int time) {
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg","Audio");
+        jsonAttr.put("name",file.getName());
+        jsonAttr.put("time", time);
+        byte[] data = FileUtils.fileToBytes(file);
+        sendByteToGroup(data, groupID, jsonAttr);
+    }
+
+    // 群聊发送视频
+    public void sendVideoToGroup(File file, String groupID) {
+        HashMap<String, Object> jsonAttr = new HashMap<>();
+        jsonAttr.put("msg","Video");
+        jsonAttr.put("name",file.getName());
+
+        byte[] data = FileUtils.fileToBytes(file);
+        sendByteToGroup(data, groupID, jsonAttr);
     }
 
 

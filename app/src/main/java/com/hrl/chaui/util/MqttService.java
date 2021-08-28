@@ -25,6 +25,7 @@ import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.dao.MessageDao;
 import com.hrl.chaui.dao.imp.MessageDaoImp;
+import static com.hrl.chaui.MyApplication.groupData; // 群聊ArrayList
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -48,6 +49,7 @@ public class MqttService extends Service {
     public static final String MESSAGEARRIVEACTION = "MESSAGEARRIVEACTION";
     private MessageDaoImp messageDao = MessageDaoImp.getInstance();
     private String clientID = null;
+    private int groupChatQos = 1;
 
     public MqttService() {
     }
@@ -73,6 +75,17 @@ public class MqttService extends Service {
 
         try {
             mqtt = new MqttByAli(clientID, "testtopic", new MyMqttCallback());
+
+            // 订阅所有群聊
+            String[] topicFilters = new String[groupData.size()];
+            int qos[] = new int[groupData.size()];
+
+            for (int i = 0; i < topicFilters.length; i++) {
+                topicFilters[i] =String.valueOf(groupData.get(i).getId());
+                qos[i] = groupChatQos;
+            }
+            mqtt.subscribe(topicFilters,qos);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,18 +154,32 @@ public class MqttService extends Service {
 
             String payloadString = new String(message.getPayload());
             JSONObject object = JSONObject.parseObject(payloadString);
+            Message localMessage =new Message();
 
             // 获取发送时间
             long sendTime = object.getLong("sendTime");
 
-            // 发送方clientID (这里其实是用户的ID)
+            // 发送方clientID
             String sendID = object.getString("senderID");
 
-            // 登录用户的clientID
-            String targetID = clientID;
+            // P2P的topic: parentTopic/p2p/clientID
+            // 群聊的topic: parentTopic/groupChat/groupID
+            String targetID = null;
+            if (topic.split("/")[1].equals("p2p")) { // 私聊消息
+                localMessage.setGroup(false);
+                targetID = clientID;
+            } else { // 群聊消息
+                targetID = topic.split("/")[2];
+                localMessage.setGroup(true);
+
+                // 对收到的群聊消息进行过滤 （当该消息是当前用户发送时，不用处理）
+                if (sendID.equals(clientID)) {
+                    Log.e(TAG, "收到自己发的群聊信息");
+                    return;
+                }
+            }
 
             // 接收对方发来的信息
-            Message localMessage =new Message();;
             localMessage.setUuid(UUID.randomUUID() + "");
             localMessage.setSenderId(sendID);
             localMessage.setTargetId(targetID);
@@ -170,7 +197,7 @@ public class MqttService extends Service {
                     friReqMessage.add(user);
                     break;
 
-                case "p2pText": {
+                case "Text": {
                     //私聊文本消息
                     // 接收消息
                     byte[] dataText = object.getBytes("data");
@@ -185,7 +212,7 @@ public class MqttService extends Service {
                     sendMessageBroadcast(localMessage);
                     break;
                 }
-                case "p2pFile":  {
+                case "File":  {
                     //私聊文件消息
                     File file = receiveFile(object);
                     if (file != null) {
@@ -204,7 +231,7 @@ public class MqttService extends Service {
                     }
                     break;
                 }
-                case "p2pImage" : {
+                case "Image" : {
                     // 私聊图片消息
                     File fileImage = receiveFile(object);
                     if(fileImage != null) {
@@ -220,7 +247,7 @@ public class MqttService extends Service {
                     }
                     break;
                 }
-                case "p2pVideo" : {
+                case "Video" : {
                     File fileVideo = receiveFile(object);
                     if (fileVideo != null) {
 
@@ -261,7 +288,7 @@ public class MqttService extends Service {
                     }
                     break;
                 }
-                case "p2pAudio" : {
+                case "Audio" : {
                     File fileAudio = receiveFile(object);
                     int time = object.getIntValue("time"); // 语音的时间
                     if (fileAudio != null) {
@@ -314,7 +341,6 @@ public class MqttService extends Service {
                     String name = object.getString("name");
                     int length = object.getInteger("length");
                     file = FileCache.mergeToFile(hex, total, length, filePath, name);
-                    System.out.println("create file");
                     Log.e(TAG, "create file");
                 }
             }
