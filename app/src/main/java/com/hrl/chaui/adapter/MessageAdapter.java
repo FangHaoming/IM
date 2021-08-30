@@ -153,13 +153,13 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
         }
 
         if (!year.equals(nowYear)) {
-            return year + "年" + month + "月" + day + "日";
+            return year + "年" + Integer.valueOf(month) + "月" + Integer.valueOf(day) + "日";
         } else if (!month.equals(nowMonth) || (!day.equals(nowDay) && !day.equals(prevDay))) {
-            return month + "月" + day + "日";
+            return Integer.valueOf(month) + "月" + Integer.valueOf(day) + "日";
         } else if (day.equals(prevDay)){
             return "昨天";
         } else {
-            return hour + ":" + minute;
+            return Integer.valueOf(hour) + ":" + minute;
         }
 
     }

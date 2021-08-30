@@ -1,5 +1,6 @@
 package com.hrl.chaui.activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -71,6 +72,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+/**
+ * 和ChatActivity界面类似，想要转入GroupChatActivity界面，需要满足下面的2个条件
+ * （1）getSharedPreferences 中需要包含“user_id”属性，用来存储登录用户的id
+ * （2）跳转的Intent中，需要存入一个键为“targetUser”的User对象，该对象存储的是要进行聊天的群聊的信息，其中的id、name两个字段不能为空。
+ */
 public class GroupChatActivity extends AppCompatActivity implements  SwipeRefreshLayout.OnRefreshListener {
 
     @BindView(R.id.llContent)
@@ -126,7 +132,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
         setContentView(R.layout.activity_group_chat);
 
         int user_id = getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
-        userClientID = "GID_test@@@" + userClientID;
+        userClientID = "GID_test@@@" + user_id;
 
         // 权限请求
         ArrayList<String> permissions = new ArrayList<>();
@@ -158,6 +164,21 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
         initContent();
 
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch(requestCode) {
+            case 1: {
+                if (grantResults.length!=0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, permissions[0] + " denied", Toast.LENGTH_SHORT).show();
+                    this.finish();
+                }
+                break;
+            }
+        }
+    }
+
 
     @Override
     public void onResume() {

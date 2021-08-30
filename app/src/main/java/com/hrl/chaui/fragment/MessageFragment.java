@@ -200,7 +200,7 @@ public class MessageFragment extends Fragment {
             Message message = (Message) intent.getSerializableExtra("message");
 
             List<Message> messageList = mAdapter.getData();
-            int pos = 0;
+            int pos = -1 ;
             for (int i = 0; i < messageList.size(); i++) {
                 Message localMessage = messageList.get(i);
                 if (localMessage.getSenderId().equals(message.getSenderId())
@@ -209,9 +209,11 @@ public class MessageFragment extends Fragment {
                     break;
                 }
             }
-            messageList.remove(pos);
-            messageList.add(0, message);
-            mAdapter.setNewData(messageList);
+            if(pos != -1) {
+                messageList.remove(pos);
+                messageList.add(0, message);
+                mAdapter.setNewData(messageList);
+            }
         }
     }
 }

@@ -27,6 +27,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -74,7 +75,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-
+/**
+ * 要从其他地方跳到该ChatActivity，需要满足以下两个条件
+ * （1）SharedPreferences中有 key=“user_id”的整形
+ * （2）Intent中包含有聊天对象的User对象，该对象中至少需要设置 id、name 这两个字段。
+ */
 public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     @BindView(R.id.llContent)
@@ -109,12 +114,11 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     private String targetClientID =  null;
     private String userClientID = null;
+    private User targetUser = null;
+
 
     private final String TAG = "chatTest";
     private MqttByAli mqtt = null;
-
-    private User targetUser = null; // 聊天的对象
-    private User srcUser = null;    // 登录用户
 
     private MessageReceiver messageReceiver = null; // 接收message arrive 广播
     private MessageDaoImp messageDaoImp = MessageDaoImp.getInstance();
@@ -127,20 +131,9 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 //        // 获取登录用户信息
-        srcUser = new User();
         SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
-        srcUser.setName(sharedPreferences.getString("user_name", "unknowed"));
-        srcUser.setGender(sharedPreferences.getString("user_gender", "unknowed"));
-        srcUser.setPhone(sharedPreferences.getString("user_phone", "unknowed"));
-        srcUser.setSign(sharedPreferences.getString("user_sign", "unknowed"));
-        srcUser.setImg(sharedPreferences.getString("user_img", "unknowed"));
-        srcUser.setId(sharedPreferences.getInt("user_id", -1));
-        srcUser.setNote(sharedPreferences.getString("friend_note", "unknowed"));
-        userClientID = "GID_test@@@" + srcUser.getId();
-        Log.e(TAG, "srcUser:" + srcUser.toString());
-
+        userClientID = "GID_test@@@" + sharedPreferences.getInt("user_id", -1);
         Log.e(TAG, "chatActivity onCreate()" +  "  userClientID:" + userClientID);
-
 
 
         // 权限请求
@@ -175,6 +168,19 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         initContent();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch(requestCode) {
+            case 1: {
+                if (grantResults.length!=0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, permissions[0] + " denied", Toast.LENGTH_SHORT).show();
+                    this.finish();
+                }
+                break;
+            }
+        }
+    }
 
     @Override
     public void onResume() {
