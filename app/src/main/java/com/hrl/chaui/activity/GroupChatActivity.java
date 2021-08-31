@@ -16,6 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
@@ -52,6 +53,7 @@ import com.hrl.chaui.util.LogUtil;
 import com.hrl.chaui.util.MqttByAli;
 import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
+import com.hrl.chaui.util.RTCHelper;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
 import com.hrl.chaui.widget.RecordButton;
@@ -476,6 +478,14 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
                 break;
             case R.id.rlPhone:
                 // 语音通话
+                Intent rtcChatIntent = new Intent(this, AliRtcChatActivity.class);
+                String channelID = targetGroupID;
+                SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
+                String userName = sharedPreferences.getString("user_name", "null");
+                rtcChatIntent.putExtra("ChannelID", channelID);
+                rtcChatIntent.putExtra("UserClientID", userClientID);
+                rtcChatIntent.putExtra("UserName", userName);
+                startActivity(rtcChatIntent);
                 break;
         }
     }
