@@ -157,16 +157,16 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable  Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode){
-            case Modify://返回的结果来自修改密码活动
-                if(resultCode== Activity.RESULT_OK){
-                    if(data!=null){
-                        Bundle bundle=data.getExtras();
-
-                    }
+        if(requestCode==Modify) {
+            if (resultCode == Activity.RESULT_OK) {
+                if (data != null) {
+                    Bundle bundle = data.getExtras();
+                    editor.putString("img_uri", bundle.getString("img_uri"));
+                    editor.apply();
                 }
-                break;
-            case ResetPwd:
+            }
+        }
+        if(requestCode==ResetPwd){
                 if(resultCode== Activity.RESULT_OK){
                     System.out.println("*********bundle "+data);
                     if(data!=null){
@@ -178,7 +178,6 @@ public class MainActivity extends FragmentActivity {
                         }
                     }
                 }
-                break;
         }
 
 

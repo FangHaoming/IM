@@ -51,16 +51,7 @@ public class MineFragment extends Fragment {
         TextView change=root.findViewById(R.id.change);
         sp= Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor=sp.edit();
-        if(!sp.getString("img_uri","").equals("")){
-            String uri=sp.getString("img_uri","");
-            Bitmap bitmap= null;
-            try {
-                bitmap = BitmapFactory.decodeStream(new FileInputStream(uri));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            img.setImageBitmap(bitmap);
-        }
+
 
 
         View.OnClickListener listener = new View.OnClickListener() {
@@ -100,6 +91,16 @@ public class MineFragment extends Fragment {
         //Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
         sign.setText("个性签名: "+sp.getString("user_sign",""));
         phone.setText("手机号: "+sp.getString("user_phone",""));
+        if(!sp.getString("img_uri","").equals("")){
+            String uri=sp.getString("img_uri","");
+            Bitmap bitmap= null;
+            try {
+                bitmap = BitmapFactory.decodeStream(new FileInputStream(uri));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            img.setImageBitmap(bitmap);
+        }
     }
 
     private void showDialog(){
