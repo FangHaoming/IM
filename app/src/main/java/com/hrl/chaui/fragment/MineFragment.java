@@ -6,33 +6,38 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.activity.LoginActivity;
 import com.hrl.chaui.activity.ModifyActivity;
 import com.hrl.chaui.activity.ResetPwdActivity;
-import com.hrl.chaui.util.MyDBHelper;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.Objects;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MineFragment extends Fragment {
     TextView name;
     TextView sign;
     TextView phone;
-    ImageView img;
+    CircleImageView img;
     SharedPreferences sp;
     SQLiteDatabase db;
+    public final int Modify = 1;
+    public final int ResetPwd = 2;
     @Nullable
     @Override
     public View onCreateView(@NonNull  LayoutInflater inflater, @Nullable  ViewGroup container, @Nullable  Bundle savedInstanceState) {
@@ -44,11 +49,18 @@ public class MineFragment extends Fragment {
         TextView modify=root.findViewById(R.id.modify);
         TextView modify_pwd=root.findViewById(R.id.modify_pwd);
         TextView change=root.findViewById(R.id.change);
-        TextView delete=root.findViewById(R.id.delete);
         sp= Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor=sp.edit();
-        MyDBHelper dbHelper=new MyDBHelper(getContext(),"DB",null,1);
-        db=dbHelper.getWritableDatabase();
+        if(!sp.getString("img_uri","").equals("")){
+            String uri=sp.getString("img_uri","");
+            Bitmap bitmap= null;
+            try {
+                bitmap = BitmapFactory.decodeStream(new FileInputStream(uri));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            img.setImageBitmap(bitmap);
+        }
 
 
         View.OnClickListener listener = new View.OnClickListener() {
@@ -56,20 +68,17 @@ public class MineFragment extends Fragment {
             public void onClick(View v) {
                 switch(v.getId()){
                     case R.id.modify:
-                        Intent intent=new Intent(getContext(), ModifyActivity.class);
-                        startActivity(intent);
+                        Intent intent=new Intent(getActivity(), ModifyActivity.class);
+                        Objects.requireNonNull(getActivity()).startActivityForResult(intent, Modify);
                         break;
                     case R.id.modify_pwd:
-                        Intent intent2=new Intent(getContext(), ResetPwdActivity.class);
-                        startActivity(intent2);
+                        Intent intent2=new Intent(getActivity(), ResetPwdActivity.class);
+                        Objects.requireNonNull(getActivity()).startActivityForResult(intent2,ResetPwd);
                         break;
                     case R.id.change:
-                        Intent intent3=new Intent(getContext(), LoginActivity.class);
+                        Intent intent3=new Intent(getActivity(), LoginActivity.class);
                         startActivity(intent3);
                         Objects.requireNonNull(getActivity()).finish();
-                        break;
-                    case R.id.delete:
-                        showDialog();
                         break;
                     default:
                         break;
@@ -80,7 +89,6 @@ public class MineFragment extends Fragment {
         modify.setOnClickListener(listener);
         modify_pwd.setOnClickListener(listener);
         change.setOnClickListener(listener);
-        delete.setOnClickListener(listener);
 
         return root;
     }
@@ -89,7 +97,7 @@ public class MineFragment extends Fragment {
     public void onStart() {
         super.onStart();
         name.setText(sp.getString("user_name",""));
-        Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
+        //Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
         sign.setText("个性签名: "+sp.getString("user_sign",""));
         phone.setText("手机号: "+sp.getString("user_phone",""));
     }

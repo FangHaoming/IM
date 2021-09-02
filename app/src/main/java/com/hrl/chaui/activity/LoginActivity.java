@@ -23,7 +23,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
 import com.hrl.chaui.util.EditIsCanUseBtnUtils;
-import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.http;
 
 import java.io.IOException;
@@ -140,7 +139,7 @@ public class LoginActivity extends AppCompatActivity {
         json.put("user_img","");
         json.put("img_data","");
          */
-        String path = "http://40f730q296.qicp.vip/userLogin";
+        String path = getResources().getString(R.string.request_local)+"/userLogin";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())
@@ -174,9 +173,11 @@ public class LoginActivity extends AppCompatActivity {
                         editor.putString("user_sign",(String)json.get("user_sign"));
                         editor.putString("user_pwd",pwd.getText().toString());
                         editor.apply();
-
+                        /*
                         Intent intent2=new Intent(LoginActivity.this,MqttService.class);
                         startService(intent2);
+
+                         */
 
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);

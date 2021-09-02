@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@color/top_bottom"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="45dp">
+        <TextView
+            android:id="@+id/back_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="17dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/back_arrow" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="更改个性签名"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="27dp"
+            android:textColor="@color/black"
+            android:textSize="18dp" />
+        <Button
+            android:layout_width="60dp"
+            android:layout_height="35dp"
+            android:layout_marginRight="16dp"
+            android:background="@color/btn_enable"
+            android:textColor="@color/white"
+            android:id="@+id/save"
+            android:text="保存"
+            android:layout_alignParentEnd="true"/>
+    </RelativeLayout>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:maxLength="50"
+        android:hint="输入个性签名（最多50个字符）"
+        android:id="@+id/Edit"/>
+</LinearLayout>

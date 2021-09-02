@@ -13,7 +13,25 @@ public class User extends BaseIndexPinyinBean {
     private String sign;
     private int type;
     private int rank;
+    private boolean isFriend;
     private int notice_rank;
+    private byte[] img_data;
+
+    public byte[] getImg_data() {
+        return img_data;
+    }
+
+    public void setImg_data(byte[] img_data) {
+        this.img_data = img_data;
+    }
+
+    public boolean isFriend() {
+        return isFriend;
+    }
+
+    public void setFriend(boolean friend) {
+        isFriend = friend;
+    }
 
     public String getNote() {
         return note;

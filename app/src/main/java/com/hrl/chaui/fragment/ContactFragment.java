@@ -74,7 +74,7 @@ public class ContactFragment extends Fragment {
     private void sendByPost(Integer user_id) {
         JSONObject json = new JSONObject();
         json.put("user_id", user_id);
-        String path = "http://40f730q296.qicp.vip/userContacts";
+        String path = getContext().getResources().getString(R.string.request_local)+"/userContacts";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())

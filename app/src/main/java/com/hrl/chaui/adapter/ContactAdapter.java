@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,6 +16,7 @@ import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.activity.GroupActivity;
 import com.hrl.chaui.activity.GroupInfoActivity;
+import com.hrl.chaui.activity.NewFriendActivity;
 import com.hrl.chaui.activity.UserInfoActivity;
 import com.hrl.chaui.bean.User;
 
@@ -57,7 +57,8 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(mContext.getApplicationContext(), "新的朋友", Toast.LENGTH_SHORT).show();
+                    Intent intent=new Intent(mContext, NewFriendActivity.class);
+                    mContext.startActivity(intent);
                 }
             });
         } else if (user.getName().equals("群聊")) {

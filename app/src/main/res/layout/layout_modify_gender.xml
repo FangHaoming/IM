@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@color/top_bottom"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="45dp">
+        <TextView
+            android:id="@+id/back_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="17dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/back_arrow" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置性别"
+            android:layout_centerInParent="true"
+            android:layout_marginRight="27dp"
+            android:textColor="@color/black"
+            android:textSize="18dp" />
+        <Button
+            android:layout_width="60dp"
+            android:layout_height="35dp"
+            android:layout_marginRight="16dp"
+            android:background="@color/btn_enable"
+            android:textColor="@color/white"
+            android:id="@+id/save"
+            android:text="保存"
+            android:layout_alignParentEnd="true"/>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:id="@+id/male">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:text="男" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/text_male"
+            android:layout_marginEnd="16dp"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_marginTop="1dp"
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:id="@+id/female">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:text="女" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/text_female"
+            android:layout_marginEnd="16dp"/>
+
+    </RelativeLayout>
+</LinearLayout>

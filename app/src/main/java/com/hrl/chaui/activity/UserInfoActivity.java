@@ -7,7 +7,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -122,7 +121,7 @@ public class UserInfoActivity extends AppCompatActivity {
         JSONObject json=new JSONObject();
         json.put("user_id",user_id);
         json.put("friend_id",friend_id);
-        String path = "http://40f730q296.qicp.vip/friendSearch";
+        String path = getResources().getString(R.string.request_local)+"/friendSearch";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())

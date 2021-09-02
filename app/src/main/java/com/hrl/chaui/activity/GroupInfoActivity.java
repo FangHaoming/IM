@@ -85,7 +85,7 @@ public class GroupInfoActivity extends AppCompatActivity {
         JSONObject json=new JSONObject();
         json.put("group_id",group_id);
         json.put("user_id",user_id);
-        String path = "http://40f730q296.qicp.vip/groupSearch";
+        String path = getResources().getString(R.string.request_local)+"/groupSearch";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())

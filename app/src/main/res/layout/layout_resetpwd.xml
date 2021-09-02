@@ -4,48 +4,95 @@
     android:layout_height="match_parent"
     android:layout_gravity="center_horizontal">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="修改密码"
-        android:gravity="center"
-        android:textAlignment="gravity"
-        android:textSize="16sp"
-        android:textColor="#fff"
-        android:background="#9A9860F1"/>
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:layout_height="45dp"
+        android:gravity="center"
+        android:background="@color/top_bottom">
 
-        <EditText
-            android:hint="输入密码"
-            android:ems="10"
-            android:id="@+id/in"
-            android:layout_width="250dp"
-            android:layout_height="50dp"
-            android:padding="10dp"
-            android:inputType="textPassword"
-           />
+        <TextView
+            android:id="@+id/back_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="17dp"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/back_arrow" />
 
-        <EditText
-            android:hint="再次输入密码"
-            android:ems="10"
-            android:id="@+id/rein"
-            android:layout_width="250dp"
-            android:layout_height="50dp"
-            android:padding="10dp"
-            android:inputType="textPassword"
-           />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="修改密码"
+            android:gravity="center"
+            android:layout_marginRight="27dp"
+            android:textColor="@color/black"
+            android:textSize="18dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="50dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="密码"
+                android:ems="4"
+                android:textSize="18dp"
+                android:textStyle="bold"/>
+            <EditText
+
+                android:hint="输入密码"
+                android:ems="10"
+                android:id="@+id/in"
+                android:layout_width="250dp"
+                android:layout_height="50dp"
+                android:padding="10dp"
+                android:inputType="textPassword"
+                />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="确认密码"
+                android:ems="4"
+                android:textSize="18dp"
+                android:textStyle="bold"/>
+            <EditText
+
+                android:hint="再次输入密码"
+                android:ems="10"
+                android:id="@+id/rein"
+                android:layout_width="250dp"
+                android:layout_height="50dp"
+                android:padding="10dp"
+                android:inputType="textPassword"
+                />
+        </LinearLayout>
         <Button
             android:id="@+id/asure"
-            android:layout_marginTop="5dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/btn_is_can"
+            android:layout_marginTop="15dp"
             android:layout_width="250dp"
-            android:layout_height="50dp"
+            android:enabled="false"
+            android:textColor="@color/black"
+            android:layout_height="35dp"
             android:text="确定"
             />
     </LinearLayout>
 
 </LinearLayout>
+

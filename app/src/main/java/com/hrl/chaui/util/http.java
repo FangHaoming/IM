@@ -7,6 +7,7 @@ import android.widget.Toast;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class http {
     public static void sendByPost(Context mContext, Integer user_id) {
         JSONObject json = new JSONObject();
         json.put("user_id", user_id);
-        String path = "http://40f730q296.qicp.vip/userContacts";
+        String path = mContext.getResources().getString(R.string.request_local)+"/userContacts";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())

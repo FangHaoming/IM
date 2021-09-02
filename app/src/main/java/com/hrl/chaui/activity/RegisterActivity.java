@@ -96,7 +96,7 @@ public class RegisterActivity extends AppCompatActivity {
         json.put("user_phone",user_phone);
         json.put("user_pwd",user_pwd);
         json.put("user_name",user_name);
-        String path = "http://40f730q296.qicp.vip/userRegister";
+        String path = getResources().getString(R.string.request_local)+"/userRegister";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())
