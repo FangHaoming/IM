@@ -23,17 +23,17 @@
         android:layout_marginRight="20dp"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp"
-         android:layout_height="wrap_content">
+         android:layout_height="wrap_content"
+        >
 
         <com.hrl.chaui.widget.CircleImageView
             android:id="@+id/chat_item_header"
             android:layout_width="40dp"
             android:layout_height="40dp"
-             android:layout_marginRight="5dp"
             android:layout_alignParentLeft="true"
+            android:layout_marginRight="5dp"
             android:scaleType="centerInside"
-            android:src="@mipmap/ic_head_default_left"
-            />
+            android:src="@mipmap/ic_head_default_left" />
 
 
 
@@ -47,7 +47,16 @@
             android:layout_marginRight="20dp"
             android:layout_toRightOf="@id/chat_item_header"
             android:gravity="right|center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/chat_item_content_sender_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="hello"
+                android:textSize="10dp"
+                android:visibility="gone"
+                android:layout_gravity="left"/>
 
             <TextView
                 android:id="@+id/chat_item_content_text"
@@ -56,7 +65,8 @@
                 android:background="@drawable/message_text_receive"
                 android:text="你好"
                 android:textColor="#333333"
-                android:textSize="14dp" />
+                android:textSize="14dp"
+                android:gravity="left"/>
 
 
 

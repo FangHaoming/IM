@@ -10,4 +10,14 @@
     <color name="click">#D7CFCBCB</color>
     <color name="btn_unable">#90B6B6B6</color>
     <color name="btn_enable">#6A00FF00</color>
+
+
+
+    <color name="colorAccentTranslucent">#bbFF80AB</color>
+
+    <color name="black_alpha_5">#1a000000</color>
+    <color name="dark_gray">#FF2c2c2c</color>
+    <color name="holo_light_gray">#F8F8FF</color>
+
+    <color name="yellow_alpha_100">#FF9806</color>
 </resources>

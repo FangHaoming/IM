@@ -1,5 +1,13 @@
 package com.hrl.chaui.activity;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
@@ -12,7 +20,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
-import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -27,34 +34,26 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.hrl.chaui.adapter.ChatAdapter;
-import com.hrl.chaui.bean.MsgType;
-import com.hrl.chaui.bean.User;
-import com.hrl.chaui.dao.imp.MessageDaoImp;
-import com.hrl.chaui.util.LogUtil;
-import com.hrl.chaui.bean.Message;
 import com.hrl.chaui.R;
+import com.hrl.chaui.adapter.ChatAdapter;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
+import com.hrl.chaui.bean.Message;
 import com.hrl.chaui.bean.MsgSendStatus;
+import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
+import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
+import com.hrl.chaui.dao.imp.MessageDaoImp;
 import com.hrl.chaui.util.ChatUiHelper;
 import com.hrl.chaui.util.FileUtils;
+import com.hrl.chaui.util.LogUtil;
 import com.hrl.chaui.util.MqttByAli;
 import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
+import com.hrl.chaui.util.RTCHelper;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
 import com.hrl.chaui.widget.RecordButton;
@@ -76,11 +75,11 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 /**
- * 要从其他地方跳到该ChatActivity，需要满足以下两个条件
- * （1）SharedPreferences中有 key=“user_id”的整形
- * （2）Intent中包含有聊天对象的User对象，该对象中至少需要设置 id、name 这两个字段。
+ * 和ChatActivity界面类似，想要转入GroupChatActivity界面，需要满足下面的2个条件
+ * （1）getSharedPreferences 中需要包含“user_id”属性，用来存储登录用户的id
+ * （2）跳转的Intent中，需要存入一个键为“targetUser”的User对象，该对象存储的是要进行聊天的群聊的信息，其中的id、name两个字段不能为空。
  */
-public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+public class GroupChatActivity extends AppCompatActivity implements  SwipeRefreshLayout.OnRefreshListener {
 
     @BindView(R.id.llContent)
     LinearLayout mLlContent;
@@ -112,29 +111,30 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     public static final int REQUEST_CODE_VEDIO = 1111;
     public static final int REQUEST_CODE_FILE = 2222;
 
-    private String targetClientID =  null;
+    private String targetGroupID =  null;
     private String userClientID = null;
-    private User targetUser = null;
 
+    private User targetGroup = null;
 
-    private final String TAG = "chatTest";
-    private MqttByAli mqtt = null;
+    private static final String TAG = "CROUPCHAT";
 
-    private MessageReceiver messageReceiver = null; // 接收message arrive 广播
-    private MessageDaoImp messageDaoImp = MessageDaoImp.getInstance();
-
-    // 和Service的连接。
     private MqttServiceConnection connection = null;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
-//        // 获取登录用户信息
-        SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
-        userClientID = "GID_test@@@" + sharedPreferences.getInt("user_id", -1);
-        Log.e(TAG, "chatActivity onCreate()" +  "  userClientID:" + userClientID);
+    private MqttByAli mqtt = null;
 
+    private MessageReceiver messageReceiver = null;
+
+    private MessageDaoImp messageDaoImp = MessageDaoImp.getInstance();
+
+    private ImageView ivAudio;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_group_chat);
+
+        int user_id = getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
+        userClientID = "GID_test@@@" + user_id;
 
         // 权限请求
         ArrayList<String> permissions = new ArrayList<>();
@@ -150,14 +150,12 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
             }
         }
 
-
         // Service可能会被系统回收，同时使用startService 和 bindService 以防 Service被销毁
         Intent mqttServiceIntent = new Intent(this, MqttService.class);
         startService(mqttServiceIntent);
         connection = new MqttServiceConnection();
         // 绑定MqttService 获取 MqttByAli对象
         bindService(mqttServiceIntent, connection, Context.BIND_AUTO_CREATE);
-
 
         // 动态注册 MessageReceiver 广播接收器
         IntentFilter intentFilter = new IntentFilter();
@@ -166,6 +164,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         registerReceiver(messageReceiver, intentFilter);
 
         initContent();
+
     }
 
     @Override
@@ -182,23 +181,26 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
+
     @Override
     public void onResume() {
         // 获取通信对方的信息
         Intent intent = getIntent();
-        targetUser = (User) intent.getSerializableExtra("targetUser");
-        Log.e(TAG, "ChatActivity onResume()" + "  targetUser:" + targetUser.getName());
+
+        targetGroup = (User) intent.getSerializableExtra("targetUser");
+        Log.e(TAG, "ChatActivity onResume()" + "  targetGroup:" + targetGroup.getName());
+
 
         //  设置名称
-        targetClientID = "GID_test@@@" + targetUser.getId();
+        targetGroupID = String.valueOf(targetGroup.getId());
         TextView textView =(TextView) findViewById(R.id.common_toolbar_title);
-        textView.setText(targetUser.getName());
+        textView.setText(targetGroup.getName());
 
         // 获取通信记录并显示
         try {
-            int uncheckedNums =  messageDaoImp.queryUncheckMessageNums(this, userClientID, targetClientID);
-            uncheckedNums = uncheckedNums <= 10 ? 10 : uncheckedNums; // 最少10条
-            List<Message> messageList =  messageDaoImp.queryMessage(this, userClientID, targetClientID, uncheckedNums);
+            int uncheckedNums =  messageDaoImp.queryUncheckMessageNums(this, targetGroupID);
+            uncheckedNums = uncheckedNums <= 10 ? 10 : uncheckedNums;
+            List<Message> messageList =  messageDaoImp.queryMessage(this, targetGroupID , uncheckedNums);
 
             // 更新数据库消息状态为已查询
             String[] uuids = new String[messageList.size()];
@@ -225,7 +227,6 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onResume();
     }
 
-
     @Override
     protected void onDestroy() {
         Log.e(TAG, "ChatActivity Destory!!");
@@ -238,22 +239,19 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onDestroy();
     }
 
-    private ImageView ivAudio;
-
-    protected void initContent() {
+    private void initContent() {
         ButterKnife.bind(this);
-        mAdapter = new ChatAdapter(this, new ArrayList<Message>(), "ChatActivity");
+        mAdapter = new ChatAdapter(this, new ArrayList<Message>(), "GroupChatActivity");
         LinearLayoutManager mLinearLayout = new LinearLayoutManager(this);
         mRvChat.setLayoutManager(mLinearLayout);
         mRvChat.setAdapter(mAdapter);
         mSwipeRefresh.setOnRefreshListener(this);
         initChatUi();
-    }
 
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     private void initChatUi() {
-        //mBtnAudio
         final ChatUiHelper mUiHelper = ChatUiHelper.with(this);
         mUiHelper.bindContentLayout(mLlContent)
                 .bindttToSendButton(mBtnSend)
@@ -308,8 +306,6 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
             }
         });
 
-
-
         // 聊天框消息点击事件
         mAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() { // RecyclerView Item 点击事件
             @Override
@@ -318,7 +314,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 // 获取点击的Item
                 Message msg = mAdapter.getItem(position);
                 // 跳转去 ItemShowActivity
-                Intent intent = new Intent(ChatActivity.this, ItemShowActivity.class);
+                Intent intent = new Intent(GroupChatActivity.this, ItemShowActivity.class);
                 switch(view.getId()) {
                     case R.id.rlAudio: {
                         // Audio Item的点击事件
@@ -342,7 +338,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                             }
                             AnimationDrawable drawable = (AnimationDrawable) ivAudio.getBackground();
                             drawable.start();
-                            MediaManager.playSound(ChatActivity.this, ((AudioMsgBody) mAdapter.getData().get(position).getBody()).getLocalPath(), new MediaPlayer.OnCompletionListener() {
+                            MediaManager.playSound(GroupChatActivity.this, ((AudioMsgBody) mAdapter.getData().get(position).getBody()).getLocalPath(), new MediaPlayer.OnCompletionListener() {
                                 @Override
                                 public void onCompletion(MediaPlayer mp) {
                                     if (isSend) {
@@ -395,31 +391,37 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
             }
         });
 
-
         // title bar 的返回箭头
         ImageView titleBack = (ImageView) findViewById(R.id.title_back);
         titleBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ChatActivity.this.finish();
+                GroupChatActivity.this.finish();
             }
         });
 
+        // title bar 右边的菜单按钮，点击后出现群聊的基本情况
+        ImageView menu = (ImageView) findViewById(R.id.chat_info);
+        menu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(GroupChatActivity.this, GroupInfoActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putInt("contact_id", Integer.valueOf(targetGroupID)); // 存放的是群聊的ID 或者 用户的ID
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+        });
     }
 
-
-    // 聊天框上滑查看历史记录
     @Override
     public void onRefresh() {
-        //下拉刷新模拟获取历史消息
-
-        // 获取最上面的item
         if (mAdapter.getItemCount() > 0) {
             // 聊天框内有元素
             Message topItem = mAdapter.getItem(0);
             long sendTime = topItem.getSentTime();
             try {
-                List<Message> historyMessage = messageDaoImp.queryMessage(this, userClientID, targetClientID, 10, sendTime);
+                List<Message> historyMessage = messageDaoImp.queryMessage(this, targetGroupID, 10, sendTime);
                 if (historyMessage.size() == 0) {
                     Toast.makeText(this, "没有历史记录", Toast.LENGTH_SHORT).show();
                 } else {
@@ -437,7 +439,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         } else {
             // 聊天框内没有元素
             try {
-                List<Message> historyMessage = messageDaoImp.queryMessage(this, userClientID, targetClientID, 10);
+                List<Message> historyMessage = messageDaoImp.queryMessage(this, targetGroupID, 10);
                 if (historyMessage.size() == 0) {
                     Toast.makeText(this, "没有历史记录", Toast.LENGTH_SHORT).show();
                 } else {
@@ -455,7 +457,6 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         mSwipeRefresh.setRefreshing(false);
     }
 
-
     // 点击 ”相册“、”图片“、”视频“、”文件“、”位置“、”通话“ 后触发的点击事件。
     @OnClick({R.id.btn_send, R.id.rlPhoto, R.id.rlVideo, R.id.rlLocation, R.id.rlFile, R.id.rlPhone})
     public void onViewClicked(View view) {
@@ -465,22 +466,29 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 mEtContent.setText("");
                 break;
             case R.id.rlPhoto:
-                PictureFileUtil.openGalleryPic(ChatActivity.this, REQUEST_CODE_IMAGE);
+                PictureFileUtil.openGalleryPic(GroupChatActivity.this, REQUEST_CODE_IMAGE);
                 break;
             case R.id.rlVideo:
-                PictureFileUtil.openGalleryAudio(ChatActivity.this, REQUEST_CODE_VEDIO);
+                PictureFileUtil.openGalleryAudio(GroupChatActivity.this, REQUEST_CODE_VEDIO);
                 break;
             case R.id.rlFile:
-                PictureFileUtil.openFile(ChatActivity.this, REQUEST_CODE_FILE);
+                PictureFileUtil.openFile(GroupChatActivity.this, REQUEST_CODE_FILE);
                 break;
             case R.id.rlLocation:
                 break;
             case R.id.rlPhone:
                 // 语音通话
+                Intent rtcChatIntent = new Intent(this, AliRtcChatActivity.class);
+                String channelID = targetGroupID;
+                SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
+                String userName = sharedPreferences.getString("user_name", "null");
+                rtcChatIntent.putExtra("ChannelID", channelID);
+                rtcChatIntent.putExtra("UserClientID", userClientID);
+                rtcChatIntent.putExtra("UserName", userName);
+                startActivity(rtcChatIntent);
                 break;
         }
     }
-
 
     // 接收onViewClicked中的PictureFileUtil方法回调。(即获取图片、视频、文件选择Activity的选择结果)
     @Override
@@ -491,7 +499,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 case REQUEST_CODE_FILE:
                     String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
                     LogUtil.d("获取到的文件路径:" + filePath);
-                    sendFileMessage(userClientID, targetClientID, filePath);
+                    sendFileMessage(userClientID, targetGroupID, filePath);
                     break;
                 case REQUEST_CODE_IMAGE:
                     // 图片选择结果回调
@@ -511,6 +519,22 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                     break;
             }
         }
+    }
+
+
+    // 设置发送的Message的基本信息
+    private Message getBaseSendMessage(MsgType msgType) {
+        Message mMessgae = new Message();
+        mMessgae.setUuid(UUID.randomUUID() + "");
+        mMessgae.setSenderId(userClientID);
+        mMessgae.setTargetId(targetGroupID);
+        mMessgae.setSentTime(System.currentTimeMillis());
+        mMessgae.setSentStatus(MsgSendStatus.SENDING);
+        mMessgae.setMsgType(msgType);
+        mMessgae.setCheck(true);
+        mMessgae.setMsgId(null);
+        mMessgae.setGroup(true);
+        return mMessgae;
     }
 
 
@@ -535,9 +559,8 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
 
         // 通过mqtt发送
-        Log.e(TAG, "sendTextMsg:" + hello + " targerClientID:" + targetClientID);
-        mqtt.sendTextP2P(hello, targetClientID);
-
+        Log.e(TAG, "sendTextMsg:" + hello + " groupID:" + targetGroupID);
+        mqtt.sendTextToGroup(hello, targetGroupID);
     }
 
     //图片消息
@@ -562,7 +585,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         // 通过 mqtt 发送图片文件
         File file = new File(media.getPath());
-        mqtt.sendImageP2P(file, targetClientID);
+        mqtt.sendImageToGroup(file, targetGroupID);
 
     }
 
@@ -611,8 +634,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         // mqtt 发送
         File file = new File(videoPath);
-        mqtt.sendVideoP2P(file, targetClientID);
-
+        mqtt.sendVideoToGroup(file, targetGroupID);
     }
 
     //文件消息
@@ -637,7 +659,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
 
         File file = new File(path);
-        mqtt.sendFileP2P(file, targetClientID);
+        mqtt.sendFileToGroup(file, targetGroupID);
 
     }
 
@@ -662,35 +684,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
 
         File file = new File(path);
-        mqtt.sendAudioP2P(file, targetClientID, time);
-    }
-
-
-    // 设置发送的Message的基本信息
-    private Message getBaseSendMessage(MsgType msgType) {
-        Message mMessgae = new Message();
-        mMessgae.setUuid(UUID.randomUUID() + "");
-        mMessgae.setSenderId(userClientID);
-        mMessgae.setTargetId(targetClientID);
-        mMessgae.setSentTime(System.currentTimeMillis());
-        mMessgae.setSentStatus(MsgSendStatus.SENDING);
-        mMessgae.setMsgType(msgType);
-        mMessgae.setCheck(true);
-        mMessgae.setMsgId(null);
-        mMessgae.setGroup(false);
-        return mMessgae;
-    }
-
-
-    private Message getBaseReceiveMessage(MsgType msgType) {
-        Message mMessgae = new Message();
-        mMessgae.setUuid(UUID.randomUUID() + "");
-        mMessgae.setSenderId(targetClientID);
-        mMessgae.setTargetId(userClientID);
-        mMessgae.setSentTime(System.currentTimeMillis());
-        mMessgae.setSentStatus(MsgSendStatus.SENDING);
-        mMessgae.setMsgType(msgType);
-        return mMessgae;
+        mqtt.sendAudioToGroup(file, targetGroupID, time);
     }
 
 
@@ -709,7 +703,6 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         mAdapter.notifyItemChanged(position);
     }
 
-
     private class MqttServiceConnection implements ServiceConnection {
 
         @Override
@@ -724,31 +717,30 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
-
     private class MessageReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             // 接收mqttService接收的消息
             Message message = (Message) intent.getSerializableExtra("message");
 
-            // 如果该消息的通信双方 和 该私聊通信双方吻合，就显示出来。
-            if(message.getSenderId().equals(targetClientID) || message.getTargetId().equals(targetClientID)) {
+            // 如果是该群聊就显示出来。
+            if(message.isGroup() && message.getTargetId().equals(targetGroupID)) {
                 mAdapter.addData(message);
                 mRvChat.scrollToPosition(mAdapter.getItemCount()-1); // 滚到最新消息那
                 // 把数据库中该消息状态改为已经查看
                 messageDaoImp = MessageDaoImp.getInstance();
-                messageDaoImp.checkMessage(ChatActivity.this, message.getUuid());
+                messageDaoImp.checkMessage(GroupChatActivity.this, message.getUuid());
             }
         }
     }
 
-
-    public String getTargetClientID() {
-        return targetClientID;
+    public String getTargetGroupID() {
+        return targetGroupID;
     }
 
     public String getUserClientID() {
         return userClientID;
     }
+
 
 }

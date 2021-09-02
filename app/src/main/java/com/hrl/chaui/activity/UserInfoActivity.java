@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
+import com.hrl.chaui.util.RTCHelper;
 
 import java.io.IOException;
 
@@ -79,7 +80,6 @@ public class UserInfoActivity extends AppCompatActivity {
         Bundle bundle = intent.getExtras();
         int friend_id=bundle.getInt("contact_id");
         sendByPost(recv.getInt("user_id",0),friend_id);
-        UserInfoActivity userInfoActivity = this;
 
         View.OnClickListener listener=new View.OnClickListener() {
             @Override
@@ -90,17 +90,22 @@ public class UserInfoActivity extends AppCompatActivity {
                     case R.id.delete:
                         break;
                     case R.id.send_message:
-                        Intent chatIntent = new Intent(userInfoActivity, ChatActivity.class);
-                        chatIntent.putExtra("user_id", user.getId());
-                        chatIntent.putExtra("user_name", user.getName());
-                        chatIntent.putExtra("user_gender", user.getGender());
-                        chatIntent.putExtra("user_phone", user.getPhone());
-                        chatIntent.putExtra("user_sign", user.getSign());
-                        chatIntent.putExtra("user_img", user.getImg());
-                        chatIntent.putExtra("friend_note", user.getNote());
+                        Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
+                        chatIntent.putExtra("targetUser",user);
                         startActivity(chatIntent);
                         break;
                     case R.id.send_call:
+                        Intent rtcChatIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
+                        String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
+                        String targetClientID = "GID_test@@@" + user.getId();
+                        String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
+                        String userName = recv.getString("user_name", "");
+
+                        rtcChatIntent.putExtra("ChannelID", channelID);
+                        rtcChatIntent.putExtra("UserClientID", userClientID);
+                        rtcChatIntent.putExtra("UserName", userName);
+
+                        startActivity(rtcChatIntent);
                         break;
                     case R.id.back_arrow:
                         Intent intent=new Intent(UserInfoActivity.this,MainActivity.class);

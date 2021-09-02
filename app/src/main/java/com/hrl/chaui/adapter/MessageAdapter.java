@@ -1,64 +1,167 @@
 package com.hrl.chaui.adapter;
 
 import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.content.SharedPreferences;
+import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.annotation.Nullable;
 
-import com.bumptech.glide.Glide;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.BaseViewHolder;
 import com.hrl.chaui.R;
-import com.hrl.chaui.bean.MessageEntity;
+import com.hrl.chaui.bean.Message;
+import com.hrl.chaui.bean.MsgType;
+import com.hrl.chaui.bean.TextMsgBody;
+import com.hrl.chaui.bean.User;
+import com.hrl.chaui.fragment.MessageFragment;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
-public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private Context mContext;
-    private List<MessageEntity> list;
+import static com.hrl.chaui.MyApplication.contactData;
+import static com.hrl.chaui.MyApplication.groupData;
 
-    public MessageAdapter(Context mContext, List<MessageEntity> list) {
-        this.mContext = mContext;
-        this.list = list;
-    }
+public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
-    @NonNull
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v= LayoutInflater.from(mContext).inflate(R.layout.layout_messageadapter,parent,false);
+    Context context = null;
 
-        return new ListViewHolder(v);
+    public MessageAdapter(Context context,@Nullable List<Message> data) {
+        super(R.layout.item_message,data); // 设置item样式
+        this.context = context;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull  RecyclerView.ViewHolder holder, int position) {
-        if(holder instanceof ListViewHolder){
-            Glide.with(mContext).load(list.get(position).getUrl_img()).into(((ListViewHolder)holder).img);
-            ((ListViewHolder)holder).name.setText(list.get(position).getName());
-            ((ListViewHolder)holder).time.setText(list.get(position).getTime());
-            ((ListViewHolder)holder).message.setText(list.get(position).getMessages());
+    protected void convert(BaseViewHolder helper, Message item) {
+        setContent(helper, item);
+    }
+
+    private void setContent(BaseViewHolder helper, Message item){
+
+        // 通话对象
+        String userID = "GID_test@@@" + context.getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
+        String otherID = null;
+        String name = null;
+
+        if (!item.isGroup()) {
+            otherID = item.getSenderId().equals(userID) ? item.getTargetId() : item.getSenderId();
+            Log.e(TAG, "otherID:" + otherID);
+            String tmp = otherID.split("@@@")[1];
+            int otherIDInt = Integer.valueOf(tmp);
+            for(User user : contactData)  {
+                if (user.getId() != null && user.getId() == otherIDInt) {
+                    name = user.getName();
+                    break;
+                }
+            }
+        } else {
+            otherID = item.getTargetId();
+            for (User group : groupData) {
+                if (String.valueOf(group.getId()).equals(otherID)) {
+                    name = group.getName();
+                }
+            }
         }
-    }
 
-    @Override
-    public int getItemCount() {
-        return list.size();
-    }
+        if (name == null)
+            name = "陌生人";
+        helper.setText(R.id.message_item_title, name);
 
-    public static class ListViewHolder extends RecyclerView.ViewHolder{
-        TextView name;
-        ImageView img;
-        TextView time;
-        TextView message;
-        public ListViewHolder(@NonNull View itemView) {
-            super(itemView);
-            name=itemView.findViewById(R.id.name);
-            img=itemView.findViewById(R.id.img);
-            time=itemView.findViewById(R.id.time);
-            message=itemView.findViewById(R.id.mes);
+        // 发送时间
+        long sendTime = item.getSentTime();
+        String sendTimeText = getSendTimeText(sendTime);
+        helper.setText(R.id.message_item_time_text, sendTimeText);
+
+        // 显示在消息名称下方
+        String msgInfo;
+        MsgType msgType = item.getMsgType();
+        switch (msgType) {
+            case TEXT:
+                msgInfo = ((TextMsgBody)item.getBody()).getMessage();
+                break;
+            case  IMAGE:
+                msgInfo = "[图片]";
+                break;
+            case AUDIO:
+                msgInfo = "[语音]";
+                break;
+            case VIDEO:
+                msgInfo = "[视频]";
+                break;
+            case FILE:
+                msgInfo = "[文件]";
+                break;
+            default:
+                msgInfo = "[消息]";
+                break;
         }
+        helper.setText(R.id.message_item_info, msgInfo);
+
+        // 未查看的消息显示小红点
+        if (item.isCheck() == false)
+            helper.setVisible(R.id.message_item_redpoint, true);
+        else
+            helper.setVisible(R.id.message_item_redpoint, false);
+
+
+
     }
+
+
+
+    private String getSendTimeText(long sendTime) {
+        Date date = new Date(sendTime);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+        String dateStr = dateFormat.format(date);
+        String nowStr = dateFormat.format(System.currentTimeMillis());
+        String[] dateInfo = dateStr.split("-");
+        String[] nowInfo = nowStr.split("-");
+
+        String year = dateInfo[0];
+        String month = dateInfo[1];
+        String day = dateInfo[2];
+        String hour = dateInfo[3];
+        String minute = dateInfo[4];
+        String second = dateInfo[5];
+
+        String nowYear = nowInfo[0];
+        String nowMonth = nowInfo[1];
+        String nowDay = nowInfo[2];
+        String nowHour = nowInfo[3];
+        String nowMinute = nowInfo[4];
+        String nowSecond = nowInfo[5];
+
+        int nowDayInt = Integer.valueOf(nowDay);
+        int nowMonthInt = Integer.valueOf(nowMonth);
+        int nowYearInt = Integer.valueOf(nowYear);
+
+        String prevDay; // 前一天
+        if (nowDayInt - 1 != 0) {
+            prevDay = String.valueOf(nowDayInt - 1);
+        } else {
+            if (nowMonthInt == 1 || nowMonthInt == 2 || nowMonthInt == 4 || nowMonthInt == 6 || nowMonthInt == 8 || nowMonthInt == 9 || nowMonthInt == 11) {
+                prevDay = String.valueOf(31);
+            } else if (nowMonthInt != 3) {
+                prevDay = String.valueOf(30);
+            } else if ((nowYearInt % 4 == 0 && nowYearInt % 100 != 0) | nowYearInt % 400 == 0) {
+                prevDay = String.valueOf(29);
+            } else{
+                prevDay = String.valueOf(28);
+            }
+        }
+
+        if (!year.equals(nowYear)) {
+            return year + "年" + Integer.valueOf(month) + "月" + Integer.valueOf(day) + "日";
+        } else if (!month.equals(nowMonth) || (!day.equals(nowDay) && !day.equals(prevDay))) {
+            return Integer.valueOf(month) + "月" + Integer.valueOf(day) + "日";
+        } else if (day.equals(prevDay)){
+            return "昨天";
+        } else {
+            return Integer.valueOf(hour) + ":" + minute;
+        }
+
+    }
+
 }

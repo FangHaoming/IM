@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.activity.GroupActivity;
+import com.hrl.chaui.activity.GroupChatActivity;
 import com.hrl.chaui.activity.GroupInfoActivity;
 import com.hrl.chaui.activity.NewFriendActivity;
 import com.hrl.chaui.activity.UserInfoActivity;
@@ -80,10 +81,12 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         intent = new Intent(mContext, UserInfoActivity.class);
                     }
                     else {
-                        intent=new Intent(mContext, GroupInfoActivity.class);
+                        intent=new Intent(mContext, GroupChatActivity.class);
+                        User groupUser = getDatas().get(position);
+                        intent.putExtra("targetUser", groupUser);
                     }
                     Bundle bundle = new Bundle();
-                    bundle.putInt("contact_id", user.getId());
+                    bundle.putInt("contact_id", user.getId()); // 存放的是群聊的ID 或者 用户的ID
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
                     //((Activity) mContext).overridePendingTransition(R.anim.slide_left_in, 0);

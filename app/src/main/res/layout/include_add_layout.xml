@@ -94,10 +94,9 @@
                 android:id="@+id/ivLocation"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginTop="30dp"
                 android:layout_centerHorizontal="true"
-                android:background="@drawable/selector_ctype_location"
-                />
+                android:layout_marginTop="30dp"
+                android:background="@drawable/selector_ctype_location" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -119,9 +118,9 @@
                 android:id="@+id/ivPhone"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginTop="30dp"
                 android:layout_centerHorizontal="true"
-                android:background="@drawable/ic_baseline_call_24"/>
+                android:layout_marginTop="30dp"
+                android:background="@drawable/selector_ctype_video_call" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

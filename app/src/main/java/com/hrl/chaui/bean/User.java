@@ -2,7 +2,9 @@ package com.hrl.chaui.bean;
 
 import com.mcxtzhang.indexlib.IndexBar.bean.BaseIndexPinyinBean;
 
-public class User extends BaseIndexPinyinBean {
+import java.io.Serializable;
+
+public class User extends BaseIndexPinyinBean implements Serializable {
     private boolean isTop;
     private String name;
     private Integer id;

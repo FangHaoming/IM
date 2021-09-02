@@ -34,6 +34,9 @@ dependencies {
     implementation 'com.github.mcxtzhang:SuspensionIndexBar:V1.0.0'
 
     implementation 'de.hdodenhof:circleimageview:3.1.0'
+    implementation 'com.aliyun.rtc:AliRTC-Full:2.5.1.21080620415714'
+
+
     implementation 'com.nbsp:materialfilepicker:1.9.1'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.0'
@@ -54,6 +57,11 @@ dependencies {
     // https://mvnrepository.com/artifact/com.alibaba/fastjson
     implementation 'com.alibaba:fastjson:1.2.48'
 
+
+   // https://mvnrepository.com/artifact/xerces/xercesImpl
+    implementation 'xerces:xercesImpl:2.12.0'
+
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
 
 
 }
