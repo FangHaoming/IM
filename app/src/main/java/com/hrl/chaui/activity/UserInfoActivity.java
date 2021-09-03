@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -21,6 +22,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
+import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
+import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
@@ -43,6 +48,7 @@ public class UserInfoActivity extends AppCompatActivity {
     public ImageView user_img;
     public LinearLayout sendMsg;
     public LinearLayout sendCall;
+    public LinearLayout videoCall;
     public TextView setNote;
     public TextView delete;
     public User user;
@@ -65,6 +71,7 @@ public class UserInfoActivity extends AppCompatActivity {
         user_name=findViewById(R.id.user_name);
         sendMsg=findViewById(R.id.send_message);
         sendCall=findViewById(R.id.send_call);
+        videoCall = findViewById(R.id.video_call);
         setNote=findViewById(R.id.setNote);
         delete=findViewById(R.id.delete);
         user_note=findViewById(R.id.user_note);
@@ -94,19 +101,33 @@ public class UserInfoActivity extends AppCompatActivity {
                         chatIntent.putExtra("targetUser",user);
                         startActivity(chatIntent);
                         break;
-                    case R.id.send_call:
-                        Intent rtcChatIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
+                    case R.id.send_call: {
+                        Intent voiceCallIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
                         String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
                         String targetClientID = "GID_test@@@" + user.getId();
                         String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
-                        String userName = recv.getString("user_name", "");
-
-                        rtcChatIntent.putExtra("ChannelID", channelID);
-                        rtcChatIntent.putExtra("UserClientID", userClientID);
-                        rtcChatIntent.putExtra("UserName", userName);
-
-                        startActivity(rtcChatIntent);
+                        AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
+                        voiceCallIntent.putExtra("channel", channelID);
+                        voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
+                        voiceCallIntent.putExtra("user2Name", user.getName());
+                        startActivity(voiceCallIntent);
                         break;
+                    }
+                    case R.id.video_call: {
+                        Intent videoCallIntent = new Intent(UserInfoActivity.this, VideoCallActivity.class);
+                        String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
+                        String targetClientID = "GID_test@@@" + user.getId();
+                        String channelID = RTCHelper.getNumsChannelID(userClientID, targetClientID);
+                        RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
+                        String userName = recv.getString("user_name", "null");
+
+                        videoCallIntent.putExtra("channel", channelID);
+                        videoCallIntent.putExtra("username", userName);
+                        videoCallIntent.putExtra("rtcAuthInfo", info);
+
+                        startActivity(videoCallIntent);
+                        break;
+                    }
                     case R.id.back_arrow:
                         Intent intent=new Intent(UserInfoActivity.this,MainActivity.class);
                         startActivity(intent);
@@ -118,6 +139,7 @@ public class UserInfoActivity extends AppCompatActivity {
         };
         sendMsg.setOnClickListener(listener);
         sendCall.setOnClickListener(listener);
+        videoCall.setOnClickListener(listener);
         setNote.setOnClickListener(listener);
         delete.setOnClickListener(listener);
         back_arrow.setOnClickListener(listener);

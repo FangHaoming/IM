@@ -3,97 +3,108 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.hrl.chaui">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission
+        android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"
+        tools:ignore="ProtectedPermissions" />
+
+    <uses-feature
+        android:name="org.apache.http.leacy"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
     <application
         android:name=".MyApplication"
-        android:requestLegacyExternalStorage="true"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
         <activity
-            android:name=".activity.AliRtcChatActivity"
-            android:launchMode="singleTask"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
-        </activity>
-
-        <activity
-            android:name=".activity.MainActivity"
-            android:launchMode="singleTask">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
             android:name=".activity.GroupChatActivity"
-            android:exported="true" >
-        </activity>
-
+            android:exported="true"></activity>
         <activity
             android:name=".activity.ItemShowActivity"
             android:exported="true" />
-
         <activity
             android:name=".activity.ChatActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:launchMode="singleTask"
             android:screenOrientation="fullSensor"
-            android:windowSoftInputMode="stateHidden">
-        </activity>
-        <activity android:name=".activity.UserInfoActivity"
+            android:windowSoftInputMode="stateHidden"></activity>
+        <activity
+            android:name=".activity.UserInfoActivity"
             android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
-        <activity android:name=".activity.NewFriendActivity"
+        <activity
+            android:name=".activity.NewFriendActivity"
             android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
-
         <activity
             android:name=".activity.SplashActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" />
-
-        <activity android:name=".activity.GroupActivity"
+        <activity
+            android:name=".activity.GroupActivity"
             android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
-        <activity android:name=".activity.GroupInfoActivity"
+        <activity
+            android:name=".activity.GroupInfoActivity"
             android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
-        <activity android:name=".activity.ModifyNameActivity"
+        <activity
+            android:name=".activity.ModifyNameActivity"
             android:parentActivityName=".activity.ModifyActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.ModifyActivity" />
         </activity>
-        <activity android:name=".activity.ModifyGenderActivity"
+        <activity
+            android:name=".activity.ModifyGenderActivity"
             android:parentActivityName=".activity.ModifyActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.ModifyActivity" />
         </activity>
-        <activity android:name=".activity.ModifyPhoneActivity"
+        <activity
+            android:name=".activity.ModifyPhoneActivity"
             android:parentActivityName=".activity.ModifyActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.ModifyActivity" />
         </activity>
-        <activity android:name=".activity.ModifySignActivity"
+        <activity
+            android:name=".activity.ModifySignActivity"
             android:parentActivityName=".activity.ModifyActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -101,57 +112,28 @@
         </activity>
         <activity android:name=".activity.LoginActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <activity android:name=".activity.ResetPwdActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".activity.ModifyActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".activity.RegisterActivity"
+        <activity
+            android:name=".activity.MainActivity"
+            android:launchMode="singleTask"></activity>
+        <activity android:name=".activity.ResetPwdActivity" />
+        <activity android:name=".activity.ModifyActivity" />
+        <activity
+            android:name=".activity.RegisterActivity"
             android:parentActivityName=".activity.LoginActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.LoginActivity" />
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
-
+        <activity android:name="com.aliyun.rtc.voicecall.ui.AliRtcChatActivity" />
+        <activity android:name="com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity" />
         <service
             android:name=".util.MqttService"
             android:enabled="true"
             android:exported="true" />
     </application>
-    <uses-feature
-        android:name="org.apache.http.legacy"
-        android:required="false" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission
-        android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"
-        tools:ignore="ProtectedPermissions" />
 
 </manifest>

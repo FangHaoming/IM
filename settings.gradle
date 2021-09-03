@@ -1,1 +1,4 @@
 include ':app'
+include ':AliyunVideoCommon'
+include ':AlivcVoiceCall:AlivcVoiceCall_demo'
+include ':AlivcVideoCall_demo'

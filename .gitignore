@@ -9,3 +9,5 @@
 /build
 /captures
 .externalNativeBuild
+/AlivcVoiceCall/AlivcVoiceCall_demo/build/
+/AliyunVideoCommon/build/

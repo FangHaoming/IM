@@ -31,10 +31,12 @@ dependencies {
     implementation group: 'com.aliyun', name: 'aliyun-java-sdk-core', version: '4.5.0'
     implementation 'com.squareup.okhttp3:okhttp:4.7.2'
 
+
     implementation 'com.github.mcxtzhang:SuspensionIndexBar:V1.0.0'
 
     implementation 'de.hdodenhof:circleimageview:3.1.0'
-    implementation 'com.aliyun.rtc:AliRTC-Full:2.5.1.21080620415714'
+//    implementation 'com.aliyun.rtc:AliRTC-Full:2.5.1.21080620415714'
+
 
 
     implementation 'com.nbsp:materialfilepicker:1.9.1'
@@ -63,5 +65,9 @@ dependencies {
 
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
 
+    implementation project(':AliyunVideoCommon')
 
+    implementation project(':AlivcVoiceCall:AlivcVoiceCall_demo')
+
+    implementation project(':AlivcVideoCall_demo')
 }

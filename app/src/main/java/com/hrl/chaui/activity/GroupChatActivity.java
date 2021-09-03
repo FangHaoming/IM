@@ -53,7 +53,6 @@ import com.hrl.chaui.util.LogUtil;
 import com.hrl.chaui.util.MqttByAli;
 import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
-import com.hrl.chaui.util.RTCHelper;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
 import com.hrl.chaui.widget.RecordButton;
@@ -264,6 +263,10 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
                 .bindAudioBtn(mBtnAudio)
                 .bindAudioIv(mIvAudio)
                 .bindEmojiData();
+
+        // 群聊暂不支持聊天功能，故将其隐藏。
+        RelativeLayout rlPhone = (RelativeLayout) findViewById(R.id.rlPhone);
+        rlPhone.setVisibility(View.GONE);
 
         //底部布局弹出,聊天列表上滑
         mRvChat.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
@@ -477,15 +480,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
             case R.id.rlLocation:
                 break;
             case R.id.rlPhone:
-                // 语音通话
-                Intent rtcChatIntent = new Intent(this, AliRtcChatActivity.class);
-                String channelID = targetGroupID;
-                SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
-                String userName = sharedPreferences.getString("user_name", "null");
-                rtcChatIntent.putExtra("ChannelID", channelID);
-                rtcChatIntent.putExtra("UserClientID", userClientID);
-                rtcChatIntent.putExtra("UserName", userName);
-                startActivity(rtcChatIntent);
+                // 群聊语音聊天功能
                 break;
         }
     }
