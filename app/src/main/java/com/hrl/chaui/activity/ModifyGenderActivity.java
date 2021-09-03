@@ -61,10 +61,10 @@ public class ModifyGenderActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(!sp.getString("user_gender","").equals(bundle.getString("user_gender"))){
                     bundle.putBoolean("isModify",true);
+                    intent.putExtras(bundle);
                     editor.putString("user_gender",bundle.getString("user_gender"));
                     editor.apply();
                 }
-                intent.putExtras(bundle);
                 startActivity(intent);
                 finish();
             }

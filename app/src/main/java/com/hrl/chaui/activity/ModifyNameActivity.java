@@ -32,14 +32,14 @@ public class ModifyNameActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(ModifyNameActivity.this,ModifyActivity.class);
-                Bundle bundle=new Bundle();
-                bundle.putString("user_name",Edit.getText().toString());
                 if(!sp.getString("user_name","").equals(Edit.getText().toString())){
+                    Bundle bundle=new Bundle();
                     bundle.putBoolean("isModify",true);
+                    bundle.putString("user_name",Edit.getText().toString());
+                    intent.putExtras(bundle);
                 }
                 editor.putString("user_name",Edit.getText().toString());
                 editor.apply();
-                intent.putExtras(bundle);
                 startActivity(intent);
                 finish();
             }
@@ -49,6 +49,7 @@ public class ModifyNameActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent=new Intent(ModifyNameActivity.this,ModifyActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
     }

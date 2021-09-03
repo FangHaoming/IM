@@ -36,14 +36,14 @@ public class ModifyPhoneActivity extends AppCompatActivity {
                 }
                 else{
                     Intent intent=new Intent(ModifyPhoneActivity.this,ModifyActivity.class);
-                    Bundle bundle=new Bundle();
-                    bundle.putString("user_phone",Edit.getText().toString());
                     if(!sp.getString("user_phone","").equals(Edit.getText().toString())){
+                        Bundle bundle=new Bundle();
+                        bundle.putString("user_phone",Edit.getText().toString());
                         bundle.putBoolean("isModify",true);
+                        intent.putExtras(bundle);
+                        editor.putString("user_phone",Edit.getText().toString());
+                        editor.apply();
                     }
-                    editor.putString("user_phone",Edit.getText().toString());
-                    editor.apply();
-                    intent.putExtras(bundle);
                     startActivity(intent);
                     finish();
                 }

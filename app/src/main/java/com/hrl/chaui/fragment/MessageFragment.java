@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,8 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.hrl.chaui.R;
 import com.hrl.chaui.activity.ChatActivity;
@@ -31,14 +28,12 @@ import com.hrl.chaui.bean.Message;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.dao.imp.MessageDaoImp;
 import com.hrl.chaui.util.MqttService;
-import com.hrl.chaui.util.MyDBHelper;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+
 import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.groupData;
 
@@ -72,6 +67,9 @@ public class MessageFragment extends Fragment {
         root = inflater.inflate(R.layout.layout_message,container,false);
         // 获取用户id
         SharedPreferences sharedPreferences = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedPreferences.edit();
+        editor.putBoolean("isImgChange",false);
+        editor.apply();
         int user_id = sharedPreferences.getInt("user_id", -1);
         userClientID = "GID_test@@@" + user_id;
 

@@ -61,6 +61,8 @@ public class ContactFragment extends Fragment {
         View root=inflater.inflate(R.layout.layout_contact,container,false);
         recv = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
         editor = recv.edit();
+        editor.putBoolean("isImgChange",false);
+        editor.apply();
         //使用indexBar
         mRv = (RecyclerView) root.findViewById(R.id.rv);
         mRv.setLayoutManager(mManager = new LinearLayoutManager(getContext()));

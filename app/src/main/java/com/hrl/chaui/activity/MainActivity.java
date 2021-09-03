@@ -1,7 +1,5 @@
 package com.hrl.chaui.activity;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,7 +9,6 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -40,6 +37,7 @@ public class MainActivity extends FragmentActivity {
     private SharedPreferences.Editor editor;
     public final int Modify = 1;
     public final int ResetPwd = 2;
+    public MineFragment MineFragment;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -49,9 +47,10 @@ public class MainActivity extends FragmentActivity {
         initView();
         rev=getSharedPreferences("data",MODE_PRIVATE);
         editor=rev.edit();
+        MineFragment=new MineFragment();
         fragments.add(new MessageFragment());
         fragments.add(new ContactFragment());
-        fragments.add(new MineFragment());
+        fragments.add(MineFragment);
         FragmentAdapter adapter=new FragmentAdapter(getSupportFragmentManager(),fragments);
         viewPager.setAdapter(adapter);
         Window window = getWindow();
@@ -154,32 +153,5 @@ public class MainActivity extends FragmentActivity {
 
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable  Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==Modify) {
-            if (resultCode == Activity.RESULT_OK) {
-                if (data != null) {
-                    Bundle bundle = data.getExtras();
-                    editor.putString("img_uri", bundle.getString("img_uri"));
-                    editor.apply();
-                }
-            }
-        }
-        if(requestCode==ResetPwd){
-                if(resultCode== Activity.RESULT_OK){
-                    System.out.println("*********bundle "+data);
-                    if(data!=null){
-                        Bundle bundle = data.getExtras();
-                        System.out.println("*********bundle "+bundle.getBoolean("isModigy"));
-                        boolean isModify = bundle.getBoolean("isModify");
-                        if (isModify) {
 
-                        }
-                    }
-                }
-        }
-
-
-    }
 }

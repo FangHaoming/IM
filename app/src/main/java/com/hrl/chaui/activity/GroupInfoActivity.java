@@ -9,19 +9,20 @@ import android.os.Looper;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
+import com.hrl.chaui.adapter.GridViewAdapter;
 import com.hrl.chaui.adapter.GroupMemberAdapter;
 import com.hrl.chaui.bean.User;
 
@@ -44,6 +45,7 @@ public class GroupInfoActivity extends AppCompatActivity {
     public View notice_switch;
     public TextView name;
     public TextView delete;
+    public GridView gridView;
     public GroupMemberAdapter mAdapter;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -68,10 +70,14 @@ public class GroupInfoActivity extends AppCompatActivity {
             }
         });
 
+        /*
         mRv=findViewById(R.id.rv);
         mRv.setLayoutManager(new LinearLayoutManager(this));
+
+         */
         name=findViewById(R.id.name);
         notice_switch=findViewById(R.id.notice_switch);
+        gridView=findViewById(R.id.gridview);
 
         recv = getSharedPreferences("data", Context.MODE_PRIVATE);
         editor = recv.edit();
@@ -131,10 +137,15 @@ public class GroupInfoActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 name.setText(json.getString("group_name"));
+                                /*
                                 mAdapter= new GroupMemberAdapter(getApplicationContext(),groupMemberData);
                                 mRv.setAdapter(mAdapter);
                                 mAdapter.setDatas(groupMemberData);
                                 mAdapter.notifyDataSetChanged();
+                                 */
+                                GridViewAdapter mGriViewAdapter=new GridViewAdapter(getApplicationContext(),groupMemberData);
+                                gridView.setAdapter(mGriViewAdapter);
+                                mGriViewAdapter.notifyDataSetChanged();
                             }
                         });
                     }
