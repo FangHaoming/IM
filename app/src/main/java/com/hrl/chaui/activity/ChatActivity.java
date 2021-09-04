@@ -12,7 +12,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
-import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -36,6 +35,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
+import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.hrl.chaui.adapter.ChatAdapter;
 import com.hrl.chaui.bean.MsgType;
@@ -55,6 +56,7 @@ import com.hrl.chaui.util.FileUtils;
 import com.hrl.chaui.util.MqttByAli;
 import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
+import com.hrl.chaui.util.RTCHelper;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
 import com.hrl.chaui.widget.RecordButton;
@@ -125,6 +127,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     // 和Service的连接。
     private MqttServiceConnection connection = null;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -477,6 +480,13 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 break;
             case R.id.rlPhone:
                 // 语音通话
+                Intent voiceCallIntent = new Intent(this, AliRtcChatActivity.class);
+                String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
+                AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
+                voiceCallIntent.putExtra("channel", channelID);
+                voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
+                voiceCallIntent.putExtra("user2Name", targetUser.getName());
+                startActivity(voiceCallIntent);
                 break;
         }
     }

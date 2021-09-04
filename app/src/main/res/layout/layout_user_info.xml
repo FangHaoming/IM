@@ -96,11 +96,12 @@
             android:layout_marginLeft="5dp"
             android:text="发消息" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
-        android:layout_marginTop="1dp"
+        android:layout_marginTop="2dp"
         android:background="@drawable/selector_click"
         android:id="@+id/send_call"
         android:orientation="horizontal">
@@ -115,6 +116,27 @@
             android:textColor="@color/black"
             android:layout_marginLeft="5dp"
             android:text="音频通话" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/selector_click"
+        android:id="@+id/video_call"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/video_call"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:textColor="@color/black"
+            android:layout_marginLeft="5dp"
+            android:text="视频通话" />
     </LinearLayout>
 
     <TextView
