@@ -2,15 +2,23 @@ package com.hrl.chaui.activity;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.hrl.chaui.R;
+import com.hrl.chaui.util.AppManager;
 import com.hrl.chaui.util.LogUtil;
+import com.hrl.chaui.util.http;
 import com.hrl.chaui.widget.SetPermissionDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
@@ -18,10 +26,23 @@ import io.reactivex.functions.Consumer;
 
 public class SplashActivity extends AppCompatActivity {
 
+    SharedPreferences sp;
+    SharedPreferences.Editor editor;
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_splash);
+        AppManager.addActivity(this);
+        sp=getSharedPreferences("data",MODE_PRIVATE);
+        editor=sp.edit();
+        Window window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(getResources().getColor(R.color.white));
+        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -45,8 +66,12 @@ public class SplashActivity extends AppCompatActivity {
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
-                            startActivity(new Intent(SplashActivity.this,LoginActivity.class));
-                            finish();
+                            if(sp.getBoolean("isAuto",false)){
+                                http.sendByPostLogin(SplashActivity.this,sp.getString("user_phone",""),sp.getString("user_pwd",""));
+                            }else{
+                                startActivity(new Intent(SplashActivity.this,LoginActivity.class));
+                            }
+                            //finish();
                          } else {
 
                             SetPermissionDialog mSetPermissionDialog = new SetPermissionDialog(SplashActivity.this);

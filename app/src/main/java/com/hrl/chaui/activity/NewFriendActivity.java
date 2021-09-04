@@ -20,6 +20,7 @@ import androidx.appcompat.widget.SearchView;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
+import com.hrl.chaui.util.Is;
 import com.hrl.chaui.util.MqttService;
 
 import java.io.IOException;
@@ -75,7 +76,20 @@ public class NewFriendActivity extends AppCompatActivity {
                         imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0); // 输入法如果是显示状态，那么就隐藏输入法                    }
                         mSearchView.clearFocus(); // 不获取焦点
                     }
-                    sendByPost(query);
+                    if(Is.isFriendByPhone(query)){
+                        Intent intent = new Intent(NewFriendActivity.this, UserInfoActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putBoolean("isFriend",true);
+                        bundle.putInt("contact_id",Is.getIdByPhone(query));
+                        intent.putExtras(bundle);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
+                        startActivity(intent);
+                        finish();
+                    }
+                    else{
+                        sendByPost(query);
+                    }
+
                 }
                 return true;
             }
@@ -141,9 +155,7 @@ public class NewFriendActivity extends AppCompatActivity {
             @Override
             public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 String info=response.body().string();
-                User user=JSONObject.parseObject(info,User.class);
-                System.out.println("**********info"+info);
-                if(user==null){
+                if(info.equals("null")){
                     Looper.prepare();
                     Toast.makeText(NewFriendActivity.this,"找不到该用户",Toast.LENGTH_SHORT).show();
                     Looper.loop();
@@ -151,7 +163,9 @@ public class NewFriendActivity extends AppCompatActivity {
                 else{
                     Intent intent = new Intent(NewFriendActivity.this, UserInfoActivity.class);
                     Bundle bundle = new Bundle();
-                    bundle.putInt("contact_id", user.getId());
+                    bundle.putBoolean("isFriend",false);
+                    bundle.putString("user_info", info);
+                    bundle.putString("from","search");
                     intent.putExtras(bundle);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
                     startActivity(intent);

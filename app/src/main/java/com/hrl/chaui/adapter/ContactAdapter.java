@@ -16,10 +16,10 @@ import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.activity.GroupActivity;
 import com.hrl.chaui.activity.GroupChatActivity;
-import com.hrl.chaui.activity.GroupInfoActivity;
 import com.hrl.chaui.activity.NewFriendActivity;
 import com.hrl.chaui.activity.UserInfoActivity;
 import com.hrl.chaui.bean.User;
+import com.hrl.chaui.util.Is;
 
 import java.util.List;
 
@@ -87,6 +87,8 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     }
                     Bundle bundle = new Bundle();
                     bundle.putInt("contact_id", user.getId()); // 存放的是群聊的ID 或者 用户的ID
+                    bundle.putBoolean("isFriend", Is.isFriendByPhone(mDatas.get(position).getPhone()));
+                    bundle.putString("from","contact");
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
                     //((Activity) mContext).overridePendingTransition(R.anim.slide_left_in, 0);

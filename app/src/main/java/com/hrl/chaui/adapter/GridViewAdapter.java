@@ -1,6 +1,8 @@
 package com.hrl.chaui.adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -8,7 +10,9 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
+import com.hrl.chaui.activity.UserInfoActivity;
 import com.hrl.chaui.bean.User;
+import com.hrl.chaui.util.Is;
 
 import java.util.List;
 
@@ -54,18 +58,36 @@ public class GridViewAdapter extends BaseAdapter {
             holder.img=(CircleImageView) convertView.findViewById(R.id.img);
 //          hen里面的image和text
             holder.name=(TextView) convertView.findViewById(R.id.name);
+            holder.content=convertView.findViewById(R.id.content);
 //          有了布局再设置里面的控件.(holder设置控件)
             convertView.setTag(holder);
+            holder.content.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent;
+                    intent = new Intent(context, UserInfoActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("contact_id", users.get(position).getId());
+                    bundle.putBoolean("isFriend", Is.isFriendByPhone(users.get(position).getPhone()));
+                    bundle.putString("from","group");
+                    bundle.putString("user_phone",users.get(position).getPhone());
+                    intent.putExtras(bundle);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
+                    context.startActivity(intent);
+                }
+            });
         }else{
             holder= (viewholder) convertView.getTag();
         }
+        //ViewUtils.setGridViewItemWith(convertView,parent,50,10,10,false);
 //      给控件赋值
         Glide.with(context).load(context.getString(R.string.app_prefix_img)+users.get(position).getImg()).into(holder.img);
         holder.name.setText(users.get(position).getName());
         return convertView;
     }
-    class viewholder{//数据包
+    public static class viewholder{//数据包
         CircleImageView img;
         TextView name;
+        View content;
     }
 }

@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -22,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
+import com.hrl.chaui.util.AppManager;
 import com.hrl.chaui.util.EditIsCanUseBtnUtils;
 import com.hrl.chaui.util.http;
 
@@ -55,7 +57,7 @@ public class LoginActivity extends AppCompatActivity {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(getResources().getColor(R.color.white));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-
+        AppManager.addActivity(this);
         sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
         editor=sharedPreferences.edit();
 
@@ -71,26 +73,23 @@ public class LoginActivity extends AppCompatActivity {
 
         SharedPreferences sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
         editor=sharedPreferences.edit();
-
-        System.out.println("this is user_name:"+sharedPreferences.getString("user_name",""));
+        phone.setText(sharedPreferences.getString("user_phone",""));
         if(sharedPreferences.getBoolean("isRemember",false)){
-            phone.setText(sharedPreferences.getString("user_phone",""));
             pwd.setText(sharedPreferences.getString("user_pwd",""));
+            loginBtn.setEnabled(true);
             remember.setChecked(true);
+        }
+        else{
+            EditIsCanUseBtnUtils.getInstance()
+                    .addContext(this)
+                    .addEdittext(phone)
+                    .addEdittext(pwd)
+                    .setBtn(loginBtn)
+                    .build();
         }
         if(sharedPreferences.getBoolean("isAuto",false)){
             auto_login.setChecked(true);
-            if(!sharedPreferences.getBoolean("isChange",false)){
-                sendByPost(phone.getText().toString().trim(),pwd.getText().toString().trim());
-            }
-
         }
-        EditIsCanUseBtnUtils.getInstance()
-                .addContext(this)
-                .addEdittext(phone)
-                .addEdittext(pwd)
-                .setBtn(loginBtn)
-                .build();
         //注册按钮
         register.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,19 +109,6 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this,"请输入密码",Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    if(remember.isChecked()){
-                        editor.putBoolean("isCheck",true);
-                    }
-                    else{
-                        editor.putBoolean("isCheck",false);
-                    }
-                    if(auto_login.isChecked()){
-                        editor.putBoolean("isAuto",true);
-                    }
-                    else{
-                        editor.putBoolean("isAuto",false);
-                    }
-                    editor.apply();
                     sendByPost(phone.getText().toString().trim(),pwd.getText().toString().trim());
                 }
 
@@ -165,6 +151,18 @@ public class LoginActivity extends AppCompatActivity {
                 switch (Integer.parseInt(json.get("status").toString())){
                     case 2:
                         http.sendByPost(LoginActivity.this,json.getInteger("user_id"));
+                        if(remember.isChecked()){
+                            editor.putBoolean("isRemember",true);
+                        }
+                        else{
+                            editor.putBoolean("isRemember",false);
+                        }
+                        if(auto_login.isChecked()){
+                            editor.putBoolean("isAuto",true);
+                        }
+                        else{
+                            editor.putBoolean("isAuto",false);
+                        }
                         editor.putString("user_gender", (String) json.get("user_gender"));
                         editor.putInt("user_id", json.getInteger("user_id"));
                         editor.putString("user_img",(String)json.get("user_img"));
@@ -201,6 +199,11 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-
-
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK){
+            AppManager.AppExit(this);
+        }
+        return true;
+    }
 }

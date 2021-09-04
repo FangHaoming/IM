@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -40,6 +41,7 @@ public class UserInfoActivity extends AppCompatActivity {
     public TextView user_note;
     public TextView user_phone;
     public TextView user_sign;
+    public TextView add;
     public ImageView user_img;
     public LinearLayout sendMsg;
     public LinearLayout sendCall;
@@ -49,80 +51,157 @@ public class UserInfoActivity extends AppCompatActivity {
     public SharedPreferences recv;
     public SharedPreferences.Editor editor;
     public Drawable  drawable;
+    Intent intent;
+    Bundle bundle;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(@Nullable  Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_user_info);
+        recv = getSharedPreferences("data", Context.MODE_PRIVATE);
+        editor = recv.edit();
+        user=new User();
+        intent=getIntent();
+        bundle = intent.getExtras();
+        if(bundle!=null){
+            if(bundle.getBoolean("isFriend")) {
+                setContentView(R.layout.layout_user_info);
+                back_arrow = findViewById(R.id.back_arrow);
+                user_name = findViewById(R.id.user_name);
+                sendMsg = findViewById(R.id.send_message);
+                sendCall = findViewById(R.id.send_call);
+                setNote = findViewById(R.id.setNote);
+                delete = findViewById(R.id.delete);
+                user_note = findViewById(R.id.user_note);
+                user_phone = findViewById(R.id.user_phone);
+                user_sign = findViewById(R.id.user_sign);
+                user_img = findViewById(R.id.user_img);
+
+                View.OnClickListener listener=new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        switch(v.getId()){
+                            case R.id.setNote:
+                                break;
+                            case R.id.delete:
+                                break;
+                            case R.id.send_message:
+                                Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
+                                chatIntent.putExtra("targetUser",user);
+                                startActivity(chatIntent);
+                                break;
+                            case R.id.send_call: {
+                                Intent voiceCallIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
+                                String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
+                                String targetClientID = "GID_test@@@" + user.getId();
+                                String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
+                                /*
+                                AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
+                                voiceCallIntent.putExtra("channel", channelID);
+                                voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
+
+                                 */
+                                voiceCallIntent.putExtra("user2Name", user.getName());
+                                startActivity(voiceCallIntent);
+                                break;
+                            }
+                            case R.id.back_arrow:
+                                Intent intent = null;
+                                if(bundle.getString("from").equals("group")){
+                                    intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
+                                }else if(bundle.getString("from").equals("contact")){
+                                    intent=new Intent(UserInfoActivity.this,MainActivity.class);
+                                }else if(bundle.getString("from").equals("search")){
+                                    intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
+                                }
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                overridePendingTransition(0, R.anim.slide_right_out);
+                                finish();
+                                break;
+                        }
+                    }
+                };
+                sendMsg.setOnClickListener(listener);
+                sendCall.setOnClickListener(listener);
+                setNote.setOnClickListener(listener);
+                delete.setOnClickListener(listener);
+                back_arrow.setOnClickListener(listener);
+
+
+                int friend_id = bundle.getInt("contact_id");
+                if (friend_id == recv.getInt("user_id", 0)) {
+                    Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img) + recv.getString("user_img", "")).into(user_img);
+                    user_note.setText(recv.getString("user_name", ""));
+                    user_sign.setText("个性签名: " + recv.getString("user_sign", ""));
+                    user_phone.setText("手机号: " + recv.getString("user_phone", ""));
+                } else{
+                    sendByPost_friend(recv.getInt("user_id", 0), friend_id);
+                }
+
+            }
+            else{
+                setContentView(R.layout.layout_user_info_not);
+                back_arrow=findViewById(R.id.back_arrow);
+                user_name=findViewById(R.id.user_name);
+                user_note=findViewById(R.id.user_nickname);//群昵称
+                user_phone=findViewById(R.id.user_phone);
+                user_sign=findViewById(R.id.user_sign);
+                add=findViewById(R.id.add);
+                JSONObject json = null;
+                if(bundle.getString("from").equals("group")){
+                    user_note.setText("群昵称: "+bundle.getString("nickname"));
+                    String info=sendByPost_user(bundle.getString("user_phone"));
+                    json=JSON.parseObject(info);
+                }
+                else if(bundle.getString("from").equals("search")){
+                    json=JSON.parseObject(bundle.getString("user_info"));
+                }
+                if(json.getString("user_name")!=null){
+                    user_name.setText(json.getString("user_name"));
+                }
+                if(json.getString("user_phone")!=null){
+                    user_phone.setText("手机号: "+json.getString("user_phone"));
+                }
+                if(json.getString("user_sign")!=null){
+                    user_sign.setText(json.getString("user_sign"));
+                }
+                add.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //TODO 发送添加好友请求
+                    }
+                });
+            }
+        }
+
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(getResources().getColor(R.color.white));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-
-        back_arrow=findViewById(R.id.back_arrow);
-        user_name=findViewById(R.id.user_name);
-        sendMsg=findViewById(R.id.send_message);
-        sendCall=findViewById(R.id.send_call);
-        setNote=findViewById(R.id.setNote);
-        delete=findViewById(R.id.delete);
-        user_note=findViewById(R.id.user_note);
-        user_phone=findViewById(R.id.user_phone);
-        user_sign=findViewById(R.id.user_sign);
-        user_img=findViewById(R.id.user_img);
-
-        user=new User();
-
-        recv = getSharedPreferences("data", Context.MODE_PRIVATE);
-        editor = recv.edit();
-        Intent intent=getIntent();
-        Bundle bundle = intent.getExtras();
-        int friend_id=bundle.getInt("contact_id");
-        sendByPost(recv.getInt("user_id",0),friend_id);
-
-        View.OnClickListener listener=new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch(v.getId()){
-                    case R.id.setNote:
-                        break;
-                    case R.id.delete:
-                        break;
-                    case R.id.send_message:
-                        Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
-                        chatIntent.putExtra("targetUser",user);
-                        startActivity(chatIntent);
-                        break;
-                    case R.id.send_call:
-                        Intent rtcChatIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
-                        String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
-                        String targetClientID = "GID_test@@@" + user.getId();
-                        String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
-                        String userName = recv.getString("user_name", "");
-
-                        rtcChatIntent.putExtra("ChannelID", channelID);
-                        rtcChatIntent.putExtra("UserClientID", userClientID);
-                        rtcChatIntent.putExtra("UserName", userName);
-
-                        startActivity(rtcChatIntent);
-                        break;
-                    case R.id.back_arrow:
-                        Intent intent=new Intent(UserInfoActivity.this,MainActivity.class);
-                        startActivity(intent);
-                        overridePendingTransition(0, R.anim.slide_right_out);
-                        finish();
-                        break;
-                }
-            }
-        };
-        sendMsg.setOnClickListener(listener);
-        sendCall.setOnClickListener(listener);
-        setNote.setOnClickListener(listener);
-        delete.setOnClickListener(listener);
-        back_arrow.setOnClickListener(listener);
     }
-    private void sendByPost(int user_id, int friend_id) {
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK){
+            Intent intent = null;
+            if(bundle.getString("from").equals("group")){
+                intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
+            }else if(bundle.getString("from").equals("contact")){
+                intent=new Intent(UserInfoActivity.this,MainActivity.class);
+            }else if(bundle.getString("from").equals("search")){
+                intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
+            }
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            overridePendingTransition(0, R.anim.slide_right_out);
+            finish();
+        }
+        return true;
+    }
+
+    private void sendByPost_friend(int user_id, int friend_id) {
         JSONObject json=new JSONObject();
         json.put("user_id",user_id);
         json.put("friend_id",friend_id);
@@ -177,21 +256,25 @@ public class UserInfoActivity extends AppCompatActivity {
 
                                 drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
                                 user_note.setCompoundDrawables(null,null, drawable,null);
-                                if(user.getNote()==null){
-                                    user_note.setText(user.getName());
+                                if(json.getString("friend_note")!=null){
+                                    user_note.setText(json.getString("friend_note"));
+                                    user_name.setText("昵称: "+json.getString("user_name"));
                                 }
-                                else{
-                                    user_note.setText(user.getNote());
-                                    user_name.setText("昵称: "+user.getName());
+                                else if(json.getString("nickname")!=null){
+                                    user_note.setText(json.getString("nickname"));
+                                    user_name.setText("昵称: "+json.getString("user_name"));
                                 }
-                                if(user.getPhone()!=null){
+                                else if(json.getString("user_name")!=null){
+                                    user_note.setText(json.getString("user_name"));
+                                }
+                                if(json.getString("user_phone")!=null){
                                     user_phone.setText("手机号: "+user.getPhone());
                                 }
-                                if(user.getSign()!=null){
+                                if(json.getString("user_sign")!=null){
                                     user_sign.setText("个性签名: "+user.getSign());
                                 }
-                                if(user.getImg()!=null){
-                                    Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img)+user.getImg()).into(user_img);
+                                if(json.getString("user_img")!=null){
+                                    Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img)+json.getString("user_img")).into(user_img);
                                 }
                             }
                         });
@@ -199,5 +282,35 @@ public class UserInfoActivity extends AppCompatActivity {
                 }).start();
             }
         });
+    }
+
+    private String sendByPost_user(String user_phone) {
+        JSONObject json=new JSONObject();
+        final String[] info = new String[1];
+        json.put("user_phone",user_phone);
+        String path = getResources().getString(R.string.request_local)+"/userSearch";
+        OkHttpClient client = new OkHttpClient();
+        final FormBody formBody = new FormBody.Builder()
+                .add("json", json.toJSONString())
+                .build();
+        System.out.println("*********"+json.toJSONString());
+        Request request = new Request.Builder()
+                .url(path)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                Looper.prepare();
+                Toast.makeText(UserInfoActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+                Looper.loop();
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                info[0] =response.body().string();
+            }
+        });
+        return  info[0];
     }
 }
