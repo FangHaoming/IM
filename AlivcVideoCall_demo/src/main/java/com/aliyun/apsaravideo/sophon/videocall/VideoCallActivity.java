@@ -1,5 +1,9 @@
 package com.aliyun.apsaravideo.sophon.videocall;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
@@ -20,6 +24,8 @@ public class VideoCallActivity extends AppCompatActivity implements View.OnClick
     private RTCAuthInfo mRtcAuthInfo;
     private TextView mTitleTv;
     private TextView mCopyTv;
+    private CallCancelReceiver callCancelReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,6 +35,9 @@ public class VideoCallActivity extends AppCompatActivity implements View.OnClick
         checkHadPermissions(mGrant, 1000);
 
         getIntentData();
+
+        initReceiver();
+
         mTitleTv =findViewById(R.id.tv_title);
         mCopyTv =findViewById(R.id.tv_copy);
         alivcVideoCallView = findViewById(R.id.alivc_videocall_view);
@@ -46,6 +55,13 @@ public class VideoCallActivity extends AppCompatActivity implements View.OnClick
         alivcVideoCallView.auth(displayName, channel, mRtcAuthInfo);
     }
 
+    private void initReceiver() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("CALLCANCEL");
+        callCancelReceiver = new CallCancelReceiver();
+        registerReceiver(callCancelReceiver, intentFilter);
+    }
+
     private void getIntentData() {
         if (getIntent().getExtras() != null) {
             displayName = getIntent().getExtras().getString("username");
@@ -59,6 +75,9 @@ public class VideoCallActivity extends AppCompatActivity implements View.OnClick
         if (alivcVideoCallView != null) {
             alivcVideoCallView.leave();
         }
+
+        unregisterReceiver(callCancelReceiver);
+
         super.onDestroy();
     }
 
@@ -101,6 +120,15 @@ public class VideoCallActivity extends AppCompatActivity implements View.OnClick
                         PermissionUtils.PERMISSION_WRITE_EXTERNAL_STORAGE,
                         PermissionUtils.PERMISSION_RECORD_AUDIO,
                         PermissionUtils.PERMISSION_READ_EXTERNAL_STORAGE}, mGrant);
+    }
+
+    private class CallCancelReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(VideoCallActivity.this, "对方拒绝接听", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
 }

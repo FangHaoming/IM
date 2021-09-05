@@ -1,11 +1,16 @@
 package com.hrl.chaui.util;
 
 
+import android.content.SharedPreferences;
 import android.provider.Settings;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.apsaravideo.sophon.utils.SharedPreferenceUtils;
+import com.aliyun.onsmqtt20200420.models.QuerySessionByClientIdRequest;
+import com.aliyun.onsmqtt20200420.models.QuerySessionByClientIdResponse;
+import com.aliyun.teaopenapi.models.Config;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.util.ConnectionOptionWrapper;
 
@@ -181,6 +186,7 @@ public class MqttByAli {
      */
     public void sendByte(byte[] data, String targetToppic ,Map<String, Object> jsonAttr) {
         JSONObject object=new JSONObject();
+
         object.put("length",data.length);
         object.put("sendTime", System.currentTimeMillis());
         object.put("senderID", clientId);
@@ -190,7 +196,7 @@ public class MqttByAli {
         }
 
         // 设置 hex、total、order、data.
-        if (data.length <= 60*1024) {
+       if (data.length <= 60*1024) {
             object.put("total",1);
             object.put("order",0);
             object.put("hex", DigestUtils.md5Hex(data));
@@ -343,6 +349,53 @@ public class MqttByAli {
         sendByteToGroup(data, groupID, jsonAttr);
     }
 
+    // 发送P2P语音请求
+    public void sendP2PVoiceCallRequest(String targetClientID) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("msg", "VoiceCall");
+        byte[] data = new byte[0];
+        sendByteP2P(data, targetClientID, map);
+    }
+
+    // 发送P2P视频通话请求
+    public void sendP2PVideoCallRequest(String targetClientID) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("msg", "VideoCall");
+        byte[] data = new byte[0];
+        sendByteP2P(data, targetClientID, map);
+    }
+
+    // 发送决绝通话请求
+    public void sendP2PCallRequestCancel(String targetClientID) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("msg", "CallCancel");
+        byte[] data = new byte[0];
+        sendByteP2P(data, targetClientID, map);
+    }
+
+    // 该方法会调用网络请求，必须放在子线程中
+    // 该方法返回clientID所代表的用户是否在线
+    public static boolean checkIsOnline(String clientID) throws Exception {
+        com.aliyun.onsmqtt20200420.Client client = createClient(value.Access_key, value.Secret_key);
+        QuerySessionByClientIdRequest querySessionByClientIdRequest = new QuerySessionByClientIdRequest()
+                .setClientId(clientID)
+                .setInstanceId("post-cn-7pp2a3eh70c");
+        // 复制代码运行请自行打印 API 的返回值
+        QuerySessionByClientIdResponse response = client.querySessionByClientId(querySessionByClientIdRequest);
+        boolean isOnline = response.body.onlineStatus;
+        return isOnline;
+    }
+
+    public static com.aliyun.onsmqtt20200420.Client createClient(String accessKeyId, String accessKeySecret) throws Exception {
+        Config config = new Config()
+                // 您的AccessKey ID
+                .setAccessKeyId(accessKeyId)
+                // 您的AccessKey Secret
+                .setAccessKeySecret(accessKeySecret);
+        // 访问的域名
+        config.endpoint = "onsmqtt.cn-shenzhen.aliyuncs.com";
+        return new com.aliyun.onsmqtt20200420.Client(config);
+    }
 
     //发送好友申请
     public void friendRequest(User user,String targetClientId){

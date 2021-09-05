@@ -15,6 +15,7 @@ import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -35,6 +36,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
 import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
 import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -68,6 +71,7 @@ import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,6 +80,8 @@ import java.util.UUID;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+
+import static com.hrl.chaui.util.Constant.*;
 
 /**
  * 要从其他地方跳到该ChatActivity，需要满足以下两个条件
@@ -128,6 +134,8 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     // 和Service的连接。
     private MqttServiceConnection connection = null;
 
+    // 对方不在线的Handler
+    NoOnlineHandler noOnlineHandler = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -167,6 +175,9 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         intentFilter.addAction(MqttService.MESSAGEARRIVEACTION);
         messageReceiver = new MessageReceiver();
         registerReceiver(messageReceiver, intentFilter);
+
+        // 初始化对方不在线的Handler
+        noOnlineHandler = new NoOnlineHandler(this);
 
         initContent();
     }
@@ -460,7 +471,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
 
     // 点击 ”相册“、”图片“、”视频“、”文件“、”位置“、”通话“ 后触发的点击事件。
-    @OnClick({R.id.btn_send, R.id.rlPhoto, R.id.rlVideo, R.id.rlLocation, R.id.rlFile, R.id.rlPhone})
+    @OnClick({R.id.btn_send, R.id.rlPhoto, R.id.rlVideo, R.id.rlLocation, R.id.rlFile, R.id.rlPhone, R.id.rlVideoCall})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_send:
@@ -478,7 +489,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 break;
             case R.id.rlLocation:
                 break;
-            case R.id.rlPhone:
+            case R.id.rlPhone: {
                 // 语音通话
                 Intent voiceCallIntent = new Intent(this, AliRtcChatActivity.class);
                 String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
@@ -487,7 +498,61 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
                 voiceCallIntent.putExtra("user2Name", targetUser.getUser_name());
                 startActivity(voiceCallIntent);
+                voiceCallIntent.putExtra("user2Name", targetUser.getName());
+
+                new Thread(()->{
+
+                    try {
+                        boolean isOnline = MqttByAli.checkIsOnline(targetClientID);
+                        if (isOnline) {
+                            mqtt.sendP2PVoiceCallRequest(targetClientID);
+                            startActivity(voiceCallIntent);
+                        } else {
+                            android.os.Message msg =  new android.os.Message();
+                            msg.what = NOTONLINE;
+                            noOnlineHandler.sendMessage(msg);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        android.os.Message msg =  new android.os.Message();
+                        msg.what = CHECKONLINEERR;
+                        noOnlineHandler.sendMessage(msg);
+                    }
+
+                }).start();
+
                 break;
+            }
+            case R.id.rlVideoCall: {
+                Intent videoCallIntent = new Intent(this, VideoCallActivity.class);
+                String channelID = RTCHelper.getNumsChannelID(userClientID, targetClientID);
+                SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
+                String userName = sharedPreferences.getString("user_name", "unknown");
+                RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
+                videoCallIntent.putExtra("channel", channelID);
+                videoCallIntent.putExtra("username", userName);
+                videoCallIntent.putExtra("rtcAuthInfo", info);
+
+                new Thread(()->{
+                    try {
+                        boolean isOnline = MqttByAli.checkIsOnline(targetClientID);
+                        if (isOnline) {
+                            mqtt.sendP2PVideoCallRequest(targetClientID);
+                            startActivity(videoCallIntent);
+                        } else {
+                            android.os.Message msg =  new android.os.Message();
+                            msg.what = NOTONLINE;
+                            noOnlineHandler.sendMessage(msg);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        android.os.Message msg =  new android.os.Message();
+                        msg.what = CHECKONLINEERR;
+                        noOnlineHandler.sendMessage(msg);
+                    }
+                }).start();
+                break;
+            }
         }
     }
 
@@ -759,6 +824,28 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     public String getUserClientID() {
         return userClientID;
+    }
+
+    private static class NoOnlineHandler extends Handler {
+        private final WeakReference<ChatActivity> mTarget;
+
+        private NoOnlineHandler(ChatActivity activity) {
+            mTarget = new WeakReference<ChatActivity>(activity);
+        }
+
+
+        @Override
+        public void handleMessage(@NonNull android.os.Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case NOTONLINE:
+                    Toast.makeText(mTarget.get(), "用户不在线", Toast.LENGTH_SHORT).show();
+                    break;
+                case CHECKONLINEERR:
+                    Toast.makeText(mTarget.get(), "检测用户是否在线时出错",Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
     }
 
 }
