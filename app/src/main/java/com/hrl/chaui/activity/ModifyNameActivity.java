@@ -50,11 +50,10 @@ public class ModifyNameActivity extends AppCompatActivity {
                     Bundle bundle = bundle = new Bundle();
                     if (!sp.getString("user_name", "").equals(Edit.getText().toString())) {
                         bundle.putBoolean("isModify", true);
-                        bundle.putString("user_name", Edit.getText().toString());
                     } else {
                         bundle.putBoolean("isModify", false);
-                        bundle.putString("user_name", null);
                     }
+                    bundle.putString("user_name", Edit.getText().toString());
                     intent.putExtras(bundle);
                     startActivity(intent);
                     finish();

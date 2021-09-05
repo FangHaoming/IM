@@ -137,15 +137,15 @@ public class ModifyActivity extends AppCompatActivity {
         Intent intent = getIntent();
         bundle = intent.getExtras();
         if (bundle != null) {
-            if (bundle.getString("user_name") != null) {
+            if(bundle.getString("user_name")!=null){
                 name.setText(bundle.getString("user_name"));
                 modifyUser.setUser_name(bundle.getString("user_name"));
             }
-            if (bundle.getString("user_gender") != null) {
+            if(bundle.getString("user_gender")!=null){
                 gender.setText(bundle.getString("user_gender"));
                 modifyUser.setUser_gender(bundle.getString("user_gender"));
             }
-            if (bundle.getString("user_sign") != null) {
+            if(bundle.getString("user_sign")!=null){
                 sign.setText(bundle.getString("user_sign"));
                 modifyUser.setUser_sign(bundle.getString("user_sign"));
             }

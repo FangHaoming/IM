@@ -43,13 +43,12 @@ public class ModifySignActivity extends AppCompatActivity {
                 Intent intent=new Intent(ModifySignActivity.this,ModifyActivity.class);
                 Bundle bundle=new Bundle();
                 if(!sp.getString("user_sign","").equals(Edit.getText().toString())){
-                    bundle.putString("user_sign",Edit.getText().toString());
                     bundle.putBoolean("isModify",true);
                 }
                 else{
                     bundle.putBoolean("isModify",false);
-                    bundle.putString("user_sign",null);
                 }
+                bundle.putString("user_sign",Edit.getText().toString());
                 intent.putExtras(bundle);
                 startActivity(intent);
                 finish();
