@@ -35,8 +35,6 @@ import com.hrl.chaui.activity.ResetPwdActivity;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -123,8 +121,9 @@ public class MineFragment extends Fragment {
         phone.setText("手机号: "+sp.getString("user_phone",""));
 
         Log.i("isImgChang me resu",""+isImgChange);
+        Log.i("user_img in Mine",sp.getString("user_img", ""));
         if (!sp.getString("user_img", "").equals("") && !isImgChange) {
-            Glide.with(this).load(getString(R.string.app_prefix_img) + sp.getString("user_img", "")).into(img);
+            Glide.with(this).load(getString(R.string.request_local)+"/images/head" + sp.getString("user_img", "")).into(img);
         } else if (!Objects.equals(img_uri, "") && isImgChange) {
             Log.i("isImgChange in Modify",""+isImgChange);
             try {
@@ -181,7 +180,7 @@ public class MineFragment extends Fragment {
                 bundle = data.getExtras();
                 isImgChange=bundle.getBoolean("isImgChange");
                 img_uri=bundle.getString("img_uri");
-                if(bundle.getBoolean("isModify")){
+                if(bundle.getBoolean("isModify")||isImgChange){
                     sendByPost_upDate(bundle.getString("json"));
                 }
             }
@@ -194,7 +193,8 @@ public class MineFragment extends Fragment {
                     System.out.println("*********userUpdate  "+bundle.getString("json"));
                     boolean isModify = bundle.getBoolean("isModify");
                     if (isModify) {
-                        sendByPost_upDate(bundle.getString("json"));
+                        String json=bundle.getString("json");
+                        sendByPost_upDate(json);
                     }
                 }
             }
@@ -204,11 +204,6 @@ public class MineFragment extends Fragment {
     }
 
     private void sendByPost_upDate(String json) {
-        try {
-            json= URLEncoder.encode(json,"utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
         String path = getResources().getString(R.string.request_local)+"/userUpdate";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
@@ -238,6 +233,14 @@ public class MineFragment extends Fragment {
                     editor.putString("user_gender",modifyUser.getUser_gender());
                     editor.putString("user_pwd",modifyUser.getUser_pwd());
                     editor.apply();
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            name.setText(modifyUser.getUser_name());
+                            sign.setText("个性签名: "+modifyUser.getUser_sign());
+                            Glide.with(Objects.requireNonNull(getContext())).load(getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
+                        }
+                    });
                 }
             }
         });

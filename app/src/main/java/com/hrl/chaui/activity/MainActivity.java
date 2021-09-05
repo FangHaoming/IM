@@ -23,8 +23,6 @@ import com.hrl.chaui.fragment.MineFragment;
 import com.hrl.chaui.util.AppManager;
 import com.hrl.chaui.util.http;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,16 +52,11 @@ public class MainActivity extends FragmentActivity {
         sp=getSharedPreferences("data",MODE_PRIVATE);
         editor=sp.edit();
         modifyUser.setUser_id(sp.getInt("user_id",-1));
-        try {
-            modifyUser.setUser_name(URLEncoder.encode(sp.getString("user_name",""),"UTF-8"));
-            modifyUser.setUser_gender(URLEncoder.encode(sp.getString("user_gender",""),"UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        modifyUser.setUser_name(sp.getString("user_name",""));
+        modifyUser.setUser_gender(sp.getString("user_gender",""));
         modifyUser.setUser_pwd(sp.getString("user_pwd",""));
         modifyUser.setUser_phone(sp.getString("user_phone",""));
         modifyUser.setUser_img(sp.getString("user_img",""));
-
 
         initView();
 
