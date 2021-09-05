@@ -6,18 +6,18 @@ import java.io.Serializable;
 
 public class User extends BaseIndexPinyinBean implements Serializable {
     private boolean isTop;
-    private String name;
-    private Integer id;
-    private String img;
-    private String note;
-    private String gender;
-    private String phone;
-    private String sign;
+    private String user_name;
+    private Integer user_id;
+    private String user_img;
+    private String user_note;
+    private String user_gender;
+    private String user_phone;
+    private String user_sign;
     private int type;
     private int rank;
-    private boolean isFriend;
     private int notice_rank;
     private byte[] img_data;
+    private String nickname;
 
     public byte[] getImg_data() {
         return img_data;
@@ -27,49 +27,37 @@ public class User extends BaseIndexPinyinBean implements Serializable {
         this.img_data = img_data;
     }
 
-    public boolean isFriend() {
-        return isFriend;
-    }
-
-    public void setFriend(boolean friend) {
-        isFriend = friend;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getSign() {
-        return sign;
-    }
 
 
 
     public User(){ }
 
-    public User(String name){
-        this.name=name;
+    public User(String name,String phone){
+        this.user_name=name;
+        this.user_phone=phone;
     }
 
-    public User(Integer id,String img,String name,Integer type){
-        this.id=id;
-        this.img=img;
-        this.name=name;
+    public User(Integer id,String img,String name,String phone,Integer type){
+        this.user_id=id;
+        this.user_img=img;
+        this.user_name=name;
         this.type=type;
+        this.user_phone=phone;
     }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     public int getType(){
         return type;
     }
     public Integer getId(){
-        return id;
+        return user_id;
     }
 
     public boolean isTop(){
@@ -82,40 +70,44 @@ public class User extends BaseIndexPinyinBean implements Serializable {
     }
 
     public String getName(){
-        return name;
+        return user_name;
     }
 
     public String getImg(){
-        return img;
+        return user_img;
     }
 
     public void setName(String name){
-        this.name=name;
+        this.user_name=name;
     }
 
     public void setId(Integer id) {
-        this.id = id;
+        this.user_id = id;
     }
 
     public void setImg(String img) {
-        this.img = img;
+        this.user_img = img;
     }
 
     public void setNote(String note) {
-        this.note = note;
+        this.user_note = note;
     }
+    public String getNote(){return user_note;}
 
     public void setGender(String gender) {
-        this.gender = gender;
+        this.user_gender = gender;
     }
+    public String getGender(){return user_gender;}
 
     public void setPhone(String phone) {
-        this.phone = phone;
+        this.user_phone = phone;
     }
+    public String getPhone(){return user_phone;}
 
     public void setSign(String sign) {
-        this.sign = sign;
+        this.user_sign = sign;
     }
+    public String getSign(){return user_sign;}
 
     public void setType(Integer type) {
         this.type = type;
@@ -123,7 +115,7 @@ public class User extends BaseIndexPinyinBean implements Serializable {
 
     @Override
     public String getTarget() {
-        return name;
+        return user_name;
     }
 
     @Override

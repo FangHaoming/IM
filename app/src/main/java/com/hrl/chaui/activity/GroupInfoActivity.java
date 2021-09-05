@@ -84,6 +84,7 @@ public class GroupInfoActivity extends AppCompatActivity {
         Intent intent=getIntent();
         Bundle bundle = intent.getExtras();
         int group_id=bundle.getInt("contact_id");
+
         sendByPost(group_id,recv.getInt("user_id",0));
     }
 
@@ -112,7 +113,7 @@ public class GroupInfoActivity extends AppCompatActivity {
             @Override
             public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 String info=response.body().string();
-                System.out.println("***********info_this"+info);
+                System.out.println("***********group_info"+info);
                 JSONObject json= JSON.parseObject(info);
                 JSONArray members=json.getJSONArray("members");
                 groupMemberData=new ArrayList<>();
@@ -122,10 +123,9 @@ public class GroupInfoActivity extends AppCompatActivity {
                     user.setImg(obj.getString("user_img"));
                     user.setName(obj.getString("user_name"));
                     user.setId(obj.getInteger("user_id"));
-                    if(obj.getString("nickname")!=null){
-                        user.setNote(obj.getString("nickname"));
-                    }
-                    else if(obj.getString("friend_note")!=null){
+                    user.setPhone(obj.getString("user_phone"));
+                    user.setNickname(obj.getString("nickname"));
+                    if(obj.getString("friend_note")!=null){
                         user.setNote(obj.getString("friend_note"));
                     }
                     groupMemberData.add(user);
@@ -137,12 +137,6 @@ public class GroupInfoActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 name.setText(json.getString("group_name"));
-                                /*
-                                mAdapter= new GroupMemberAdapter(getApplicationContext(),groupMemberData);
-                                mRv.setAdapter(mAdapter);
-                                mAdapter.setDatas(groupMemberData);
-                                mAdapter.notifyDataSetChanged();
-                                 */
                                 GridViewAdapter mGriViewAdapter=new GridViewAdapter(getApplicationContext(),groupMemberData);
                                 gridView.setAdapter(mGriViewAdapter);
                                 mGriViewAdapter.notifyDataSetChanged();

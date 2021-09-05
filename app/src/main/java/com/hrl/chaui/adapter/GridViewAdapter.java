@@ -68,11 +68,13 @@ public class GridViewAdapter extends BaseAdapter {
                     intent = new Intent(context, UserInfoActivity.class);
                     Bundle bundle = new Bundle();
                     bundle.putInt("contact_id", users.get(position).getId());
+                    Boolean it=Is.isFriendByPhone(users.get(position).getPhone());
                     bundle.putBoolean("isFriend", Is.isFriendByPhone(users.get(position).getPhone()));
                     bundle.putString("from","group");
+                    bundle.putString("nickname",users.get(position).getNickname());
                     bundle.putString("user_phone",users.get(position).getPhone());
                     intent.putExtras(bundle);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent);
                 }
             });

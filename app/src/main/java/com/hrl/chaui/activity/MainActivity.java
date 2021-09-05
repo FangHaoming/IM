@@ -3,6 +3,7 @@ package com.hrl.chaui.activity;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -19,6 +20,7 @@ import com.hrl.chaui.adapter.FragmentAdapter;
 import com.hrl.chaui.fragment.ContactFragment;
 import com.hrl.chaui.fragment.MessageFragment;
 import com.hrl.chaui.fragment.MineFragment;
+import com.hrl.chaui.util.AppManager;
 import com.hrl.chaui.util.http;
 
 import java.util.ArrayList;
@@ -44,6 +46,7 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main);
+        AppManager.addActivity(this);
         initView();
         rev=getSharedPreferences("data",MODE_PRIVATE);
         editor=rev.edit();
@@ -153,5 +156,11 @@ public class MainActivity extends FragmentActivity {
 
     }
 
-
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode==KeyEvent.KEYCODE_BACK){
+            AppManager.AppExit(this);
+        }
+        return true;
+    }
 }

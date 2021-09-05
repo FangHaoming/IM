@@ -10,6 +10,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/AlivcVideoCall_demo" />
+            <option value="$PROJECT_DIR$/AlivcVoiceCall" />
+            <option value="$PROJECT_DIR$/AlivcVoiceCall/AlivcVoiceCall_demo" />
+            <option value="$PROJECT_DIR$/AliyunVideoCommon" />
             <option value="$PROJECT_DIR$/app" />
           </set>
         </option>

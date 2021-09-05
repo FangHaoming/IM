@@ -19,7 +19,6 @@ import com.hrl.chaui.activity.GroupChatActivity;
 import com.hrl.chaui.activity.NewFriendActivity;
 import com.hrl.chaui.activity.UserInfoActivity;
 import com.hrl.chaui.bean.User;
-import com.hrl.chaui.util.Is;
 
 import java.util.List;
 
@@ -77,18 +76,18 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 @Override
                 public void onClick(View v) {
                     Intent intent;
+                    Bundle bundle = new Bundle();
                     if(user.getType()==0){
                         intent = new Intent(mContext, UserInfoActivity.class);
+                        bundle.putString("from","contact");
+                        bundle.putBoolean("isFriend", true);
                     }
                     else {
                         intent=new Intent(mContext, GroupChatActivity.class);
                         User groupUser = getDatas().get(position);
                         intent.putExtra("targetUser", groupUser);
                     }
-                    Bundle bundle = new Bundle();
                     bundle.putInt("contact_id", user.getId()); // 存放的是群聊的ID 或者 用户的ID
-                    bundle.putBoolean("isFriend", Is.isFriendByPhone(mDatas.get(position).getPhone()));
-                    bundle.putString("from","contact");
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
                     //((Activity) mContext).overridePendingTransition(R.anim.slide_left_in, 0);

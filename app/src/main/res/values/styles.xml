@@ -12,6 +12,7 @@
     <style name="actionbar" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="android:background">@color/white</item>
         <item name="android:homeAsUpIndicator">@drawable/back_arrow</item>
+        <item name="android:windowTranslucentStatus">false</item>
     </style>
     <style name="like_toast_dialog_style">
         <item name="android:windowFrame">@null</item>

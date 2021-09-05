@@ -1,16 +1,14 @@
 package com.hrl.chaui.activity;
 
 import android.content.Context;
-import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
-import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
-import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
-import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -25,6 +23,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
+import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
+import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
@@ -68,6 +70,7 @@ public class UserInfoActivity extends AppCompatActivity {
         intent=getIntent();
         bundle = intent.getExtras();
         if(bundle!=null){
+            Log.i("isFriend in user", String.valueOf(bundle.getBoolean("isFriend")));
             if(bundle.getBoolean("isFriend")) {
                 setContentView(R.layout.layout_user_info);
                 back_arrow = findViewById(R.id.back_arrow);
@@ -87,6 +90,11 @@ public class UserInfoActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         switch(v.getId()){
                             case R.id.setNote:
+                                break;
+                            case R.id.send_message:
+                                Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
+                                chatIntent.putExtra("targetUser",user);
+                                startActivity(chatIntent);
                                 break;
                             case R.id.delete:
                                 break;
@@ -161,28 +169,45 @@ public class UserInfoActivity extends AppCompatActivity {
                 user_phone=findViewById(R.id.user_phone);
                 user_sign=findViewById(R.id.user_sign);
                 add=findViewById(R.id.add);
-                JSONObject json = null;
                 if(bundle.getString("from").equals("group")){
-                    user_note.setText("群昵称: "+bundle.getString("nickname"));
-                    String info=sendByPost_user(bundle.getString("user_phone"));
-                    json=JSON.parseObject(info);
+                    if(bundle.getString("nickname")!=null){
+                        user_note.setText("群昵称: "+bundle.getString("nickname"));
+                    }
+                    sendByPost_user(bundle.getString("user_phone"));
                 }
                 else if(bundle.getString("from").equals("search")){
-                    json=JSON.parseObject(bundle.getString("user_info"));
-                }
-                if(json.getString("user_name")!=null){
-                    user_name.setText(json.getString("user_name"));
-                }
-                if(json.getString("user_phone")!=null){
-                    user_phone.setText("手机号: "+json.getString("user_phone"));
-                }
-                if(json.getString("user_sign")!=null){
-                    user_sign.setText(json.getString("user_sign"));
+                    JSONObject json=JSON.parseObject(bundle.getString("user_info"));
+                    if(json.getString("user_name")!=null){
+                        user_name.setText(json.getString("user_name"));
+                    }
+                    if(json.getString("user_phone")!=null){
+                        user_phone.setText("手机号: "+json.getString("user_phone"));
+                    }
+                    if(json.getString("user_sign")!=null){
+                        user_sign.setText(json.getString("user_sign"));
+                    }
                 }
                 add.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         //TODO 发送添加好友请求
+                    }
+                });
+                back_arrow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = null;
+                        if(bundle.getString("from").equals("group")){
+                            intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
+                        }else if(bundle.getString("from").equals("contact")){
+                            intent=new Intent(UserInfoActivity.this,MainActivity.class);
+                        }else if(bundle.getString("from").equals("search")){
+                            intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
+                        }
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        overridePendingTransition(0, R.anim.slide_right_out);
+                        finish();
                     }
                 });
             }
@@ -223,7 +248,7 @@ public class UserInfoActivity extends AppCompatActivity {
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())
                 .build();
-        System.out.println("*********"+json.toJSONString());
+        System.out.println("*********json friend"+json.toJSONString());
         Request request = new Request.Builder()
                 .url(path)
                 .post(formBody)
@@ -293,10 +318,9 @@ public class UserInfoActivity extends AppCompatActivity {
         });
     }
 
-    private String sendByPost_user(String user_phone) {
+    private void sendByPost_user(String phone) {
         JSONObject json=new JSONObject();
-        final String[] info = new String[1];
-        json.put("user_phone",user_phone);
+        json.put("user_phone",phone);
         String path = getResources().getString(R.string.request_local)+"/userSearch";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
@@ -317,9 +341,24 @@ public class UserInfoActivity extends AppCompatActivity {
             }
             @Override
             public void onResponse(okhttp3.Call call, Response response) throws IOException {
-                info[0] =response.body().string();
+                String info=response.body().string();
+                JSONObject json=JSON.parseObject(info);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(json.getString("user_name")!=null){
+                            user_name.setText(json.getString("user_name"));
+                        }
+                        if(json.getString("user_phone")!=null){
+                            user_phone.setText("手机号: "+json.getString("user_phone"));
+                        }
+                        if(json.getString("user_sign")!=null){
+                            user_sign.setText(json.getString("user_sign"));
+                        }
+                    }
+                });
+
             }
         });
-        return  info[0];
     }
 }
