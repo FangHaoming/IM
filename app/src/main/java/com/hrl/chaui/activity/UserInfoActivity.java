@@ -1,5 +1,6 @@
 package com.hrl.chaui.activity;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -10,8 +11,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.util.Log;
 import android.os.Message;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -28,6 +29,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
+import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
+import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
@@ -44,7 +49,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.hrl.chaui.util.Constant.*;
+import static com.hrl.chaui.util.Constant.CHECKONLINEERR;
+import static com.hrl.chaui.util.Constant.NOTONLINE;
 
 public class UserInfoActivity extends AppCompatActivity {
     public TextView back_arrow;
@@ -122,14 +128,14 @@ public class UserInfoActivity extends AppCompatActivity {
 
                                 // 获取通信双方的clientID
                                 String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
-                                String targetClientID = "GID_test@@@" + user.getId();
+                                String targetClientID = "GID_test@@@" + user.getUser_id();
                                 String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
                                 AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
                                 Intent voiceCallIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
 
                                 voiceCallIntent.putExtra("channel", channelID);
                                 voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
-                                voiceCallIntent.putExtra("user2Name", user.getName());
+                                voiceCallIntent.putExtra("user2Name", user.getUser_name());
 
                                 // 查看对方是否在线
                                 new Thread(()->{
@@ -163,7 +169,7 @@ public class UserInfoActivity extends AppCompatActivity {
 
                                 Intent videoCallIntent = new Intent(UserInfoActivity.this, VideoCallActivity.class);
                                 String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
-                                String targetClientID = "GID_test@@@" + user.getId();
+                                String targetClientID = "GID_test@@@" + user.getUser_id();
                                 String channelID = RTCHelper.getNumsChannelID(userClientID, targetClientID);
                                 RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
                                 String userName = recv.getString("user_name", "null");
@@ -469,6 +475,7 @@ public class UserInfoActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName name) {
 
         }
+
     }
 
     @Override

@@ -32,8 +32,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -141,27 +139,15 @@ public class ModifyActivity extends AppCompatActivity {
         if (bundle != null) {
             if (bundle.getString("user_name") != null) {
                 name.setText(bundle.getString("user_name"));
-                try {
-                    modifyUser.setUser_name(URLEncoder.encode(bundle.getString("user_name"),"UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+                modifyUser.setUser_name(bundle.getString("user_name"));
             }
             if (bundle.getString("user_gender") != null) {
                 gender.setText(bundle.getString("user_gender"));
-                try {
-                    modifyUser.setUser_gender(URLEncoder.encode(bundle.getString("user_gender"),"UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+                modifyUser.setUser_gender(bundle.getString("user_gender"));
             }
             if (bundle.getString("user_sign") != null) {
                 sign.setText(bundle.getString("user_sign"));
-                try {
-                    modifyUser.setUser_sign(URLEncoder.encode(bundle.getString("user_sign"),"UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+                modifyUser.setUser_sign(bundle.getString("user_sign"));
             }
             isModify = bundle.getBoolean("isModify");
             System.out.println("*********isModify in Modify onResume " + isModify);

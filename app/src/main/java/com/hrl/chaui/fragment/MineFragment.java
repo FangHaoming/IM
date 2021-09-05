@@ -35,6 +35,8 @@ import com.hrl.chaui.activity.ResetPwdActivity;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -179,7 +181,6 @@ public class MineFragment extends Fragment {
                 bundle = data.getExtras();
                 isImgChange=bundle.getBoolean("isImgChange");
                 img_uri=bundle.getString("img_uri");
-                //TODO 发送更改信息请求  //在修改界面 user setXX 传user。toJSONString
                 if(bundle.getBoolean("isModify")){
                     sendByPost_upDate(bundle.getString("json"));
                 }
@@ -203,6 +204,11 @@ public class MineFragment extends Fragment {
     }
 
     private void sendByPost_upDate(String json) {
+        try {
+            json= URLEncoder.encode(json,"utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         String path = getResources().getString(R.string.request_local)+"/userUpdate";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()

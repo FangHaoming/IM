@@ -498,7 +498,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
                 voiceCallIntent.putExtra("user2Name", targetUser.getUser_name());
                 startActivity(voiceCallIntent);
-                voiceCallIntent.putExtra("user2Name", targetUser.getName());
+                voiceCallIntent.putExtra("user2Name", targetUser.getUser_name());
 
                 new Thread(()->{
 

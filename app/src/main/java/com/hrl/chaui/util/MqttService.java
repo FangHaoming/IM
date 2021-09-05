@@ -1,6 +1,7 @@
 package com.hrl.chaui.util;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -10,6 +11,10 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
+import com.hrl.chaui.activity.AnswerVideoCallActivity;
+import com.hrl.chaui.activity.AnswerVoiceCallActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
@@ -32,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.groupData;
 
 public class MqttService extends Service {
@@ -324,8 +330,8 @@ public class MqttService extends Service {
                     String name = "unknown";
                     for (User s : contactData) {
                         // 注意在通讯录中找好友的时候，通讯录中会有两个另类的User: "群聊"和"新的朋友" 这两位很多属性都是空的。
-                        if (s.getId() != null && s.getId() == target_id) {
-                            name = s.getName();
+                        if (s.getUser_id() != null && s.getUser_id() == target_id) {
+                            name = s.getUser_name();
                             break;
                         }
                     }
@@ -374,8 +380,8 @@ public class MqttService extends Service {
                     String targetName = "unknown";
                     for (User s : contactData) {
                         // 注意在通讯录中找好友的时候，通讯录中会有两个另类的User: "群聊"和"新的朋友" 这两位很多属性都是空的。
-                        if (s.getId() != null && s.getId() == target_id) {
-                            targetName = s.getName();
+                        if (s.getUser_id() != null && s.getUser_id() == target_id) {
+                            targetName = s.getUser_name();
                             break;
                         }
                     }
