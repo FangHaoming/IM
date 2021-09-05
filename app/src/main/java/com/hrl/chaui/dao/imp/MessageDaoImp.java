@@ -294,7 +294,7 @@ public class MessageDaoImp implements MessageDao {
 
         // 查找上面ID 与userID 的对话中，最新的消息。
         for (String clientID : clientIDs) {
-            String selection = "senderId == '" + clientID + "' or targetId == '" + clientID + "'";
+            String selection = "(senderId == '" + clientID + "' or targetId == '" + clientID + "') and isGroup == 0";
             Cursor cursorP2P = db.query(MESSAGETABLENAME,
                                     null,
                                     selection,
@@ -310,7 +310,7 @@ public class MessageDaoImp implements MessageDao {
         }
 
         for (String group : groupIDs) {
-            String selection = "targetId == '" + group + "'";
+            String selection = "(targetId == '" + group + "' ) and isGroup == 1";
             Cursor cursorGroupChat = db.query(MESSAGETABLENAME,
                                         null,
                                         selection,
