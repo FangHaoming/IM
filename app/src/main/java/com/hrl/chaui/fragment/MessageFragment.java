@@ -125,7 +125,7 @@ public class MessageFragment extends Fragment {
                     String targetID = message.getTargetId();
                     int groupID = Integer.valueOf(targetID);
                     for (User group : groupData) {
-                        if (group.getId() == groupID) {
+                        if (group.getUser_id() == groupID) {
                             Intent groupChatIntent = new Intent(MessageFragment.this.getContext(), GroupChatActivity.class);
                             groupChatIntent.putExtra("targetUser", group);
                             startActivity(groupChatIntent);
@@ -139,17 +139,17 @@ public class MessageFragment extends Fragment {
                     int target_id = Integer.valueOf(targetID.split("@@@")[1]);
 
                     User targetUser = new User();
-                    targetUser.setId(target_id);
+                    targetUser.setUser_id(target_id);
                     for (User user : contactData) {
-                        if (user.getId() != null && user.getId() == target_id) {
-                            targetUser.setName(user.getName());
-                            targetUser.setNote(user.getNote());
-                            targetUser.setImg(user.getImg());
-                            targetUser.setSign(user.getSign());
-                            targetUser.setGender(user.getGender());
+                        if (user.getUser_id() != null && user.getUser_id() == target_id) {
+                            targetUser.setUser_name(user.getUser_name());
+                            targetUser.setUser_note(user.getUser_note());
+                            targetUser.setUser_img(user.getUser_img());
+                            targetUser.setUser_sign(user.getUser_sign());
+                            targetUser.setUser_gender(user.getUser_gender());
                             targetUser.setType(user.getType());
                             targetUser.setTop(user.isTop());
-                            targetUser.setPhone(user.getPhone());
+                            targetUser.setUser_phone(user.getUser_phone());
                             targetUser.setBaseIndexPinyin(user.getBaseIndexPinyin());
                             targetUser.setBaseIndexTag(user.getBaseIndexTag());
                             break;

@@ -39,7 +39,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="10dp"
-        android:maxLength="50"
-        android:hint="输入个性签名（最多50个字符）"
+        android:maxLength="30"
+        android:hint="输入个性签名（最多30个字符）"
         android:id="@+id/Edit"/>
 </LinearLayout>

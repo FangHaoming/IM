@@ -48,16 +48,16 @@ public class GroupMemberAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public void onBindViewHolder(@NonNull  RecyclerView.ViewHolder holder, int position) {
         User user = mDatas.get(position);
-        ((ViewHolder) holder).name.setText(user.getName());
+        ((ViewHolder) holder).name.setText(user.getUser_name());
         //((ViewHolder)holder).img.setImageResource(user.);
-        Glide.with(mContext).load(mContext.getString(R.string.app_prefix_img) + mDatas.get(position).getImg()).into(((ViewHolder) holder).img);
+        Glide.with(mContext).load(mContext.getString(R.string.app_prefix_img) + mDatas.get(position).getUser_img()).into(((ViewHolder) holder).img);
         ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent;
                 intent = new Intent(mContext, UserInfoActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putInt("contact_id", user.getId());
+                bundle.putInt("contact_id", user.getUser_id());
                 intent.putExtras(bundle);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
                 mContext.startActivity(intent);

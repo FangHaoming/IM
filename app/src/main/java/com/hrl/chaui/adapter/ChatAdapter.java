@@ -1,10 +1,10 @@
 package com.hrl.chaui.adapter;
 
 import android.content.Context;
-import android.graphics.drawable.AnimationDrawable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ImageView;
+
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.chad.library.adapter.base.util.MultiTypeDelegate;
@@ -22,12 +22,12 @@ import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.util.GlideUtils;
-import com.hrl.chaui.widget.BubbleImageView;
+
 import java.io.File;
 import java.util.List;
 
-import static com.hrl.chaui.MyApplication.groupMemberData;
 import static com.hrl.chaui.MyApplication.contactData;
+import static com.hrl.chaui.MyApplication.groupMemberData;
 
 public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
@@ -125,9 +125,9 @@ public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
 
             for (User user : groupMemberData) {
-                String userID = "GID_test@@@" +  user.getId();
+                String userID = "GID_test@@@" +  user.getUser_id();
                 if (userID.equals(senderID)) {
-                    name = user.getName();
+                    name = user.getUser_name();
                     break;
                 }
             }
@@ -135,10 +135,10 @@ public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
             if (name == null) {
                 for (User user : contactData) {
                     String userID;
-                    if (user.getId() != null) {
-                        userID = "GID_test@@@" + user.getId();
+                    if (user.getUser_id() != null) {
+                        userID = "GID_test@@@" + user.getUser_id();
                         if (userID.equals(senderID)) {
-                            name = user.getName();
+                            name = user.getUser_name();
                             break;
                         }
                     }

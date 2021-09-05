@@ -11,17 +11,21 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.activity.LoginActivity;
@@ -30,9 +34,17 @@ import com.hrl.chaui.activity.ResetPwdActivity;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+import static com.hrl.chaui.MyApplication.modifyUser;
 
 public class MineFragment extends Fragment {
     TextView name;
@@ -167,8 +179,10 @@ public class MineFragment extends Fragment {
                 bundle = data.getExtras();
                 isImgChange=bundle.getBoolean("isImgChange");
                 img_uri=bundle.getString("img_uri");
-                Log.i("json in Mine",bundle.getString("json"));
-                Log.i("isImg in Result",""+bundle.getBoolean("isImgChange"));
+                //TODO 发送更改信息请求  //在修改界面 user setXX 传user。toJSONString
+                if(bundle.getBoolean("isModify")){
+                    sendByPost_upDate(bundle.getString("json"));
+                }
             }
         }
         if(requestCode==ResetPwd){
@@ -176,10 +190,10 @@ public class MineFragment extends Fragment {
                 System.out.println("*********bundle "+data);
                 if(data!=null){
                     Bundle bundle = data.getExtras();
-                    System.out.println("*********bundle "+bundle.getBoolean("isModigy"));
+                    System.out.println("*********userUpdate  "+bundle.getString("json"));
                     boolean isModify = bundle.getBoolean("isModify");
                     if (isModify) {
-
+                        sendByPost_upDate(bundle.getString("json"));
                     }
                 }
             }
@@ -187,9 +201,44 @@ public class MineFragment extends Fragment {
 
 
     }
+
+    private void sendByPost_upDate(String json) {
+        String path = getResources().getString(R.string.request_local)+"/userUpdate";
+        OkHttpClient client = new OkHttpClient();
+        final FormBody formBody = new FormBody.Builder()
+                .add("json", json)
+                .build();
+        System.out.println("*********userUpdate "+json);
+        Request request = new Request.Builder()
+                .url(path)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                Looper.prepare();
+                Toast.makeText(getContext(), "服务器连接失败", Toast.LENGTH_SHORT).show();
+                Looper.loop();
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                String info=response.body().string();
+                JSONObject json= JSON.parseObject(info);
+                System.out.println("*****userUpdate return "+info);
+                if(json.getString("msg").equals("update success")){
+                    editor.putString("user_name",modifyUser.getUser_name());
+                    editor.putString("user_sign",modifyUser.getUser_sign());
+                    editor.putString("user_gender",modifyUser.getUser_gender());
+                    editor.putString("user_pwd",modifyUser.getUser_pwd());
+                    editor.apply();
+                }
+            }
+        });
+    }
+
     /**
-     * 点击查看大图
-     */
+     * 点击查看大图     */
     public void imgMax(Bitmap bitmap) {
 
         LayoutInflater inflater = LayoutInflater.from(getContext());

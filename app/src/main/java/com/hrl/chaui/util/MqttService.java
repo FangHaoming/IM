@@ -1,19 +1,15 @@
 package com.hrl.chaui.util;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
-import android.nfc.Tag;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
-import com.hrl.chaui.activity.ChatActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
@@ -23,9 +19,7 @@ import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
-import com.hrl.chaui.dao.MessageDao;
 import com.hrl.chaui.dao.imp.MessageDaoImp;
-import static com.hrl.chaui.MyApplication.groupData; // 群聊ArrayList
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -34,11 +28,11 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+
+import static com.hrl.chaui.MyApplication.groupData;
 
 public class MqttService extends Service {
     private final IBinder mBinder = new LocalBinder();
@@ -81,7 +75,7 @@ public class MqttService extends Service {
             int qos[] = new int[groupData.size()];
 
             for (int i = 0; i < topicFilters.length; i++) {
-                topicFilters[i] =String.valueOf(groupData.get(i).getId());
+                topicFilters[i] =String.valueOf(groupData.get(i).getUser_id());
                 qos[i] = groupChatQos;
             }
             mqtt.subscribe(topicFilters,qos);

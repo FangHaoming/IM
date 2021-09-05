@@ -39,7 +39,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="10dp"
-
         android:maxLength="20"
         android:hint="输入昵称（最多20个字符）"
         android:id="@+id/Edit"/>

@@ -51,8 +51,8 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull  RecyclerView.ViewHolder holder, int position) {
         User user = mDatas.get(position);
-        ((ViewHolder) holder).name.setText(user.getName());
-        if (user.getName().equals("新的朋友")) {
+        ((ViewHolder) holder).name.setText(user.getUser_name());
+        if (user.getUser_name().equals("新的朋友")) {
             ((ViewHolder) holder).img.setImageResource(R.drawable.friend);
             ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -61,7 +61,7 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     mContext.startActivity(intent);
                 }
             });
-        } else if (user.getName().equals("群聊")) {
+        } else if (user.getUser_name().equals("群聊")) {
             ((ViewHolder) holder).img.setImageResource(R.drawable.group);
             ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -71,7 +71,7 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
             });
         } else {
-            Glide.with(mContext).load(mContext.getString(R.string.app_prefix_img) + mDatas.get(position).getImg()).into(((ViewHolder) holder).img);
+            Glide.with(mContext).load(mContext.getString(R.string.app_prefix_img) + mDatas.get(position).getUser_img()).into(((ViewHolder) holder).img);
             ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -87,7 +87,7 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         User groupUser = getDatas().get(position);
                         intent.putExtra("targetUser", groupUser);
                     }
-                    bundle.putInt("contact_id", user.getId()); // 存放的是群聊的ID 或者 用户的ID
+                    bundle.putInt("contact_id", user.getUser_id()); // 存放的是群聊的ID 或者 用户的ID
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
                     //((Activity) mContext).overridePendingTransition(R.anim.slide_left_in, 0);

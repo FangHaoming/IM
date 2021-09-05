@@ -196,13 +196,13 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
         Intent intent = getIntent();
 
         targetGroup = (User) intent.getSerializableExtra("targetUser");
-        Log.e(TAG, "ChatActivity onResume()" + "  targetGroup:" + targetGroup.getName());
+        Log.e(TAG, "ChatActivity onResume()" + "  targetGroup:" + targetGroup.getUser_name());
 
 
         //  设置名称
-        targetGroupID = String.valueOf(targetGroup.getId());
+        targetGroupID = String.valueOf(targetGroup.getUser_id());
         TextView textView =(TextView) findViewById(R.id.common_toolbar_title);
-        textView.setText(targetGroup.getName());
+        textView.setText(targetGroup.getUser_name());
 
         // 获取通信记录并显示
         try {

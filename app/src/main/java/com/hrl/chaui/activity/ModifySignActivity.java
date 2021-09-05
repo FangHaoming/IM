@@ -41,14 +41,16 @@ public class ModifySignActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(ModifySignActivity.this,ModifyActivity.class);
+                Bundle bundle=new Bundle();
                 if(!sp.getString("user_sign","").equals(Edit.getText().toString())){
-                    Bundle bundle=new Bundle();
                     bundle.putString("user_sign",Edit.getText().toString());
                     bundle.putBoolean("isModify",true);
-                    editor.putString("user_sign",Edit.getText().toString());
-                    editor.apply();
-                    intent.putExtras(bundle);
                 }
+                else{
+                    bundle.putBoolean("isModify",false);
+                    bundle.putString("user_sign",null);
+                }
+                intent.putExtras(bundle);
                 startActivity(intent);
                 finish();
             }

@@ -10,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -22,7 +21,6 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
@@ -34,13 +32,17 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static com.hrl.chaui.MyApplication.modifyUser;
+
 public class ModifyActivity extends AppCompatActivity {
 
-    View img_view,name_view,phone_view,sign_view,gender_view;
-    TextView back_arrow,name,phone,sign,gender;
+    View img_view,name_view,sign_view,gender_view;
+    TextView back_arrow,name,sign,gender;
     Boolean isModify;
     CircleImageView img;
     SharedPreferences sp;
@@ -48,7 +50,6 @@ public class ModifyActivity extends AppCompatActivity {
     Intent intent_Main;
     Bundle bundle_Main;
     Bundle bundle;
-    JSONObject json;
     Boolean isImgChange;
     String img_uri;
 
@@ -72,23 +73,19 @@ public class ModifyActivity extends AppCompatActivity {
         bundle_Main = new Bundle();
         sp = getSharedPreferences("data", MODE_PRIVATE);
         editor = sp.edit();
-        json= JSON.parseObject(sp.getString("json","{}"));
+
         img = findViewById(R.id.img);
         img_view = findViewById(R.id.img_view);
         name = findViewById(R.id.name);
         name_view = findViewById(R.id.name_view);
-        phone = findViewById(R.id.phone);
-        phone_view = findViewById(R.id.phone_view);
         gender = findViewById(R.id.gender);
         gender_view = findViewById(R.id.gender_view);
         sign = findViewById(R.id.sign);
         sign_view = findViewById(R.id.sign_view);
         back_arrow=findViewById(R.id.back_arrow);
         name.setText(sp.getString("user_name", ""));
-        phone.setText(sp.getString("user_phone", ""));
         sign.setText(sp.getString("user_sign", ""));
         gender.setText(sp.getString("user_gender", ""));
-
 
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
@@ -102,10 +99,6 @@ public class ModifyActivity extends AppCompatActivity {
                         intent = new Intent(ModifyActivity.this, ModifyNameActivity.class);
                         startActivity(intent);
                         break;
-                    case R.id.phone_view:
-                        intent = new Intent(ModifyActivity.this, ModifyPhoneActivity.class);
-                        startActivity(intent);
-                        break;
                     case R.id.gender_view:
                         intent = new Intent(ModifyActivity.this, ModifyGenderActivity.class);
                         startActivity(intent);
@@ -116,11 +109,8 @@ public class ModifyActivity extends AppCompatActivity {
                         break;
                     case R.id.back_arrow:
                         bundle_Main.putBoolean("isModify", isModify);
-                        bundle_Main.putString("json",sp.getString("json","{}"));
-                        System.out.println("********json in Modify "+json.toJSONString());
+                        bundle_Main.putString("json",JSONObject.toJSONString(modifyUser));
                         intent_Main.putExtras(bundle_Main);
-                        editor.putString("json","{}");
-                        editor.apply();
                         setResult(Activity.RESULT_OK, intent_Main);
                         finish();
                         break;
@@ -130,7 +120,6 @@ public class ModifyActivity extends AppCompatActivity {
         };
         img_view.setOnClickListener(listener);
         name_view.setOnClickListener(listener);
-        phone_view.setOnClickListener(listener);
         gender_view.setOnClickListener(listener);
         sign_view.setOnClickListener(listener);
         back_arrow.setOnClickListener(listener);
@@ -152,25 +141,30 @@ public class ModifyActivity extends AppCompatActivity {
         if (bundle != null) {
             if (bundle.getString("user_name") != null) {
                 name.setText(bundle.getString("user_name"));
-                //bundle_Main.putString("user_name",bundle.getString("user_name"));
-                json.put("user_name", bundle.getString("user_name"));
-            }
-            if (bundle.getString("user_phone") != null) {
-                phone.setText(bundle.getString("user_phone"));
-                json.put("user_phone", bundle.getString("user_phone"));
+                try {
+                    modifyUser.setUser_name(URLEncoder.encode(bundle.getString("user_name"),"UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
             }
             if (bundle.getString("user_gender") != null) {
                 gender.setText(bundle.getString("user_gender"));
-                json.put("user_gender", bundle.getString("user_gender"));
+                try {
+                    modifyUser.setUser_gender(URLEncoder.encode(bundle.getString("user_gender"),"UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
             }
             if (bundle.getString("user_sign") != null) {
                 sign.setText(bundle.getString("user_sign"));
-                json.put("user_sign", bundle.getString("user_sign"));
+                try {
+                    modifyUser.setUser_sign(URLEncoder.encode(bundle.getString("user_sign"),"UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
             }
             isModify = bundle.getBoolean("isModify");
-            System.out.println("*********isModify in Modify onCreate " + isModify);
-            editor.putString("json", json.toJSONString());
-            editor.apply();
+            System.out.println("*********isModify in Modify onResume " + isModify);
         }
 
         if (!sp.getString("user_img", "").equals("") && !isImgChange) {
@@ -191,16 +185,14 @@ public class ModifyActivity extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK){
             intent_Main = new Intent(ModifyActivity.this, MainActivity.class);
             bundle_Main.putBoolean("isModify",isModify);
-            bundle_Main.putString("json",sp.getString("json","{}"));
-            editor.putString("json","{}");
-            editor.apply();
-            Log.i("json in Modify ", json.toJSONString());
+            bundle_Main.putString("json",JSONObject.toJSONString(modifyUser));
             intent_Main.putExtras(bundle_Main);
             setResult(Activity.RESULT_OK, intent_Main);
             finish();
         }
         return true;
     }
+
     private void modifyImg() {
         new AvatarStudio.Builder(ModifyActivity.this)
                 .needCrop(true)
@@ -234,14 +226,11 @@ public class ModifyActivity extends AppCompatActivity {
                     byte[] img_data=out.toByteArray();
                     bundle_Main.putBoolean("isImgChange",true);
                     bundle_Main.putString("img_uri",uri);
-
+                    modifyUser.setImg_data(img_data);
                     isImgChange=true;
                     img_uri=uri;
-
-                    json.put("img_data",img_data);
                     editor.putString("img_uri",uri);
                     editor.putBoolean("isImgChange",true);
-                    editor.putString("json",json.toJSONString());
                     editor.apply();
                     runOnUiThread(new Runnable() {
                         @Override

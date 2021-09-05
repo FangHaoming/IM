@@ -23,8 +23,12 @@ import com.hrl.chaui.fragment.MineFragment;
 import com.hrl.chaui.util.AppManager;
 import com.hrl.chaui.util.http;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.hrl.chaui.MyApplication.modifyUser;
 
 
 public class MainActivity extends FragmentActivity {
@@ -35,7 +39,7 @@ public class MainActivity extends FragmentActivity {
     private TextView title,t_mine,t_message,t_contact;
     private View.OnClickListener listener;
     private int currentID=0;
-    private SharedPreferences rev;
+    private SharedPreferences sp;
     private SharedPreferences.Editor editor;
     public final int Modify = 1;
     public final int ResetPwd = 2;
@@ -47,9 +51,22 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main);
         AppManager.addActivity(this);
+        sp=getSharedPreferences("data",MODE_PRIVATE);
+        editor=sp.edit();
+        modifyUser.setUser_id(sp.getInt("user_id",-1));
+        try {
+            modifyUser.setUser_name(URLEncoder.encode(sp.getString("user_name",""),"UTF-8"));
+            modifyUser.setUser_gender(URLEncoder.encode(sp.getString("user_gender",""),"UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        modifyUser.setUser_pwd(sp.getString("user_pwd",""));
+        modifyUser.setUser_phone(sp.getString("user_phone",""));
+        modifyUser.setUser_img(sp.getString("user_img",""));
+
+
         initView();
-        rev=getSharedPreferences("data",MODE_PRIVATE);
-        editor=rev.edit();
+
         MineFragment=new MineFragment();
         fragments.add(new MessageFragment());
         fragments.add(new ContactFragment());
@@ -63,7 +80,7 @@ public class MainActivity extends FragmentActivity {
         window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         window.setNavigationBarColor(getResources().getColor(R.color.top_bottom));
-        http.sendByPost(MainActivity.this,rev.getInt("user_id",0));
+        http.sendByPost(MainActivity.this,sp.getInt("user_id",0));
 
     }
 

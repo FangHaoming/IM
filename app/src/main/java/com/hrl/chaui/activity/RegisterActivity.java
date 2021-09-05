@@ -10,7 +10,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -35,7 +34,7 @@ import okhttp3.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private TextView back_arrow;
+    private View back_arrow;
     private EditText pwd;
     private EditText confirm_pwd;
     private EditText name;
@@ -66,6 +65,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent=new Intent(RegisterActivity.this,LoginActivity.class);
                 startActivity(intent);
+                overridePendingTransition(0, R.anim.slide_right_out);
                 finish();
             }
         });

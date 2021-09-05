@@ -67,12 +67,11 @@ public class GridViewAdapter extends BaseAdapter {
                     Intent intent;
                     intent = new Intent(context, UserInfoActivity.class);
                     Bundle bundle = new Bundle();
-                    bundle.putInt("contact_id", users.get(position).getId());
-                    Boolean it=Is.isFriendByPhone(users.get(position).getPhone());
-                    bundle.putBoolean("isFriend", Is.isFriendByPhone(users.get(position).getPhone()));
+                    bundle.putInt("contact_id", users.get(position).getUser_id());
+                    bundle.putBoolean("isFriend", Is.isFriendByPhone(users.get(position).getUser_phone()));
                     bundle.putString("from","group");
                     bundle.putString("nickname",users.get(position).getNickname());
-                    bundle.putString("user_phone",users.get(position).getPhone());
+                    bundle.putString("user_phone",users.get(position).getUser_phone());
                     intent.putExtras(bundle);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent);
@@ -83,8 +82,8 @@ public class GridViewAdapter extends BaseAdapter {
         }
         //ViewUtils.setGridViewItemWith(convertView,parent,50,10,10,false);
 //      给控件赋值
-        Glide.with(context).load(context.getString(R.string.app_prefix_img)+users.get(position).getImg()).into(holder.img);
-        holder.name.setText(users.get(position).getName());
+        Glide.with(context).load(context.getString(R.string.app_prefix_img)+users.get(position).getUser_img()).into(holder.img);
+        holder.name.setText(users.get(position).getUser_name());
         return convertView;
     }
     public static class viewholder{//数据包

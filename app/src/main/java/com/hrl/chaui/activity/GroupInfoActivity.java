@@ -120,13 +120,13 @@ public class GroupInfoActivity extends AppCompatActivity {
                 for(int i=0;i<members.size();i++){
                     JSONObject obj= members.getJSONObject(i);
                     User user=new User();
-                    user.setImg(obj.getString("user_img"));
-                    user.setName(obj.getString("user_name"));
-                    user.setId(obj.getInteger("user_id"));
-                    user.setPhone(obj.getString("user_phone"));
+                    user.setUser_img(obj.getString("user_img"));
+                    user.setUser_name(obj.getString("user_name"));
+                    user.setUser_id(obj.getInteger("user_id"));
+                    user.setUser_phone(obj.getString("user_phone"));
                     user.setNickname(obj.getString("nickname"));
                     if(obj.getString("friend_note")!=null){
-                        user.setNote(obj.getString("friend_note"));
+                        user.setUser_note(obj.getString("friend_note"));
                     }
                     groupMemberData.add(user);
                 }

@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -41,17 +42,23 @@ public class ModifyNameActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(ModifyNameActivity.this,ModifyActivity.class);
-                if(!sp.getString("user_name","").equals(Edit.getText().toString())){
-                    Bundle bundle=new Bundle();
-                    bundle.putBoolean("isModify",true);
-                    bundle.putString("user_name",Edit.getText().toString());
-                    intent.putExtras(bundle);
+                if(Edit.getText().length()==0) {
+                    Toast.makeText(ModifyNameActivity.this, "昵称不能为空", Toast.LENGTH_SHORT).show();
                 }
-                editor.putString("user_name",Edit.getText().toString());
-                editor.apply();
-                startActivity(intent);
-                finish();
+                else{
+                    Intent intent = new Intent(ModifyNameActivity.this, ModifyActivity.class);
+                    Bundle bundle = bundle = new Bundle();
+                    if (!sp.getString("user_name", "").equals(Edit.getText().toString())) {
+                        bundle.putBoolean("isModify", true);
+                        bundle.putString("user_name", Edit.getText().toString());
+                    } else {
+                        bundle.putBoolean("isModify", false);
+                        bundle.putString("user_name", null);
+                    }
+                    intent.putExtras(bundle);
+                    startActivity(intent);
+                    finish();
+                }
             }
         });
         back_arrow.setOnClickListener(new View.OnClickListener() {

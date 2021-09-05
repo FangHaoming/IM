@@ -111,12 +111,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.ModifyActivity" />
         </activity>
-        <activity android:name=".activity.ModifyPhoneActivity"
-            android:parentActivityName=".activity.ModifyActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activity.ModifyActivity" />
-        </activity>
         <activity android:name=".activity.ModifySignActivity"
             android:parentActivityName=".activity.ModifyActivity">
             <meta-data
@@ -150,7 +144,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.RegisterActivity"
-            android:parentActivityName=".activity.LoginActivity">
+            android:parentActivityName=".activity.LoginActivity"
+            android:launchMode="singleTask">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.LoginActivity" />
