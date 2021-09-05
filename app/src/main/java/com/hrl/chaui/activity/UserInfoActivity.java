@@ -2,10 +2,6 @@ package com.hrl.chaui.activity;
 
 import android.content.ComponentName;
 import android.content.Context;
-import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
-import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
-import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
-import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -15,8 +11,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.util.Log;
 import android.os.Message;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -33,6 +29,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
+import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
+import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
@@ -49,7 +49,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.hrl.chaui.util.Constant.*;
+import static com.hrl.chaui.util.Constant.CHECKONLINEERR;
+import static com.hrl.chaui.util.Constant.NOTONLINE;
 
 public class UserInfoActivity extends AppCompatActivity {
     public TextView back_arrow;
@@ -127,14 +128,14 @@ public class UserInfoActivity extends AppCompatActivity {
 
                                 // 获取通信双方的clientID
                                 String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
-                                String targetClientID = "GID_test@@@" + user.getId();
+                                String targetClientID = "GID_test@@@" + user.getUser_id();
                                 String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
                                 AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
                                 Intent voiceCallIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
 
                                 voiceCallIntent.putExtra("channel", channelID);
                                 voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
-                                voiceCallIntent.putExtra("user2Name", user.getName());
+                                voiceCallIntent.putExtra("user2Name", user.getUser_name());
 
                                 // 查看对方是否在线
                                 new Thread(()->{
@@ -168,7 +169,7 @@ public class UserInfoActivity extends AppCompatActivity {
 
                                 Intent videoCallIntent = new Intent(UserInfoActivity.this, VideoCallActivity.class);
                                 String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
-                                String targetClientID = "GID_test@@@" + user.getId();
+                                String targetClientID = "GID_test@@@" + user.getUser_id();
                                 String channelID = RTCHelper.getNumsChannelID(userClientID, targetClientID);
                                 RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
                                 String userName = recv.getString("user_name", "null");
@@ -343,13 +344,13 @@ public class UserInfoActivity extends AppCompatActivity {
                 String info=response.body().string();
                 System.out.println("***********info_this"+info);
                 JSONObject json= JSON.parseObject(info);
-                user.setName(json.getString("user_name"));
-                user.setGender(json.getString("user_gender"));
-                user.setPhone(json.getString("user_phone"));
-                user.setSign(json.getString("user_sign"));
-                user.setImg(json.getString("user_img"));
-                user.setId(json.getInteger("user_id"));
-                user.setNote(json.getString("friend_note"));
+                user.setUser_name(json.getString("user_name"));
+                user.setUser_gender(json.getString("user_gender"));
+                user.setUser_phone(json.getString("user_phone"));
+                user.setUser_sign(json.getString("user_sign"));
+                user.setUser_img(json.getString("user_img"));
+                user.setUser_id(json.getInteger("user_id"));
+                user.setUser_note(json.getString("friend_note"));
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -357,8 +358,8 @@ public class UserInfoActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 //根据用户性别设置图片
-                                if(user.getGender()!=null){
-                                    if(user.getGender().equals("女")){
+                                if(user.getUser_gender()!=null){
+                                    if(user.getUser_gender().equals("女")){
                                         drawable = getResources().getDrawable(R.drawable.female);
                                     }
                                     else{
@@ -371,21 +372,21 @@ public class UserInfoActivity extends AppCompatActivity {
 
                                 drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
                                 user_note.setCompoundDrawables(null,null, drawable,null);
-                                if(user.getNote()==null){
-                                    user_note.setText(user.getName());
+                                if(user.getUser_note()==null){
+                                    user_note.setText(user.getUser_name());
                                 }
                                 else{
-                                    user_note.setText(user.getNote());
-                                    user_name.setText("昵称: "+user.getName());
+                                    user_note.setText(user.getUser_note());
+                                    user_name.setText("昵称: "+user.getUser_name());
                                 }
-                                if(user.getPhone()!=null){
-                                    user_phone.setText("手机号: "+user.getPhone());
+                                if(user.getUser_phone()!=null){
+                                    user_phone.setText("手机号: "+user.getUser_phone());
                                 }
-                                if(user.getSign()!=null){
-                                    user_sign.setText("个性签名: "+user.getSign());
+                                if(user.getUser_sign()!=null){
+                                    user_sign.setText("个性签名: "+user.getUser_sign());
                                 }
-                                if(user.getImg()!=null){
-                                    Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img)+user.getImg()).into(user_img);
+                                if(user.getUser_img()!=null){
+                                    Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img)+user.getUser_img()).into(user_img);
                                 }
                             }
                         });
@@ -474,6 +475,7 @@ public class UserInfoActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName name) {
 
         }
+
     }
 
     @Override

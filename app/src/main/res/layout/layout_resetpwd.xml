@@ -54,6 +54,7 @@
                 android:layout_width="250dp"
                 android:layout_height="50dp"
                 android:padding="10dp"
+                android:maxLength="20"
                 android:inputType="textPassword"
                 />
         </LinearLayout>
@@ -78,6 +79,7 @@
                 android:layout_width="250dp"
                 android:layout_height="50dp"
                 android:padding="10dp"
+                android:maxLength="20"
                 android:inputType="textPassword"
                 />
         </LinearLayout>

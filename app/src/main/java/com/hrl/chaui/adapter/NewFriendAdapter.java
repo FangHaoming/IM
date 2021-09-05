@@ -45,9 +45,9 @@ public class NewFriendAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @Override
     public void onBindViewHolder(@NonNull  RecyclerView.ViewHolder holder, int position) {
         User user = mDatas.get(position);
-        ((ViewHolder) holder).name.setText(user.getName());
+        ((ViewHolder) holder).name.setText(user.getUser_name());
         //((ViewHolder)holder).img.setImageResource(user.);
-        Glide.with(mContext).load(mContext.getString(R.string.app_prefix_img) + mDatas.get(position).getImg()).into(((ViewHolder) holder).img);
+        Glide.with(mContext).load(mContext.getString(R.string.app_prefix_img) + mDatas.get(position).getUser_img()).into(((ViewHolder) holder).img);
         ((ViewHolder) holder).btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

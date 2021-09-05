@@ -201,12 +201,12 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         // 获取通信对方的信息
         Intent intent = getIntent();
         targetUser = (User) intent.getSerializableExtra("targetUser");
-        Log.e(TAG, "ChatActivity onResume()" + "  targetUser:" + targetUser.getName());
+        Log.e(TAG, "ChatActivity onResume()" + "  targetUser:" + targetUser.getUser_name());
 
         //  设置名称
-        targetClientID = "GID_test@@@" + targetUser.getId();
+        targetClientID = "GID_test@@@" + targetUser.getUser_id();
         TextView textView =(TextView) findViewById(R.id.common_toolbar_title);
-        textView.setText(targetUser.getName());
+        textView.setText(targetUser.getUser_name());
 
         // 获取通信记录并显示
         try {
@@ -496,7 +496,9 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
                 voiceCallIntent.putExtra("channel", channelID);
                 voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
-                voiceCallIntent.putExtra("user2Name", targetUser.getName());
+                voiceCallIntent.putExtra("user2Name", targetUser.getUser_name());
+                startActivity(voiceCallIntent);
+                voiceCallIntent.putExtra("user2Name", targetUser.getUser_name());
 
                 new Thread(()->{
 

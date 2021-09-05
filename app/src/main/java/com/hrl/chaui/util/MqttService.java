@@ -65,7 +65,7 @@ public class MqttService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.e(TAG, "MqttService被绑定了，onBind:");
+        Log.e(TAG, "MqttService被绑定了，onBind:" + intent.getAction());
         return mBinder;
     }
 
@@ -84,7 +84,7 @@ public class MqttService extends Service {
             int qos[] = new int[groupData.size()];
 
             for (int i = 0; i < topicFilters.length; i++) {
-                topicFilters[i] =String.valueOf(groupData.get(i).getId());
+                topicFilters[i] =String.valueOf(groupData.get(i).getUser_id());
                 qos[i] = groupChatQos;
             }
             mqtt.subscribe(topicFilters,qos);
@@ -97,7 +97,6 @@ public class MqttService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.e(TAG, "onDestroy()");
         SharedPreferences preferences = getApplication().getSharedPreferences("data", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString("friReqMessage", JSONObject.toJSONString(friReqMessage));
@@ -150,16 +149,6 @@ public class MqttService extends Service {
         @Override
         public void connectionLost(Throwable cause) {
             Log.e(TAG, "connectionLost + cause: " + cause);
-            // 和mqtt服务器的连接失败，原因可能是: 异地登录、messageArrived中发生异常... s
-            // 此时，MqttClient客户端会关闭。并且调用connectionLost方法。
-            // 所以此时需要的是：跳转到LoginActivity。然后将MainActivity删除掉。
-            // 利用把LoginActivity的启动模式改为singleTask。因为LoginActivity整个程序第二个启动的Activity。
-            // 当重新启动LoginActivity时，会把出Activity栈中除SplashActivity之外的的Activity都被出栈。
-            Intent intent = new Intent(MqttService.this, LoginActivity.class);
-            Toast.makeText(MqttService.this, "异地登录", Toast.LENGTH_LONG).show();
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            stopSelf();
         }
 
         @Override
@@ -335,7 +324,7 @@ public class MqttService extends Service {
 
                     intent.putExtra("channel", channelID);
                     intent.putExtra("rtcAuthInfo", aliUserInfo);
-                    intent.putExtra("user2Name", targetUser.getName());
+                    intent.putExtra("user2Name", name);
                     intent.putExtra("targetClientID", targetClientID);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 

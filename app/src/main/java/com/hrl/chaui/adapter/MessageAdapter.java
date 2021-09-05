@@ -1,7 +1,6 @@
 package com.hrl.chaui.adapter;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -13,13 +12,10 @@ import com.hrl.chaui.bean.Message;
 import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
-import com.hrl.chaui.fragment.MessageFragment;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.groupData;
@@ -51,16 +47,16 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
             String tmp = otherID.split("@@@")[1];
             int otherIDInt = Integer.valueOf(tmp);
             for(User user : contactData)  {
-                if (user.getId() != null && user.getId() == otherIDInt) {
-                    name = user.getName();
+                if (user.getUser_id() != null && user.getUser_id() == otherIDInt) {
+                    name = user.getUser_name();
                     break;
                 }
             }
         } else {
             otherID = item.getTargetId();
             for (User group : groupData) {
-                if (String.valueOf(group.getId()).equals(otherID)) {
-                    name = group.getName();
+                if (String.valueOf(group.getUser_id()).equals(otherID)) {
+                    name = group.getUser_name();
                 }
             }
         }

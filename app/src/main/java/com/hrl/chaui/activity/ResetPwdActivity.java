@@ -17,8 +17,12 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
+import com.hrl.chaui.fragment.MineFragment;
 import com.hrl.chaui.util.EditIsCanUseBtnUtils;
+
+import static com.hrl.chaui.MyApplication.modifyUser;
 
 
 public class ResetPwdActivity extends AppCompatActivity {
@@ -64,11 +68,12 @@ public class ResetPwdActivity extends AppCompatActivity {
                 String str_in=in.getText().toString();
                 String str_rein=rein.getText().toString();
                 if(str_in.equals(str_rein)){
-                    editor.putString("user_pwd",str_in.toString());
-                    editor.apply();
-                    Intent intent=new Intent(ResetPwdActivity.this,MainActivity.class);
+                    modifyUser.setUser_pwd(str_in);
+                    modifyUser.setUser_id(sp.getInt("user_id",-1));
+                    Intent intent=new Intent(ResetPwdActivity.this, MineFragment.class);
                     Bundle bundle = new Bundle();
                     bundle.putBoolean("isModify", true);
+                    bundle.putString("json",JSONObject.toJSONString(modifyUser));
                     intent.putExtras(bundle);
                     setResult(Activity.RESULT_OK,intent);
                     finish();
@@ -77,4 +82,6 @@ public class ResetPwdActivity extends AppCompatActivity {
             }
         });
     }
+
+
 }
