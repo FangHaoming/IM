@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
@@ -37,6 +38,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.hrl.chaui.R;
 import com.hrl.chaui.adapter.ChatAdapter;
@@ -56,6 +59,7 @@ import com.hrl.chaui.util.LogUtil;
 import com.hrl.chaui.util.MqttByAli;
 import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
+import com.hrl.chaui.util.RTCHelper;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
 import com.hrl.chaui.widget.RecordButton;
@@ -273,10 +277,6 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
                 .bindAudioIv(mIvAudio)
                 .bindEmojiData();
 
-        // 群聊暂不支持聊天功能，故将其隐藏。
-        RelativeLayout rlPhone = (RelativeLayout) findViewById(R.id.rlPhone);
-        rlPhone.setVisibility(View.GONE);
-
         //底部布局弹出,聊天列表上滑
         mRvChat.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
@@ -470,7 +470,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
     }
 
     // 点击 ”相册“、”图片“、”视频“、”文件“、”位置“、”通话“ 后触发的点击事件。
-    @OnClick({R.id.btn_send, R.id.rlPhoto, R.id.rlVideo, R.id.rlLocation, R.id.rlFile, R.id.rlPhone})
+    @OnClick({R.id.btn_send, R.id.rlPhoto, R.id.rlVideo, R.id.rlLocation, R.id.rlFile, R.id.rlPhone, R.id.rlVideoCall})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_send:
@@ -490,6 +490,18 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
                 break;
             case R.id.rlPhone:
                 // 群聊语音聊天功能
+                Toast.makeText(this, "暂不支持群语音通话", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.rlVideoCall:
+                Intent videoCallIntent = new Intent(this, VideoCallActivity.class);
+                String channelID = targetGroupID;
+                SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
+                String userName = sharedPreferences.getString("user_name", "unknown");
+                RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
+                videoCallIntent.putExtra("channel", channelID);
+                videoCallIntent.putExtra("username", userName);
+                videoCallIntent.putExtra("rtcAuthInfo", info);
+                startActivity(videoCallIntent);
                 break;
         }
     }

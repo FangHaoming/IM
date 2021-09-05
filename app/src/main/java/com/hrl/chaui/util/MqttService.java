@@ -3,17 +3,18 @@ package com.hrl.chaui.util;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
-import android.nfc.Tag;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
-import com.hrl.chaui.activity.ChatActivity;
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
+import com.hrl.chaui.activity.AnswerVideoCallActivity;
+import com.hrl.chaui.activity.AnswerVoiceCallActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
@@ -23,8 +24,9 @@ import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
-import com.hrl.chaui.dao.MessageDao;
 import com.hrl.chaui.dao.imp.MessageDaoImp;
+
+import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.groupData; // 群聊ArrayList
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -34,8 +36,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -62,7 +62,7 @@ public class MqttService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.e(TAG, "onBind");
+        Log.e(TAG, "MqttService被绑定了，onBind:" + intent.getAction());
         return mBinder;
     }
 
@@ -303,6 +303,116 @@ public class MqttService extends Service {
                         // 发出广播
                         sendMessageBroadcast(localMessage);
                     }
+                    break;
+                }
+                case "VoiceCall" :{
+                    // 跳转到 接听 和 拒绝接听的Activity
+                    Intent intent = new Intent(MqttService.this, AnswerVoiceCallActivity.class);
+
+                    // channelID
+                    String userClientID = localMessage.getTargetId();
+                    String targetClientID = localMessage.getSenderId();
+                    String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
+                    AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
+
+
+                    int target_id = -1;
+
+                    String[] idInfo = targetClientID.split("@@@");
+                    if (idInfo.length == 2) {
+                        try {
+                            target_id = Integer.parseInt(idInfo[1]);
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    String name = "unknown";
+                    for (User s : contactData) {
+                        // 注意在通讯录中找好友的时候，通讯录中会有两个另类的User: "群聊"和"新的朋友" 这两位很多属性都是空的。
+                        if (s.getId() != null && s.getId() == target_id) {
+                            name = s.getName();
+                            break;
+                        }
+                    }
+
+                    intent.putExtra("channel", channelID);
+                    intent.putExtra("rtcAuthInfo", aliUserInfo);
+                    intent.putExtra("user2Name", name);
+                    intent.putExtra("targetClientID", targetClientID);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+
+                    // 判断一下对方是否在线，如果在线就进入判断是否接听的界面
+
+                    new Thread(()->{
+                        try {
+                            boolean isOnline = MqttByAli.checkIsOnline(targetClientID);
+                            if (isOnline) {
+                                startActivity(intent);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+
+                    break;
+                }
+                case "VideoCall" : {
+                    Intent intent = new Intent(MqttService.this, AnswerVideoCallActivity.class);
+                    // channelID
+                    String userClientID = localMessage.getTargetId();
+                    String targetClientID = localMessage.getSenderId();
+                    String channelID = RTCHelper.getNumsChannelID(userClientID, targetClientID);
+                    RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
+
+                    int target_id = -1;
+
+                    String[] idInfo = targetClientID.split("@@@");
+                    if (idInfo.length == 2) {
+                        try {
+                            target_id = Integer.parseInt(idInfo[1]);
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    String targetName = "unknown";
+                    for (User s : contactData) {
+                        // 注意在通讯录中找好友的时候，通讯录中会有两个另类的User: "群聊"和"新的朋友" 这两位很多属性都是空的。
+                        if (s.getId() != null && s.getId() == target_id) {
+                            targetName = s.getName();
+                            break;
+                        }
+                    }
+
+
+                    SharedPreferences recv = getSharedPreferences("data", Context.MODE_PRIVATE);
+                    intent.putExtra("channel", channelID);
+                    intent.putExtra("username", recv.getString("user_name", "unknown"));
+                    intent.putExtra("rtcAuthInfo", info);
+                    intent.putExtra("targetClientID", targetClientID);
+                    intent.putExtra("targetName", targetName);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    // 判断对方是否在线，如果在线就进入选择是否接听的Activity。
+                    new Thread(()->{
+                        try {
+                            boolean isOnline = MqttByAli.checkIsOnline(targetClientID);
+                            if (isOnline) {
+                                startActivity(intent);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+
+                    break;
+                }
+                case "CallCancel": {
+                    Intent intent = new Intent("CALLCANCEL");
+                    intent.setPackage(getPackageName());
+                    sendBroadcast(intent);
                     break;
                 }
             }

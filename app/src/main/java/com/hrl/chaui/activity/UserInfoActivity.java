@@ -1,13 +1,22 @@
 package com.hrl.chaui.activity;
 
+import android.content.ComponentName;
 import android.content.Context;
+import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
+import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
+import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
+import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -17,28 +26,30 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
-import com.aliyun.apsaravideo.sophon.videocall.VideoCallActivity;
-import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
-import com.aliyun.rtc.voicecall.ui.AliRtcChatActivity;
 import com.bumptech.glide.Glide;
 import com.hrl.chaui.R;
 import com.hrl.chaui.bean.User;
+import com.hrl.chaui.util.MqttByAli;
+import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.RTCHelper;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
+import static com.hrl.chaui.util.Constant.*;
 
 public class UserInfoActivity extends AppCompatActivity {
     public TextView back_arrow;
@@ -60,10 +71,18 @@ public class UserInfoActivity extends AppCompatActivity {
     Intent intent;
     Bundle bundle;
 
+    // 通话邀请相关变量
+    private NoOnlineHandler noOnlineHandler;
+    private MqttByAli mqtt;
+    private MqttServiceConnection connection;
+
+
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(@Nullable  Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initMqtt();
         recv = getSharedPreferences("data", Context.MODE_PRIVATE);
         editor = recv.edit();
         user=new User();
@@ -72,6 +91,7 @@ public class UserInfoActivity extends AppCompatActivity {
         if(bundle!=null){
             Log.i("isFriend in user", String.valueOf(bundle.getBoolean("isFriend")));
             if(bundle.getBoolean("isFriend")) {
+                // 该用户是朋友
                 setContentView(R.layout.layout_user_info);
                 back_arrow = findViewById(R.id.back_arrow);
                 user_name = findViewById(R.id.user_name);
@@ -91,26 +111,61 @@ public class UserInfoActivity extends AppCompatActivity {
                         switch(v.getId()){
                             case R.id.setNote:
                                 break;
+                            case R.id.delete:
+                                break;
                             case R.id.send_message:
                                 Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
                                 chatIntent.putExtra("targetUser",user);
                                 startActivity(chatIntent);
                                 break;
-                            case R.id.delete:
-                                break;
                             case R.id.send_call: {
-                                Intent voiceCallIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
+                                // 如果改人是登录用户自己，提示不能与自己通话。
+                                if (bundle.getInt("contact_id") == recv.getInt("user_id", 0)) {
+                                    Toast.makeText(UserInfoActivity.this, "不能与自己通话", Toast.LENGTH_SHORT).show();
+                                    break;
+                                }
+
+                                // 获取通信双方的clientID
                                 String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
                                 String targetClientID = "GID_test@@@" + user.getId();
                                 String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
                                 AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
+                                Intent voiceCallIntent = new Intent(UserInfoActivity.this, AliRtcChatActivity.class);
+
                                 voiceCallIntent.putExtra("channel", channelID);
                                 voiceCallIntent.putExtra("rtcAuthInfo", aliUserInfo);
                                 voiceCallIntent.putExtra("user2Name", user.getName());
-                                startActivity(voiceCallIntent);
+
+                                // 查看对方是否在线
+                                new Thread(()->{
+                                    try {
+                                        boolean isOnline = MqttByAli.checkIsOnline(targetClientID);
+                                        if (isOnline) {
+                                            Log.e("UserInfoActivity", "向targetClientID:" + targetClientID + " 发送语音通话请求" + " mqtt:" + mqtt);
+                                            mqtt.sendP2PVoiceCallRequest(targetClientID);
+                                            startActivity(voiceCallIntent);
+                                        } else {
+                                            Message message = new Message();
+                                            message.what = NOTONLINE;
+                                            noOnlineHandler.sendMessage(message);
+                                        }
+                                    } catch (Exception e) {
+                                        Message message = new Message();
+                                        message.what = CHECKONLINEERR;
+                                        noOnlineHandler.sendMessage(message);
+                                        e.printStackTrace();
+                                    }
+                                }).start();
+
                                 break;
                             }
                             case R.id.video_call: {
+                                // 如果改人是登录用户自己，提示不能与自己通话。
+                                if (bundle.getInt("contact_id") == recv.getInt("user_id", 0)) {
+                                    Toast.makeText(UserInfoActivity.this, "不能与自己通话", Toast.LENGTH_SHORT).show();
+                                    break;
+                                }
+
                                 Intent videoCallIntent = new Intent(UserInfoActivity.this, VideoCallActivity.class);
                                 String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
                                 String targetClientID = "GID_test@@@" + user.getId();
@@ -122,7 +177,26 @@ public class UserInfoActivity extends AppCompatActivity {
                                 videoCallIntent.putExtra("username", userName);
                                 videoCallIntent.putExtra("rtcAuthInfo", info);
 
-                                startActivity(videoCallIntent);
+
+                                new Thread(() -> {
+                                    try {
+                                        boolean isOnline = MqttByAli.checkIsOnline(targetClientID);
+                                        if (isOnline) {
+                                            Log.e("UserInfoActivity", "targetClientID:" + targetClientID + " 发送视频通话请求");
+                                            mqtt.sendP2PVideoCallRequest(targetClientID);
+                                            startActivity(videoCallIntent);
+                                        } else {
+                                            Message message = new Message();
+                                            message.what = NOTONLINE;
+                                            noOnlineHandler.sendMessage(message);
+                                        }
+                                    } catch (Exception e) {
+                                        Message message = new Message();
+                                        message.what = CHECKONLINEERR;
+                                        noOnlineHandler.sendMessage(message);
+                                        e.printStackTrace();
+                                    }
+                                }).start();
                                 break;
                             }
                             case R.id.back_arrow:
@@ -152,16 +226,19 @@ public class UserInfoActivity extends AppCompatActivity {
 
                 int friend_id = bundle.getInt("contact_id");
                 if (friend_id == recv.getInt("user_id", 0)) {
+                    // 该人是登录用户本人
                     Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img) + recv.getString("user_img", "")).into(user_img);
                     user_note.setText(recv.getString("user_name", ""));
                     user_sign.setText("个性签名: " + recv.getString("user_sign", ""));
                     user_phone.setText("手机号: " + recv.getString("user_phone", ""));
                 } else{
+                    // 非本人则网络请求获取该用户的信息
                     sendByPost_friend(recv.getInt("user_id", 0), friend_id);
                 }
 
             }
             else{
+                // 该用户不是朋友
                 setContentView(R.layout.layout_user_info_not);
                 back_arrow=findViewById(R.id.back_arrow);
                 user_name=findViewById(R.id.user_name);
@@ -361,4 +438,61 @@ public class UserInfoActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    private static class NoOnlineHandler extends  Handler {
+        private final WeakReference<UserInfoActivity> mTarget;
+
+        private NoOnlineHandler(UserInfoActivity activity) {
+            mTarget = new WeakReference<UserInfoActivity>(activity);
+        }
+
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case NOTONLINE:
+                    Toast.makeText(mTarget.get(), "用户不在线", Toast.LENGTH_SHORT).show();
+                    break;
+                case CHECKONLINEERR:
+                    Toast.makeText(mTarget.get(), "检测用户是否在线时出错",Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    }
+
+    private class MqttServiceConnection implements ServiceConnection {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MqttService.LocalBinder localBinder = (MqttService.LocalBinder) service;
+            mqtt = localBinder.getService().getMqtt();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 解绑MqttService
+        unbindService(connection);
+    }
+
+    private void initMqtt() {
+        // 当目标用户没有上线时的处理方法。
+        noOnlineHandler = new NoOnlineHandler(UserInfoActivity.this);
+
+        // 绑定MqttService 获取 MqttByAli的对象 mqtt
+        Intent mqttServiceIntent = new Intent(this, MqttService.class);
+        startService(mqttServiceIntent); // 防止服务被系统回收
+        connection = new MqttServiceConnection();
+        bindService(mqttServiceIntent, connection, Context.BIND_AUTO_CREATE);
+        Log.e("UserInfoActivity", "mqtt获取：" + mqtt);
+    }
+
 }

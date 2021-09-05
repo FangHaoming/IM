@@ -2,7 +2,10 @@ package com.aliyun.rtc.voicecall.ui;
 
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -28,6 +31,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alivc.rtc.AliRtcAuthInfo;
 import com.alivc.rtc.AliRtcEngine;
@@ -129,6 +133,8 @@ public class AliRtcChatActivity extends AppCompatActivity implements TitleBar.Me
     private long mUser2LoginTime;
     private TitleBar mTitleBar;
     private long channelStartTime;
+    private CallCancelReceiver callCancelReceiver;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -136,6 +142,8 @@ public class AliRtcChatActivity extends AppCompatActivity implements TitleBar.Me
         setContentView(R.layout.alivc_voicecall_activity_rtc_chat);
         //getData
         getDataForIntent();
+        //初始化广播Receiver
+        initReceiver();
         //初始化view
         initView();
         //初始化view事件
@@ -152,6 +160,15 @@ public class AliRtcChatActivity extends AppCompatActivity implements TitleBar.Me
             mTitleBar.setLayoutParams(layoutParams);
         }
     }
+
+    private void initReceiver() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("CALLCANCEL");
+        callCancelReceiver = new CallCancelReceiver();
+        registerReceiver(callCancelReceiver, intentFilter);
+    }
+
+
 
     /**
      * 获取状态栏高度
@@ -974,6 +991,7 @@ public class AliRtcChatActivity extends AppCompatActivity implements TitleBar.Me
             mNetWatchdogUtils.setNetChangeListener(null);
             mNetWatchdogUtils = null;
         }
+        unregisterReceiver(callCancelReceiver);
     }
 
     /**
@@ -1210,5 +1228,13 @@ public class AliRtcChatActivity extends AppCompatActivity implements TitleBar.Me
         }
     }
 
+    private class CallCancelReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(AliRtcChatActivity.this, "对方拒绝接听", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
 
 }

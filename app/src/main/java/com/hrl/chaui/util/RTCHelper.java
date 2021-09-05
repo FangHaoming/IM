@@ -29,8 +29,8 @@ public class RTCHelper {
         // 通过ClientID获取DriveID, 然后DriveID小ClientID在前面，DriveID大的ClientID拼接在后面
         String userDriveID = userClientID.split("@@@")[1];
         String targetDriveID = targetClientID.split("@@@")[1];
-        int user_id = Integer.valueOf(userDriveID);
-        int target_id = Integer.valueOf(targetDriveID);
+        int user_id = Integer.parseInt(userDriveID);
+        int target_id = Integer.parseInt(targetDriveID);
         String channelID = null;
         if (user_id < target_id) {
             channelID = userClientID + targetClientID;

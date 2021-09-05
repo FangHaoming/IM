@@ -74,4 +74,8 @@ dependencies {
     implementation project(':AlivcVoiceCall:AlivcVoiceCall_demo')
 
     implementation project(':AlivcVideoCall_demo')
+
+    // https://mvnrepository.com/artifact/com.aliyun/onsmqtt20200420
+    implementation 'com.aliyun:onsmqtt20200420:1.0.1'
+
 }

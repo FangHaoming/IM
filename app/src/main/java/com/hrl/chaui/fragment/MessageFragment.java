@@ -104,6 +104,12 @@ public class MessageFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getContext().unregisterReceiver(messageReceiver);
+    }
+
     private void initMessageUI() {
         // 获取布局中的元素
         recyclerView = root.findViewById(R.id.message_recyclerview);
@@ -199,19 +205,37 @@ public class MessageFragment extends Fragment {
 
             List<Message> messageList = mAdapter.getData();
             int pos = -1 ;
-            for (int i = 0; i < messageList.size(); i++) {
-                Message localMessage = messageList.get(i);
-                if (localMessage.getSenderId().equals(message.getSenderId())
-                        || localMessage.getTargetId().equals(message.getSenderId())) {
-                    pos = i;
-                    break;
+
+            if (!message.isGroup()) {
+                // 私聊消息的更新
+                for (int i = 0; i < messageList.size(); i++) {
+                    Message localMessage = messageList.get(i);
+                    if (localMessage.getSenderId().equals(message.getSenderId())
+                            || localMessage.getTargetId().equals(message.getSenderId())) {
+                        pos = i;
+                        break;
+                    }
+                }
+            } else {
+                // 群聊消息的更新
+                for (int i = 0; i < messageList.size(); i++) {
+                    Message localMessage = messageList.get(i);
+                    if (localMessage.getTargetId().equals(message.getTargetId())) {
+                        pos = i;
+                        break;
+                    }
                 }
             }
+
             if(pos != -1) {
+                // 如果已存在消息则将该消息删除
                 messageList.remove(pos);
-                messageList.add(0, message);
-                mAdapter.setNewData(messageList);
             }
+
+
+            messageList.add(0, message);
+            mAdapter.setNewData(messageList);
+
         }
     }
 }
