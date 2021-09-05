@@ -373,6 +373,16 @@ public class MqttByAli {
         sendByteP2P(data, targetClientID, map);
     }
 
+    // 发送邀请入群的消息
+    public void sendP2PGroupInvite(String targetClient, User groupInfo) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("msg", "GroupInvite");
+        map.put("groupInfo", groupInfo);
+        byte[] data = new byte[0];
+        sendByteP2P(data, targetClient, map);
+    }
+
+
     // 该方法会调用网络请求，必须放在子线程中
     // 该方法返回clientID所代表的用户是否在线
     public static boolean checkIsOnline(String clientID) throws Exception {

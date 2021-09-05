@@ -78,6 +78,7 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
         String msgInfo;
         MsgType msgType = item.getMsgType();
         switch (msgType) {
+            case GROUP_INVITE:
             case TEXT:
                 msgInfo = ((TextMsgBody)item.getBody()).getMessage();
                 break;

@@ -9,16 +9,19 @@ import android.media.MediaMetadataRetriever;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
 import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
 import com.hrl.chaui.activity.AnswerVideoCallActivity;
 import com.hrl.chaui.activity.AnswerVoiceCallActivity;
+import com.hrl.chaui.activity.LoginActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
 import com.hrl.chaui.bean.Message;
+import com.hrl.chaui.bean.MsgBody;
 import com.hrl.chaui.bean.MsgSendStatus;
 import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
@@ -26,8 +29,8 @@ import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.dao.imp.MessageDaoImp;
 
-import static com.hrl.chaui.MyApplication.contactData;
-import static com.hrl.chaui.MyApplication.groupData; // 群聊ArrayList
+
+import static com.hrl.chaui.MyApplication.*;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -62,7 +65,7 @@ public class MqttService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.e(TAG, "MqttService被绑定了，onBind:" + intent.getAction());
+        Log.e(TAG, "MqttService被绑定了，onBind:");
         return mBinder;
     }
 
@@ -94,6 +97,7 @@ public class MqttService extends Service {
 
     @Override
     public void onDestroy() {
+        Log.e(TAG, "onDestroy()");
         SharedPreferences preferences = getApplication().getSharedPreferences("data", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString("friReqMessage", JSONObject.toJSONString(friReqMessage));
@@ -146,6 +150,16 @@ public class MqttService extends Service {
         @Override
         public void connectionLost(Throwable cause) {
             Log.e(TAG, "connectionLost + cause: " + cause);
+            // 和mqtt服务器的连接失败，原因可能是: 异地登录、messageArrived中发生异常... s
+            // 此时，MqttClient客户端会关闭。并且调用connectionLost方法。
+            // 所以此时需要的是：跳转到LoginActivity。然后将MainActivity删除掉。
+            // 利用把LoginActivity的启动模式改为singleTask。因为LoginActivity整个程序第二个启动的Activity。
+            // 当重新启动LoginActivity时，会把出Activity栈中除SplashActivity之外的的Activity都被出栈。
+            Intent intent = new Intent(MqttService.this, LoginActivity.class);
+            Toast.makeText(MqttService.this, "异地登录", Toast.LENGTH_LONG).show();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            stopSelf();
         }
 
         @Override
@@ -315,30 +329,13 @@ public class MqttService extends Service {
                     String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
                     AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
 
-
-                    int target_id = -1;
-
-                    String[] idInfo = targetClientID.split("@@@");
-                    if (idInfo.length == 2) {
-                        try {
-                            target_id = Integer.parseInt(idInfo[1]);
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    String name = "unknown";
-                    for (User s : contactData) {
-                        // 注意在通讯录中找好友的时候，通讯录中会有两个另类的User: "群聊"和"新的朋友" 这两位很多属性都是空的。
-                        if (s.getId() != null && s.getId() == target_id) {
-                            name = s.getName();
-                            break;
-                        }
-                    }
+                    // 从通讯录获取目标用户
+                    User targetUser = getUserFromContactData(targetClientID);
+                    String name = targetUser == null ? "unknown" : targetUser.getName();
 
                     intent.putExtra("channel", channelID);
                     intent.putExtra("rtcAuthInfo", aliUserInfo);
-                    intent.putExtra("user2Name", name);
+                    intent.putExtra("user2Name", targetUser.getName());
                     intent.putExtra("targetClientID", targetClientID);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
@@ -366,33 +363,15 @@ public class MqttService extends Service {
                     String channelID = RTCHelper.getNumsChannelID(userClientID, targetClientID);
                     RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
 
-                    int target_id = -1;
-
-                    String[] idInfo = targetClientID.split("@@@");
-                    if (idInfo.length == 2) {
-                        try {
-                            target_id = Integer.parseInt(idInfo[1]);
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    String targetName = "unknown";
-                    for (User s : contactData) {
-                        // 注意在通讯录中找好友的时候，通讯录中会有两个另类的User: "群聊"和"新的朋友" 这两位很多属性都是空的。
-                        if (s.getId() != null && s.getId() == target_id) {
-                            targetName = s.getName();
-                            break;
-                        }
-                    }
-
+                    User targetUser = getUserFromContactData(targetClientID);
+                    String name = targetUser == null ? "unknown" : targetUser.getName();
 
                     SharedPreferences recv = getSharedPreferences("data", Context.MODE_PRIVATE);
                     intent.putExtra("channel", channelID);
                     intent.putExtra("username", recv.getString("user_name", "unknown"));
                     intent.putExtra("rtcAuthInfo", info);
                     intent.putExtra("targetClientID", targetClientID);
-                    intent.putExtra("targetName", targetName);
+                    intent.putExtra("targetName", name);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                     // 判断对方是否在线，如果在线就进入选择是否接听的Activity。
@@ -413,6 +392,27 @@ public class MqttService extends Service {
                     Intent intent = new Intent("CALLCANCEL");
                     intent.setPackage(getPackageName());
                     sendBroadcast(intent);
+                    break;
+                }
+                case "GroupInvite" : {
+                    User groupInfo = (User) object.get("groupInfo");
+                    // 订阅群聊topic
+                    String[] topicFilter = new String[1];
+                    int[] qos = new int[1];
+                    topicFilter[0] = String.valueOf(groupInfo.getId());
+                    qos[0] = groupChatQos;
+                    mqtt.subscribe(topicFilter, qos);
+
+                    // 将消息显示在消息界面
+                    localMessage.setMsgType(MsgType.GROUP_INVITE);
+                    localMessage.setGroup(true);
+                    localMessage.setTargetId(String.valueOf(groupInfo.getId()));
+                    TextMsgBody msgBody = new TextMsgBody();
+                    User targetUser = getUserFromContactData(localMessage.getSenderId());
+                    String name = targetUser == null ? "unknown" : targetUser.getName();
+                    msgBody.setMessage(name + "邀请你入群");
+                    localMessage.setBody(msgBody);
+                    sendMessageBroadcast(localMessage);
                     break;
                 }
             }
