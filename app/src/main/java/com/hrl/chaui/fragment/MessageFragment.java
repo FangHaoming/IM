@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -91,6 +92,7 @@ public class MessageFragment extends Fragment {
         List<Message> list = null;
         try {
             list = messageDaoImp.queryLatestDifMessage(getContext(),userClientID);
+            Log.e("MessageFragment", "list.size():" + list.size());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {

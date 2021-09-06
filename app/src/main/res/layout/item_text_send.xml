@@ -23,15 +23,14 @@
         android:layout_marginRight="10dp"
         android:layout_marginTop="10dp">
 
-        <com.hrl.chaui.widget.CircleImageView
-            android:id="@+id/chat_item_header"
+
+        <ImageView
+            android:id="@+id/chat_item_header_send"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_alignParentRight="true"
             android:scaleType="centerInside"
-
-             android:src="@mipmap/ic_head_default_right" />
-
+            android:src="@mipmap/ic_head_default_right"/>
 
         <LinearLayout
             android:id="@+id/chat_item_layout_content"
@@ -39,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginRight="5dp"
-            android:layout_toLeftOf="@id/chat_item_header"
+            android:layout_toLeftOf="@id/chat_item_header_send"
             android:gravity="right|center_vertical"
             android:orientation="horizontal">
 
