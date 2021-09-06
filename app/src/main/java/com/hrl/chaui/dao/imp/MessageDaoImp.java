@@ -278,6 +278,7 @@ public class MessageDaoImp implements MessageDao {
                 clientIDs.add(id);
             } while(cursorSender.moveToNext());
         }
+
         if (cursorTarget.moveToFirst()) {
             do {
                 String id = cursorTarget.getString(0);
@@ -285,6 +286,7 @@ public class MessageDaoImp implements MessageDao {
                 clientIDs.add(id);
             } while(cursorTarget.moveToNext());
         }
+
         if (cursorGroup.moveToFirst()) {
             do {
                 String id = cursorGroup.getString(0);
