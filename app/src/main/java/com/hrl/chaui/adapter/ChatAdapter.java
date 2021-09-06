@@ -65,7 +65,6 @@ public class  ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
     private String targetClientID = null;
     private String userClientID = null;
 
-    Context context = null;
     public ChatAdapter(Context context, List<Message> data, String msg) {
         super(data);
 
@@ -163,11 +162,11 @@ public class  ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
         // 显示头像。
         if (item.getSenderId().equals(userClientID)) {
             // 用户发送的消息里显示用户的头像
-            SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = mContext.getSharedPreferences("data", Context.MODE_PRIVATE);
             String userImg = sharedPreferences.getString("user_img", "");
             if (!userImg.equals("")) {
                 Glide.with(mContext)
-                        .load(context.getResources().getString(R.string.app_prefix_img)+userImg)
+                        .load(mContext.getResources().getString(R.string.app_prefix_img)+userImg)
                         .into((ImageView) helper.getView(R.id.chat_item_header_send));
             }
         } else {
@@ -177,7 +176,7 @@ public class  ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
             String userImg = targetUser == null ? "" : targetUser.getUser_img();
             if (!userImg.equals("")) {
                 Glide.with(mContext)
-                        .load(context.getResources().getString(R.string.app_prefix_img)+userImg)
+                        .load(mContext.getResources().getString(R.string.app_prefix_img)+userImg)
                         .into((ImageView) helper.getView(R.id.chat_item_header));
             }
         }
