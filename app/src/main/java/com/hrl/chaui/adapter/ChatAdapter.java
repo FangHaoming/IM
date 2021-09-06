@@ -1,10 +1,14 @@
 package com.hrl.chaui.adapter;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.drawable.AnimationDrawable;
+import android.media.Image;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.chad.library.adapter.base.util.MultiTypeDelegate;
@@ -22,14 +26,15 @@ import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.util.GlideUtils;
+import com.hrl.chaui.widget.BubbleImageView;
+import com.hrl.chaui.widget.CircleImageView;
 
 import java.io.File;
 import java.util.List;
 
-import static com.hrl.chaui.MyApplication.contactData;
-import static com.hrl.chaui.MyApplication.groupMemberData;
+import static com.hrl.chaui.MyApplication.*;
 
-public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
+public class  ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
 
     private static final int TYPE_SEND_TEXT = 1;
@@ -60,6 +65,7 @@ public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
     private String targetClientID = null;
     private String userClientID = null;
 
+    Context context = null;
     public ChatAdapter(Context context, List<Message> data, String msg) {
         super(data);
 
@@ -114,7 +120,8 @@ public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
     private void setContent(BaseViewHolder helper, Message item) {
 
-        if (item.isGroup() && !item.getSenderId().equals(userClientID)) { // 只当收到群消息时才显示名称
+        // 只当收到群消息时才显示发送者名称
+        if (item.isGroup() && !item.getSenderId().equals(userClientID)) {
             // 设置姓名
             // chat_item_content_sender_name只在接收信息 对应布局里面。
             Log.e(TAG, "baseViewHolder:" + helper);
@@ -151,6 +158,31 @@ public class ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
             helper.setText(R.id.chat_item_content_sender_name, name);
         }
+
+
+        // 显示头像。
+        if (item.getSenderId().equals(userClientID)) {
+            // 用户发送的消息里显示用户的头像
+            SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
+            String userImg = sharedPreferences.getString("user_img", "");
+            if (!userImg.equals("")) {
+                Glide.with(mContext)
+                        .load(context.getResources().getString(R.string.app_prefix_img)+userImg)
+                        .into((ImageView) helper.getView(R.id.chat_item_header_send));
+            }
+        } else {
+            // 用户接受的消息显示对方的头像
+            String senderID = item.getSenderId();
+            User targetUser = getUserFromContactData(senderID);
+            String userImg = targetUser == null ? "" : targetUser.getUser_img();
+            if (!userImg.equals("")) {
+                Glide.with(mContext)
+                        .load(context.getResources().getString(R.string.app_prefix_img)+userImg)
+                        .into((ImageView) helper.getView(R.id.chat_item_header));
+            }
+        }
+
+
 
         if (item.getMsgType().equals(MsgType.TEXT)) {
             TextMsgBody msgBody = (TextMsgBody) item.getBody();

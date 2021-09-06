@@ -2,9 +2,11 @@ package com.hrl.chaui.adapter;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.hrl.chaui.R;
@@ -40,15 +42,17 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
         String userID = "GID_test@@@" + context.getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
         String otherID = null;
         String name = null;
+        String imgUrl = null;
 
         if (!item.isGroup()) {
             otherID = item.getSenderId().equals(userID) ? item.getTargetId() : item.getSenderId();
             Log.e(TAG, "otherID:" + otherID);
             String tmp = otherID.split("@@@")[1];
-            int otherIDInt = Integer.valueOf(tmp);
+            int otherIDInt = Integer.parseInt(tmp);
             for(User user : contactData)  {
                 if (user.getUser_id() != null && user.getUser_id() == otherIDInt) {
                     name = user.getUser_name();
+                    imgUrl = user.getUser_img();
                     break;
                 }
             }
@@ -57,6 +61,9 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
             for (User group : groupData) {
                 if (String.valueOf(group.getUser_id()).equals(otherID)) {
                     name = group.getUser_name();
+                    if (group.getUser_img() != null) {
+                        imgUrl = group.getUser_img();
+                    }
                 }
             }
         }
@@ -64,6 +71,15 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
         if (name == null)
             name = "陌生人";
         helper.setText(R.id.message_item_title, name);
+
+
+        // 设置消息头像
+        if (imgUrl != null) {
+            Glide.with(mContext)
+                    .load(mContext.getResources().getString(R.string.app_prefix_img) + imgUrl)
+                    .into((ImageView) helper.getView(R.id.message_item_photo));
+        }
+
 
         // 发送时间
         long sendTime = item.getSentTime();

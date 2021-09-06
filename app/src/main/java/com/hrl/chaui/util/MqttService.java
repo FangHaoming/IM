@@ -386,6 +386,8 @@ public class MqttService extends Service {
                     String[] topicFilter = new String[1];
                     int[] qos = new int[1];
                     topicFilter[0] = String.valueOf(groupInfo.getUser_id());
+                    if (groupInfo == null) break;
+                    topicFilter[0] = String.valueOf(groupInfo.getUser_id());
                     qos[0] = groupChatQos;
                     mqtt.subscribe(topicFilter, qos);
 
