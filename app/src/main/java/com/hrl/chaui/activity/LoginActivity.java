@@ -25,6 +25,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
 import com.hrl.chaui.util.AppManager;
 import com.hrl.chaui.util.EditIsCanUseBtnUtils;
+import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.http;
 
 import java.io.IOException;
@@ -150,6 +151,8 @@ public class LoginActivity extends AppCompatActivity {
                 System.out.println("**********info"+info);
                 switch (Integer.parseInt(json.get("status").toString())){
                     case 2:
+                        Intent intent2=new Intent(LoginActivity.this, MqttService.class);
+                        startService(intent2);
                         http.sendByPost(LoginActivity.this,json.getInteger("user_id"));
                         if(remember.isChecked()){
                             editor.putBoolean("isRemember",true);

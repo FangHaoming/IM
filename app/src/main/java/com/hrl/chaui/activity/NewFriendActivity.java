@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -42,7 +43,7 @@ import okhttp3.Response;
 public class NewFriendActivity extends AppCompatActivity {
     ArrayList<User> users=new ArrayList<>();
     MqttServiceConnection connection;
-    private SharedPreferences rev;
+    private SharedPreferences sp;
     private SharedPreferences.Editor editor;
     public TextView add;
     public SearchView mSearchView;
@@ -56,6 +57,8 @@ public class NewFriendActivity extends AppCompatActivity {
     protected void onCreate(@Nullable  Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_new_friend);
+        sp=getSharedPreferences("data",MODE_PRIVATE);
+        editor=sp.edit();
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -126,7 +129,7 @@ public class NewFriendActivity extends AppCompatActivity {
             }
         });
 
-        Intent mqttServiceIntent = new Intent(this, MqttService.class);
+        Intent mqttServiceIntent = new Intent(NewFriendActivity.this, MqttService.class);
         startService(mqttServiceIntent);
         connection = new MqttServiceConnection();
         bindService(mqttServiceIntent, connection, Context.BIND_AUTO_CREATE);
@@ -140,6 +143,7 @@ public class NewFriendActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             MqttService.LocalBinder localBinder = (MqttService.LocalBinder) service;
             users=localBinder.getService().getFriReqMessage();
+            Log.i("friendRequest user", String.valueOf(users));
             mAdapter= new NewFriendAdapter(NewFriendActivity.this,users);
             mRv.setLayoutManager(new LinearLayoutManager(NewFriendActivity.this));
             mRv.setAdapter(mAdapter);
@@ -152,6 +156,13 @@ public class NewFriendActivity extends AppCompatActivity {
 
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i("friendRequest in New",sp.getString("friReqMessage",""));
+    }
+
     private void sendByPost(String user_phone) {
         JSONObject json=new JSONObject();
         json.put("user_phone",user_phone);

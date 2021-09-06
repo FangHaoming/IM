@@ -1,6 +1,5 @@
 package com.hrl.chaui.activity;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,7 +21,6 @@ import com.hrl.chaui.fragment.ContactFragment;
 import com.hrl.chaui.fragment.MessageFragment;
 import com.hrl.chaui.fragment.MineFragment;
 import com.hrl.chaui.util.AppManager;
-import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.http;
 
 import java.util.ArrayList;
@@ -61,9 +59,6 @@ public class MainActivity extends FragmentActivity {
         modifyUser.setUser_img(sp.getString("user_img",""));
 
         initView();
-
-        Intent intent2=new Intent(MainActivity.this, MqttService.class);
-        startService(intent2);
 
         MineFragment=new MineFragment();
         fragments.add(new MessageFragment());

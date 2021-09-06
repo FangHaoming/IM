@@ -51,6 +51,7 @@ public class AddNewFriendActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(intent);
+                finish();
             }
         });
         send.setOnClickListener(new View.OnClickListener() {
@@ -61,7 +62,7 @@ public class AddNewFriendActivity extends AppCompatActivity {
                 mqtt.friendRequest(modifyUser,targetClientID);
                 Toast.makeText(AddNewFriendActivity.this,"发送成功",Toast.LENGTH_SHORT).show();
                 startActivity(intent);
-
+                finish();
             }
         });
     }

@@ -145,7 +145,7 @@ public class MqttService extends Service {
 
         @Override
         public void connectionLost(Throwable cause) {
-            Log.e(TAG, "connectionLost + cause: " + cause);
+            Log.e(TAG, "connectionLost + cause: " + cause.getCause());
         }
 
         @Override
@@ -193,8 +193,10 @@ public class MqttService extends Service {
             switch (msg) {
                 case "friendRequest":  //好友申请消息
                     //保存信息到文件中
+                    Log.e(TAG,payloadString);
                     User user = JSONObject.parseObject(payloadString, User.class);
                     friReqMessage.add(user);
+                    Log.e(TAG,"added");
                     break;
 
                 case "Text": {
