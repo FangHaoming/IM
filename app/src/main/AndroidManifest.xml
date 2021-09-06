@@ -86,6 +86,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
+        <activity android:name=".activity.AddNewFriendActivity"
+            android:parentActivityName=".activity.UserInfoActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activity.UserInfoActivity" />
+        </activity>
 
 
 

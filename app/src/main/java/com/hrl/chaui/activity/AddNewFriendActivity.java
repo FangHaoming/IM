@@ -40,6 +40,7 @@ public class AddNewFriendActivity extends AppCompatActivity {
 
         String targetClientID = "GID_test@@@" + bundle.getInt("targetClientID");
         Intent intent=new Intent(AddNewFriendActivity.this,UserInfoActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Intent mqttServiceIntent = new Intent(this, MqttService.class);
         startService(mqttServiceIntent);
         connection = new MqttServiceConnection();
@@ -55,6 +56,7 @@ public class AddNewFriendActivity extends AppCompatActivity {
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 modifyUser.setCheck(check.getText().toString());
                 mqtt.friendRequest(modifyUser,targetClientID);
                 Toast.makeText(AddNewFriendActivity.this,"发送成功",Toast.LENGTH_SHORT).show();

@@ -9,28 +9,22 @@ import android.media.MediaMetadataRetriever;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
 import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
 import com.hrl.chaui.activity.AnswerVideoCallActivity;
 import com.hrl.chaui.activity.AnswerVoiceCallActivity;
-import com.hrl.chaui.activity.LoginActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
 import com.hrl.chaui.bean.Message;
-import com.hrl.chaui.bean.MsgBody;
 import com.hrl.chaui.bean.MsgSendStatus;
 import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.dao.imp.MessageDaoImp;
-
-
-import static com.hrl.chaui.MyApplication.*;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -42,6 +36,9 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+
+import static com.hrl.chaui.MyApplication.getUserFromContactData;
+import static com.hrl.chaui.MyApplication.groupData;
 
 public class MqttService extends Service {
     private final IBinder mBinder = new LocalBinder();
@@ -320,7 +317,7 @@ public class MqttService extends Service {
 
                     // 从通讯录获取目标用户
                     User targetUser = getUserFromContactData(targetClientID);
-                    String name = targetUser == null ? "unknown" : targetUser.getName();
+                    String name = targetUser == null ? "unknown" : targetUser.getUser_name();
 
                     intent.putExtra("channel", channelID);
                     intent.putExtra("rtcAuthInfo", aliUserInfo);
@@ -353,7 +350,7 @@ public class MqttService extends Service {
                     RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
 
                     User targetUser = getUserFromContactData(targetClientID);
-                    String name = targetUser == null ? "unknown" : targetUser.getName();
+                    String name = targetUser == null ? "unknown" : targetUser.getUser_name();
 
                     SharedPreferences recv = getSharedPreferences("data", Context.MODE_PRIVATE);
                     intent.putExtra("channel", channelID);
@@ -388,17 +385,17 @@ public class MqttService extends Service {
                     // 订阅群聊topic
                     String[] topicFilter = new String[1];
                     int[] qos = new int[1];
-                    topicFilter[0] = String.valueOf(groupInfo.getId());
+                    topicFilter[0] = String.valueOf(groupInfo.getUser_id());
                     qos[0] = groupChatQos;
                     mqtt.subscribe(topicFilter, qos);
 
                     // 将消息显示在消息界面
                     localMessage.setMsgType(MsgType.GROUP_INVITE);
                     localMessage.setGroup(true);
-                    localMessage.setTargetId(String.valueOf(groupInfo.getId()));
+                    localMessage.setTargetId(String.valueOf(groupInfo.getUser_id()));
                     TextMsgBody msgBody = new TextMsgBody();
                     User targetUser = getUserFromContactData(localMessage.getSenderId());
-                    String name = targetUser == null ? "unknown" : targetUser.getName();
+                    String name = targetUser == null ? "unknown" : targetUser.getUser_name();
                     msgBody.setMessage(name + "邀请你入群");
                     localMessage.setBody(msgBody);
                     sendMessageBroadcast(localMessage);

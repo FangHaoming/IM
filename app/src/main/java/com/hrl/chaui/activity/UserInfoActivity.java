@@ -116,7 +116,6 @@ public class UserInfoActivity extends AppCompatActivity {
                                 Intent intent_mn=new Intent(UserInfoActivity.this,ModifyNameActivity.class);
                                 Bundle bundle_mn=new Bundle();
                                 bundle.putString("from","friend");//TODO
-                                
                                  */
 
                                 break;
@@ -235,15 +234,7 @@ public class UserInfoActivity extends AppCompatActivity {
                 // 该用户不是朋友
                 setContentView(R.layout.layout_user_info_stranger);
                 back_arrow=findViewById(R.id.back_arrow);
-                if(recv.getString("user_gender","").equals("女")){
-                    drawable = getResources().getDrawable(R.drawable.female);
-                }
-                else{
-                    drawable= getResources().getDrawable(R.drawable.male);
-                }
-                drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
                 user_name=findViewById(R.id.user_name);
-                user_name.setCompoundDrawables(null,null, drawable,null);
                 user_note=findViewById(R.id.user_nickname);//群昵称
                 user_phone=findViewById(R.id.user_phone);
                 user_sign=findViewById(R.id.user_sign);
@@ -257,6 +248,7 @@ public class UserInfoActivity extends AppCompatActivity {
                 }
                 else if(bundle.getString("from").equals("search")){
                     JSONObject json=JSON.parseObject(bundle.getString("user_info"));
+                    bundle.putInt("contact_id",json.getInteger("user_id"));
                     if(json.getString("user_gender")!=null){
                         if(json.getString("user_gender").equals("女")){
                             drawable = getResources().getDrawable(R.drawable.female);
@@ -270,6 +262,8 @@ public class UserInfoActivity extends AppCompatActivity {
                     }
                     if(json.getString("user_name")!=null){
                         user_name.setText(json.getString("user_name"));
+                        drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
+                        user_name.setCompoundDrawables(null,null, drawable,null);
                     }
                     if(json.getString("user_phone")!=null){
                         user_phone.setText("手机号: "+json.getString("user_phone"));
@@ -282,13 +276,13 @@ public class UserInfoActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         Intent intent_Add=new Intent(UserInfoActivity.this,AddNewFriendActivity.class);
-                        Bundle bundle_Add=intent_Add.getExtras();
+                        Bundle bundle_Add=new Bundle();
                         if(bundle.getString("from").equals("group")){
                             bundle_Add.putString("group_name",bundle.getString("group_name"));
                         }
                         bundle_Add.putInt("targetClientID",bundle.getInt("contact_id"));
                         intent_Add.putExtras(bundle_Add);
-                        startActivity(intent);
+                        startActivity(intent_Add);
                     }
                 });
                 back_arrow.setOnClickListener(new View.OnClickListener() {
@@ -440,7 +434,6 @@ public class UserInfoActivity extends AppCompatActivity {
                                 else{
                                     drawable= getResources().getDrawable(R.drawable.unknown);
                                 }
-
                                 drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
                                 user_note.setCompoundDrawables(null,null, drawable,null);
                                 if(user.getUser_note()==null){
@@ -495,8 +488,21 @@ public class UserInfoActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        if(json.getString("user_gender")!=null){
+                            if(json.getString("user_gender").equals("女")){
+                                drawable = getResources().getDrawable(R.drawable.female);
+                            }
+                            else{
+                                drawable= getResources().getDrawable(R.drawable.male);
+                            }
+                        }
+                        else{
+                            drawable= getResources().getDrawable(R.drawable.unknown);
+                        }
                         if(json.getString("user_name")!=null){
                             user_name.setText(json.getString("user_name"));
+                            drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
+                            user_name.setCompoundDrawables(null,null, drawable,null);
                         }
                         if(json.getString("user_phone")!=null){
                             user_phone.setText("手机号: "+json.getString("user_phone"));
