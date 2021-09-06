@@ -19,6 +19,15 @@ public class User extends BaseIndexPinyinBean implements Serializable {
     private int rank;
     private int notice_rank;
     private String nickname;
+    private String check;
+
+    public String getCheck() {
+        return check;
+    }
+
+    public void setCheck(String check) {
+        this.check = check;
+    }
 
     public String getUser_pwd() {
         return user_pwd;

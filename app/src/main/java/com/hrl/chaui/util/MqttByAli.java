@@ -1,18 +1,22 @@
 package com.hrl.chaui.util;
 
 
-import android.content.SharedPreferences;
-import android.provider.Settings;
 import android.util.Log;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.aliyun.apsaravideo.sophon.utils.SharedPreferenceUtils;
 import com.aliyun.onsmqtt20200420.models.QuerySessionByClientIdRequest;
 import com.aliyun.onsmqtt20200420.models.QuerySessionByClientIdResponse;
 import com.aliyun.teaopenapi.models.Config;
 import com.hrl.chaui.bean.User;
-import com.hrl.chaui.util.ConnectionOptionWrapper;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import java.io.File;
 import java.security.InvalidKeyException;
@@ -20,10 +24,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.eclipse.paho.client.mqttv3.*;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 public class MqttByAli {
     /**

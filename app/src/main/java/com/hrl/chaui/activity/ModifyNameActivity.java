@@ -20,6 +20,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.hrl.chaui.R;
 
 public class ModifyNameActivity extends AppCompatActivity {
+    Bundle bundle;
+    Intent intent;
+    Intent intent_back;
+    Bundle bundle_back;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -33,6 +37,9 @@ public class ModifyNameActivity extends AppCompatActivity {
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         EditText Edit=findViewById(R.id.Edit);
         Button save=findViewById(R.id.save);
+        intent=getIntent();
+        bundle=intent.getExtras();
+        bundle_back=new Bundle();
         TextView back_arrow=findViewById(R.id.back_arrow);
         SharedPreferences sp=getSharedPreferences("data",MODE_PRIVATE);
         SharedPreferences.Editor editor=sp.edit();
@@ -43,19 +50,44 @@ public class ModifyNameActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(Edit.getText().length()==0) {
-                    Toast.makeText(ModifyNameActivity.this, "昵称不能为空", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ModifyNameActivity.this, "名称不能为空", Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    Intent intent = new Intent(ModifyNameActivity.this, ModifyActivity.class);
-                    Bundle bundle = bundle = new Bundle();
-                    if (!sp.getString("user_name", "").equals(Edit.getText().toString())) {
-                        bundle.putBoolean("isModify", true);
-                    } else {
-                        bundle.putBoolean("isModify", false);
+                    bundle_back.putBoolean("isModify", false);
+                    if(bundle.getString("from").equals("friend")){ //设置好友备注
+                        intent_back= new Intent(ModifyNameActivity.this, UserInfoActivity.class);
+                        if (!bundle.getString("friend_note").equals(Edit.getText().toString())) {//TODO 设置好友备注，那边还没传备注
+                            bundle_back.putBoolean("isModify", true);
+                        }
+                        bundle_back.putString("friend_note", Edit.getText().toString());
                     }
-                    bundle.putString("user_name", Edit.getText().toString());
-                    intent.putExtras(bundle);
-                    startActivity(intent);
+                    else if(bundle.getString("from").equals("group")){
+                        intent_back= new Intent(ModifyNameActivity.this, GroupInfoActivity.class);
+                        bundle_back.putInt("group_id",bundle.getInt("group_id"));
+                        if(bundle.getString("which").equals("nickname")){ //我在群的昵称
+                            if (!bundle.getString("nickname").equals(Edit.getText().toString())) {
+                                bundle_back.putBoolean("isModify", true);
+                            }
+                            bundle_back.putString("nickname", Edit.getText().toString());
+                        }
+                        else if(bundle.getString("which").equals("group_name")){ //群聊名称
+                            if (!bundle.getString("group_name").equals(Edit.getText().toString())) {
+                                bundle_back.putBoolean("isModify", true);
+                            }
+                            bundle_back.putString("group_name", Edit.getText().toString());
+                        }
+
+                    }
+                    else if(bundle.getString("from").equals("me")){ //修改个人信息
+                        intent_back= new Intent(ModifyNameActivity.this, ModifyActivity.class);
+                        if (!bundle.getString("user_name").equals(Edit.getText().toString())) {
+                            bundle_back.putBoolean("isModify", true);
+                        }
+                        bundle_back.putString("user_name", Edit.getText().toString());
+                    }
+                    intent_back.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent_back.putExtras(bundle_back);
+                    startActivity(intent_back);
                     finish();
                 }
             }

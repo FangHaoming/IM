@@ -16,13 +16,11 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
-import com.hrl.chaui.adapter.GridViewAdapter;
 import com.hrl.chaui.adapter.GroupMemberAdapter;
 import com.hrl.chaui.bean.User;
 
@@ -36,59 +34,117 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.hrl.chaui.MyApplication.groupMemberData;
+import static com.hrl.chaui.MyApplication.modifyUser;
 
 public class GroupInfoActivity extends AppCompatActivity {
     public SharedPreferences recv;
     public SharedPreferences.Editor editor;
     public TextView back_arrow;
-    public RecyclerView mRv;
-    public View notice_switch;
-    public TextView name;
+    public View group_name_view,nickname_view;
+    public TextView group_name;
+    public TextView nickname;
     public TextView delete;
     public GridView gridView;
-    public GroupMemberAdapter mAdapter;
+    public Intent intent;
+    public Bundle bundle;
+    Bundle bundle_modifyName;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_group_info);
-
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
+        recv = getSharedPreferences("data", Context.MODE_PRIVATE);
+        editor = recv.edit();
+        intent=getIntent();
+        bundle = intent.getExtras();
+        bundle_modifyName=new Bundle();
+        bundle_modifyName.putString("from","group");
+        int group_id=bundle.getInt("contact_id");
+        delete=findViewById(R.id.delete);
+        gridView=findViewById(R.id.gridview);
         back_arrow=findViewById(R.id.back_arrow);
-        back_arrow.setOnClickListener(new View.OnClickListener() {
+        group_name=findViewById(R.id.group_name);
+        nickname=findViewById(R.id.nickname);
+        nickname_view=findViewById(R.id.nickname_view);
+        group_name_view=findViewById(R.id.group_name_view);
+        sendByPost(group_id,recv.getInt("user_id",0));
+        group_name_view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(GroupInfoActivity.this, GroupActivity.class);
-                startActivity(intent);
-                overridePendingTransition(0, R.anim.slide_right_out);
+                if(true){//TODO 如果是群主、管理员 或者 人数少于10可以改群名
+                    Intent intent_modifyName=new Intent(GroupInfoActivity.this,ModifyNameActivity.class);
+                    bundle_modifyName.putString("which","group_name");
+                    bundle_modifyName.putString("group_name",group_name.getText().toString());
+                    intent_modifyName.putExtras(bundle_modifyName);
+                    startActivity(intent_modifyName);
+                }
+            }
+        });
+        nickname_view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent_modifyName=new Intent(GroupInfoActivity.this,ModifyNameActivity.class);
+                bundle_modifyName.putString("which","nickname");
+                bundle_modifyName.putString("nickname",nickname.getText().toString());
+                intent_modifyName.putExtras(bundle_modifyName);
+                startActivity(intent_modifyName);
             }
         });
 
-        /*
-        mRv=findViewById(R.id.rv);
-        mRv.setLayoutManager(new LinearLayoutManager(this));
-
-         */
-        name=findViewById(R.id.name);
-        notice_switch=findViewById(R.id.notice_switch);
-        gridView=findViewById(R.id.gridview);
-
-        recv = getSharedPreferences("data", Context.MODE_PRIVATE);
-        editor = recv.edit();
-        Intent intent=getIntent();
-        Bundle bundle = intent.getExtras();
-        int group_id=bundle.getInt("contact_id");
-
-        sendByPost(group_id,recv.getInt("user_id",0));
+        back_arrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent_back=new Intent(GroupInfoActivity.this, GroupChatActivity.class);
+                startActivity(intent_back);
+                overridePendingTransition(0, R.anim.slide_right_out);
+                finish();
+            }
+        });
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO 删除并退出群聊
+            }
+        });
     }
 
-    private void sendByPost(int group_id,int user_id) {
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent=getIntent();
+        Bundle bundle=intent.getExtras();
+        if(bundle!=null){
+            if(bundle.getBoolean("isModify")){
+                String name;
+                if(bundle.getString("group_name")!=null){
+                    group_name.setText(bundle.getString("group_name"));
+                    name=bundle.getString("group_name");
+                    //TODO 修改群名接口
+                }
+                if(bundle.getString("nickname")!=null){
+                    nickname.setText(bundle.getString("nickname"));
+                    name=bundle.getString("nickname");
+                    sendByPost_nickname(modifyUser.getUser_id(),bundle.getInt("group_id"),name);
+                }
+                //TODO sendByPost(user_id,bundle.getInt("group_id"),name); 修改群内昵称接口
+            }
+        }
+    }
+
+    private void sendByPost(int group_id, int user_id) {
         JSONObject json=new JSONObject();
         json.put("group_id",group_id);
         json.put("user_id",user_id);
@@ -115,6 +171,7 @@ public class GroupInfoActivity extends AppCompatActivity {
                 String info=response.body().string();
                 System.out.println("***********group_info"+info);
                 JSONObject json= JSON.parseObject(info);
+                bundle_modifyName.putInt("group_id",json.getInteger("group_id"));
                 JSONArray members=json.getJSONArray("members");
                 groupMemberData=new ArrayList<>();
                 for(int i=0;i<members.size();i++){
@@ -128,6 +185,9 @@ public class GroupInfoActivity extends AppCompatActivity {
                     if(obj.getString("friend_note")!=null){
                         user.setUser_note(obj.getString("friend_note"));
                     }
+                    if(obj.getInteger("user_id").equals(modifyUser.getUser_id())){
+                        modifyUser.setNickname(obj.getString("nickname"));
+                    }
                     groupMemberData.add(user);
                 }
                 new Thread(new Runnable() {
@@ -136,14 +196,55 @@ public class GroupInfoActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                name.setText(json.getString("group_name"));
-                                GridViewAdapter mGriViewAdapter=new GridViewAdapter(getApplicationContext(),groupMemberData);
-                                gridView.setAdapter(mGriViewAdapter);
-                                mGriViewAdapter.notifyDataSetChanged();
+                                group_name.setText(json.getString("group_name"));
+                                nickname.setText(modifyUser.getNickname());
+                                GroupMemberAdapter mGroupMemberAdapter=new GroupMemberAdapter(getApplicationContext(),groupMemberData);
+                                mGroupMemberAdapter.setGroup_name(bundle.getString("group_name"));
+                                gridView.setAdapter(mGroupMemberAdapter);
+                                mGroupMemberAdapter.notifyDataSetChanged();
                             }
                         });
                     }
                 }).start();
+            }
+        });
+    }
+
+    private void sendByPost_nickname(int user_id,int group_id, String user_nickname) {
+        JSONObject json=new JSONObject();
+        json.put("group_id",group_id);
+        json.put("user_id",user_id);
+        json.put("nickname",user_nickname);
+        String path = getResources().getString(R.string.request_local)+"/groupNickname";
+        OkHttpClient client = new OkHttpClient();
+        final FormBody formBody = new FormBody.Builder()
+                .add("json", json.toJSONString())
+                .build();
+        System.out.println("*********"+json.toJSONString());
+        Request request = new Request.Builder()
+                .url(path)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                Looper.prepare();
+                Toast.makeText(GroupInfoActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+                Looper.loop();
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                String info = response.body().string();
+                System.out.println("***********group_info" + info);
+                JSONObject json = JSON.parseObject(info);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        nickname.setText(user_nickname);
+                    }
+                });
+
             }
         });
     }

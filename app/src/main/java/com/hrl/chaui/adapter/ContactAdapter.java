@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,6 +20,8 @@ import com.hrl.chaui.activity.UserInfoActivity;
 import com.hrl.chaui.bean.User;
 
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -80,7 +81,8 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     if(user.getType()==0){
                         intent = new Intent(mContext, UserInfoActivity.class);
                         bundle.putString("from","contact");
-                        bundle.putBoolean("isFriend", true);
+                        bundle.putString("who", "friend");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     }
                     else {
                         intent=new Intent(mContext, GroupChatActivity.class);
@@ -89,6 +91,7 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     }
                     bundle.putInt("contact_id", user.getUser_id()); // 存放的是群聊的ID 或者 用户的ID
                     intent.putExtras(bundle);
+
                     mContext.startActivity(intent);
                     //((Activity) mContext).overridePendingTransition(R.anim.slide_left_in, 0);
 
@@ -105,13 +108,13 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name;
-        ImageView img;
+        CircleImageView img;
         View content;
 
         public ViewHolder(View itemView) {
             super(itemView);
             name = (TextView) itemView.findViewById(R.id.name);
-            img = (ImageView) itemView.findViewById(R.id.img);
+            img =  itemView.findViewById(R.id.img);
             content = itemView.findViewById(R.id.content);
         }
     }

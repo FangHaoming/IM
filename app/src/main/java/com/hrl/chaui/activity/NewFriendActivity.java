@@ -20,9 +20,12 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
+import com.hrl.chaui.adapter.NewFriendAdapter;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.util.Is;
 import com.hrl.chaui.util.MqttService;
@@ -36,17 +39,19 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.hrl.chaui.MyApplication.groupData;
+
 public class NewFriendActivity extends AppCompatActivity {
-    MqttService.LocalBinder binder;
     ArrayList<User> users=new ArrayList<>();
-    MqttService mService;
-    MqttServiceConnection mConn;
+    MqttServiceConnection connection;
     private SharedPreferences rev;
     private SharedPreferences.Editor editor;
     public TextView add;
     public SearchView mSearchView;
     public View search1,search2;
     public TextView back_arrow;
+    private RecyclerView mRv;
+    private NewFriendAdapter mAdapter;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -64,6 +69,7 @@ public class NewFriendActivity extends AppCompatActivity {
         search1=findViewById(R.id.search_plate);
         search2=findViewById(R.id.submit_area);
         back_arrow=findViewById(R.id.back_arrow);
+        mRv=findViewById(R.id.rv);
         search1.setBackground(null);
         search2.setBackground(null);
         back_arrow.setOnClickListener(new View.OnClickListener() {
@@ -86,19 +92,26 @@ public class NewFriendActivity extends AppCompatActivity {
                         imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0); // 输入法如果是显示状态，那么就隐藏输入法                    }
                         mSearchView.clearFocus(); // 不获取焦点
                     }
-                    if(Is.isFriendByPhone(query)){
-                        Intent intent = new Intent(NewFriendActivity.this, UserInfoActivity.class);
-                        Bundle bundle = new Bundle();
-                        bundle.putBoolean("isFriend",true);
-                        bundle.putInt("contact_id",Is.getIdByPhone(query));
-                        intent.putExtras(bundle);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
-                        startActivity(intent);
-                        finish();
+                    if(query.length()==11){
+                        if(Is.isFriendByPhone(query)){
+                            Intent intent = new Intent(NewFriendActivity.this, UserInfoActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("who","friend");
+                            bundle.putString("from","search");
+                            bundle.putInt("contact_id",Is.getIdByPhone(query));
+                            intent.putExtras(bundle);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
+                            startActivity(intent);
+                            finish();
+                        }
+                        else{
+                            sendByPost(query);
+                        }
                     }
                     else{
-                        sendByPost(query);
+                        Toast.makeText(NewFriendActivity.this,"请输入正确的手机号!",Toast.LENGTH_SHORT).show();
                     }
+
 
                 }
                 return true;
@@ -115,25 +128,26 @@ public class NewFriendActivity extends AppCompatActivity {
                 mSearchView.setIconified(false);
             }
         });
-        /*
-        Intent intent=new Intent(NewFriendActivity.this, MqttService.class);
-        mConn=new MqttServiceConnection();
-        rev=getSharedPreferences("data",MODE_PRIVATE);
-        editor=rev.edit();
-        bindService(intent,mConn,BIND_AUTO_CREATE);
-        System.out.println("*************add"+rev.getString("friReqMessage", ""));
 
-         */
+        Intent mqttServiceIntent = new Intent(this, MqttService.class);
+        startService(mqttServiceIntent);
+        connection = new MqttServiceConnection();
+        bindService(mqttServiceIntent, connection, Context.BIND_AUTO_CREATE);
+
 
     }
 
-    public class MqttServiceConnection implements ServiceConnection{
+    private class MqttServiceConnection implements ServiceConnection {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            binder= (MqttService.LocalBinder) service;
-            mService=binder.getService();
-            users=mService.getFriReqMessage();
+            MqttService.LocalBinder localBinder = (MqttService.LocalBinder) service;
+            users=localBinder.getService().getFriReqMessage();
+            mAdapter= new NewFriendAdapter(NewFriendActivity.this,users);
+            mRv.setLayoutManager(new LinearLayoutManager(NewFriendActivity.this));
+            mRv.setAdapter(mAdapter);
+            mAdapter.setDatas(groupData);
+            mAdapter.notifyDataSetChanged();
         }
 
         @Override
@@ -173,7 +187,7 @@ public class NewFriendActivity extends AppCompatActivity {
                 else{
                     Intent intent = new Intent(NewFriendActivity.this, UserInfoActivity.class);
                     Bundle bundle = new Bundle();
-                    bundle.putBoolean("isFriend",false);
+                    bundle.putString("who","stranger");
                     bundle.putString("user_info", info);
                     bundle.putString("from","search");
                     intent.putExtras(bundle);
@@ -183,5 +197,11 @@ public class NewFriendActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(connection);
     }
 }

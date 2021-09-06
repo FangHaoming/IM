@@ -17,7 +17,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,7 +41,9 @@ import com.hrl.chaui.util.RTCHelper;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -59,7 +60,7 @@ public class UserInfoActivity extends AppCompatActivity {
     public TextView user_phone;
     public TextView user_sign;
     public TextView add;
-    public ImageView user_img;
+    public CircleImageView user_img;
     public LinearLayout sendMsg;
     public LinearLayout sendCall;
     public LinearLayout videoCall;
@@ -91,9 +92,9 @@ public class UserInfoActivity extends AppCompatActivity {
         bundle = intent.getExtras();
         if(bundle!=null){
             Log.i("isFriend in user", String.valueOf(bundle.getBoolean("isFriend")));
-            if(bundle.getBoolean("isFriend")) {
+            if(bundle.getString("who").equals("friend")) {
                 // 该用户是朋友
-                setContentView(R.layout.layout_user_info);
+                setContentView(R.layout.layout_user_info_friend);
                 back_arrow = findViewById(R.id.back_arrow);
                 user_name = findViewById(R.id.user_name);
                 sendMsg = findViewById(R.id.send_message);
@@ -106,25 +107,29 @@ public class UserInfoActivity extends AppCompatActivity {
                 user_sign = findViewById(R.id.user_sign);
                 user_img = findViewById(R.id.user_img);
 
-                View.OnClickListener listener=new View.OnClickListener() {
+                View.OnClickListener listener = new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        switch(v.getId()){
+                        switch (v.getId()) {
                             case R.id.setNote:
+                                /*
+                                Intent intent_mn=new Intent(UserInfoActivity.this,ModifyNameActivity.class);
+                                Bundle bundle_mn=new Bundle();
+                                bundle.putString("from","friend");//TODO
+                                
+                                 */
+
                                 break;
                             case R.id.delete:
+                                //TODO 删除好友
                                 break;
                             case R.id.send_message:
                                 Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
-                                chatIntent.putExtra("targetUser",user);
+                                chatIntent.putExtra("targetUser", user);
                                 startActivity(chatIntent);
+                                finish();
                                 break;
                             case R.id.send_call: {
-                                // 如果改人是登录用户自己，提示不能与自己通话。
-                                if (bundle.getInt("contact_id") == recv.getInt("user_id", 0)) {
-                                    Toast.makeText(UserInfoActivity.this, "不能与自己通话", Toast.LENGTH_SHORT).show();
-                                    break;
-                                }
 
                                 // 获取通信双方的clientID
                                 String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
@@ -138,7 +143,7 @@ public class UserInfoActivity extends AppCompatActivity {
                                 voiceCallIntent.putExtra("user2Name", user.getUser_name());
 
                                 // 查看对方是否在线
-                                new Thread(()->{
+                                new Thread(() -> {
                                     try {
                                         boolean isOnline = MqttByAli.checkIsOnline(targetClientID);
                                         if (isOnline) {
@@ -202,17 +207,16 @@ public class UserInfoActivity extends AppCompatActivity {
                             }
                             case R.id.back_arrow:
                                 Intent intent = null;
-                                if(bundle.getString("from").equals("group")){
-                                    intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
-                                }else if(bundle.getString("from").equals("contact")){
-                                    intent=new Intent(UserInfoActivity.this,MainActivity.class);
-                                }else if(bundle.getString("from").equals("search")){
-                                    intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
+                                if (bundle.getString("from").equals("group")) {
+                                    intent = new Intent(UserInfoActivity.this, GroupInfoActivity.class);
+                                } else if (bundle.getString("from").equals("contact")) {
+                                    intent = new Intent(UserInfoActivity.this, MainActivity.class);
+                                } else if (bundle.getString("from").equals("search")) {
+                                    intent = new Intent(UserInfoActivity.this, NewFriendActivity.class);
                                 }
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 startActivity(intent);
                                 overridePendingTransition(0, R.anim.slide_right_out);
-                                finish();
                                 break;
                         }
                     }
@@ -224,28 +228,26 @@ public class UserInfoActivity extends AppCompatActivity {
                 delete.setOnClickListener(listener);
                 back_arrow.setOnClickListener(listener);
 
-
-                int friend_id = bundle.getInt("contact_id");
-                if (friend_id == recv.getInt("user_id", 0)) {
-                    // 该人是登录用户本人
-                    Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img) + recv.getString("user_img", "")).into(user_img);
-                    user_note.setText(recv.getString("user_name", ""));
-                    user_sign.setText("个性签名: " + recv.getString("user_sign", ""));
-                    user_phone.setText("手机号: " + recv.getString("user_phone", ""));
-                } else{
-                    // 非本人则网络请求获取该用户的信息
-                    sendByPost_friend(recv.getInt("user_id", 0), friend_id);
-                }
-
+                // 非本人则网络请求获取该用户的信息
+                sendByPost_friend(recv.getInt("user_id", 0), bundle.getInt("contact_id"));
             }
-            else{
+            else if(bundle.getString("who").equals("stranger")){
                 // 该用户不是朋友
-                setContentView(R.layout.layout_user_info_not);
+                setContentView(R.layout.layout_user_info_stranger);
                 back_arrow=findViewById(R.id.back_arrow);
+                if(recv.getString("user_gender","").equals("女")){
+                    drawable = getResources().getDrawable(R.drawable.female);
+                }
+                else{
+                    drawable= getResources().getDrawable(R.drawable.male);
+                }
+                drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
                 user_name=findViewById(R.id.user_name);
+                user_name.setCompoundDrawables(null,null, drawable,null);
                 user_note=findViewById(R.id.user_nickname);//群昵称
                 user_phone=findViewById(R.id.user_phone);
                 user_sign=findViewById(R.id.user_sign);
+                user_img=findViewById(R.id.user_img);
                 add=findViewById(R.id.add);
                 if(bundle.getString("from").equals("group")){
                     if(bundle.getString("nickname")!=null){
@@ -255,6 +257,17 @@ public class UserInfoActivity extends AppCompatActivity {
                 }
                 else if(bundle.getString("from").equals("search")){
                     JSONObject json=JSON.parseObject(bundle.getString("user_info"));
+                    if(json.getString("user_gender")!=null){
+                        if(json.getString("user_gender").equals("女")){
+                            drawable = getResources().getDrawable(R.drawable.female);
+                        }
+                        else{
+                            drawable= getResources().getDrawable(R.drawable.male);
+                        }
+                    }
+                    else{
+                        drawable= getResources().getDrawable(R.drawable.unknown);
+                    }
                     if(json.getString("user_name")!=null){
                         user_name.setText(json.getString("user_name"));
                     }
@@ -265,10 +278,17 @@ public class UserInfoActivity extends AppCompatActivity {
                         user_sign.setText(json.getString("user_sign"));
                     }
                 }
-                add.setOnClickListener(new View.OnClickListener() {
+                add.setOnClickListener(new View.OnClickListener() {  //添加到通讯录
                     @Override
                     public void onClick(View v) {
-                        //TODO 发送添加好友请求
+                        Intent intent_Add=new Intent(UserInfoActivity.this,AddNewFriendActivity.class);
+                        Bundle bundle_Add=intent_Add.getExtras();
+                        if(bundle.getString("from").equals("group")){
+                            bundle_Add.putString("group_name",bundle.getString("group_name"));
+                        }
+                        bundle_Add.putInt("targetClientID",bundle.getInt("contact_id"));
+                        intent_Add.putExtras(bundle_Add);
+                        startActivity(intent);
                     }
                 });
                 back_arrow.setOnClickListener(new View.OnClickListener() {
@@ -285,7 +305,59 @@ public class UserInfoActivity extends AppCompatActivity {
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
                         overridePendingTransition(0, R.anim.slide_right_out);
+                    }
+                });
+            }
+            else if(bundle.getString("who").equals("me")){ //本人
+                setContentView(R.layout.layout_user_info_me);
+                if(recv.getString("user_gender","").equals("女")){
+                    drawable = getResources().getDrawable(R.drawable.female);
+                }
+                else{
+                    drawable= getResources().getDrawable(R.drawable.male);
+                }
+                drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
+                user_name=findViewById(R.id.user_name);
+                user_name.setCompoundDrawables(null,null, drawable,null);
+                user_note=findViewById(R.id.user_nickname);
+                user_phone=findViewById(R.id.user_phone);
+                user_sign=findViewById(R.id.user_sign);
+                user_img=findViewById(R.id.user_img);
+                sendMsg = findViewById(R.id.send_message);
+                back_arrow=findViewById(R.id.back_arrow);
+                Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img) + recv.getString("user_img", "")).into(user_img);
+                user_name.setText(recv.getString("user_name", ""));
+                user_sign.setText(recv.getString("user_sign", ""));
+                user_note.setText("群昵称: "+bundle.getString("nickname"));
+                user_phone.setText("手机号: " + recv.getString("user_phone", ""));
+                sendMsg.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
+                        user.setUser_name(recv.getString("user_name",""));
+                        user.setUser_pwd(recv.getString("user_pwd",""));
+                        user.setUser_img(recv.getString("user_img",""));
+                        user.setUser_phone(recv.getString("user_phone",""));
+                        user.setUser_id(recv.getInt("user_id",-1));
+                        chatIntent.putExtra("targetUser", user);
+                        startActivity(chatIntent);
                         finish();
+                    }
+                });
+                back_arrow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = null;
+                        if(bundle.getString("from").equals("group")){
+                            intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
+                        }else if(bundle.getString("from").equals("contact")){
+                            intent=new Intent(UserInfoActivity.this,MainActivity.class);
+                        }else if(bundle.getString("from").equals("search")){
+                            intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
+                        }
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        overridePendingTransition(0, R.anim.slide_right_out);
                     }
                 });
             }
@@ -309,10 +381,9 @@ public class UserInfoActivity extends AppCompatActivity {
             }else if(bundle.getString("from").equals("search")){
                 intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
             }
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Objects.requireNonNull(intent).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             overridePendingTransition(0, R.anim.slide_right_out);
-            finish();
         }
         return true;
     }
@@ -433,6 +504,9 @@ public class UserInfoActivity extends AppCompatActivity {
                         if(json.getString("user_sign")!=null){
                             user_sign.setText(json.getString("user_sign"));
                         }
+                        if(json.getString("user_img")!=null){
+                            Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img)+json.getString("user_img")).into(user_img);
+                        }
                     }
                 });
 
@@ -483,6 +557,10 @@ public class UserInfoActivity extends AppCompatActivity {
         super.onDestroy();
         // 解绑MqttService
         unbindService(connection);
+        if(user_img != null &&  !this.isDestroyed()){
+            Glide.with(this).clear(user_img);
+            user_img = null;
+        }
     }
 
     private void initMqtt() {

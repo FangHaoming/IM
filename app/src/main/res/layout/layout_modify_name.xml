@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="更改昵称"
+            android:text="更改名称"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_marginRight="27dp"
@@ -40,6 +40,6 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="10dp"
         android:maxLength="20"
-        android:hint="输入昵称（最多20个字符）"
+        android:hint="输入名称（最多20个字符）"
         android:id="@+id/Edit"/>
 </LinearLayout>

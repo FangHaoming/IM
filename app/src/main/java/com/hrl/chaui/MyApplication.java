@@ -12,6 +12,7 @@ public class MyApplication extends Application {
     public static User modifyUser=new User();
     public static List<User> contactData=new ArrayList<>();
     public static List<User> groupData=new ArrayList<>();
+    public static List<User> friendData=new ArrayList<>();
     public static List<User> groupMemberData=new ArrayList<>();
 
     @Override

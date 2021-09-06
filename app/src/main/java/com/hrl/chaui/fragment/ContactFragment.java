@@ -37,6 +37,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.hrl.chaui.MyApplication.contactData;
+import static com.hrl.chaui.MyApplication.friendData;
 import static com.hrl.chaui.MyApplication.groupData;
 
 public class ContactFragment extends Fragment {
@@ -102,12 +103,14 @@ public class ContactFragment extends Fragment {
                 System.out.println("*********contact" + json.toJSONString());
                 contactData = new ArrayList<>();
                 groupData = new ArrayList<>();
-                contactData.add((User) new User("新的朋友","-1").setTop(true).setBaseIndexTag("↑"));
-                contactData.add((User) new User("群聊","-1").setTop(true).setBaseIndexTag("↑"));
+                friendData=new ArrayList<>();
+                contactData.add((User) new User("新的朋友", "-1").setTop(true).setBaseIndexTag("↑"));
+                contactData.add((User) new User("群聊", "-1").setTop(true).setBaseIndexTag("↑"));
                 for (int i = 0; i < contacts.size(); i++) {
                     JSONObject obj = contacts.getJSONObject(i);
                     if (obj.getInteger("type") == 0) {
                         contactData.add(new User(obj.getInteger("contact_id"), obj.getString("contact_img"), obj.getString("contact_name"),obj.getString("user_phone"), obj.getInteger("type")));
+                        friendData.add(new User(obj.getInteger("contact_id"), obj.getString("contact_img"), obj.getString("contact_name"),obj.getString("user_phone"), obj.getInteger("type")));
                     } else {
                         groupData.add(new User(obj.getInteger("contact_id"), obj.getString("contact_img"), obj.getString("contact_name"),obj.getString("user_phone"), obj.getInteger("type")));
 

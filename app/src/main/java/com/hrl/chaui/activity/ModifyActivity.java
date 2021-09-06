@@ -95,6 +95,9 @@ public class ModifyActivity extends AppCompatActivity {
                         break;
                     case R.id.name_view:
                         intent = new Intent(ModifyActivity.this, ModifyNameActivity.class);
+                        Bundle bundle_modifyName=new Bundle();
+                        bundle_modifyName.putString("from","me");
+                        intent.putExtras(bundle_modifyName);
                         startActivity(intent);
                         break;
                     case R.id.gender_view:

@@ -123,7 +123,7 @@ public class MineFragment extends Fragment {
         Log.i("isImgChang me resu",""+isImgChange);
         Log.i("user_img in Mine",sp.getString("user_img", ""));
         if (!sp.getString("user_img", "").equals("") && !isImgChange) {
-            Glide.with(this).load(getString(R.string.request_local)+"/images/head" + sp.getString("user_img", "")).into(img);
+            Glide.with(this).load(getString(R.string.app_prefix_img) +sp.getString("user_img", "")).into(img);
         } else if (!Objects.equals(img_uri, "") && isImgChange) {
             Log.i("isImgChange in Modify",""+isImgChange);
             try {

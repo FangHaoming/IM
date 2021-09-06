@@ -1,29 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:layout_height="match_parent">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:gravity="center"
-        android:background="@color/top_bottom">
+    android:background="@color/top_bottom"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="45dp">
         <TextView
             android:id="@+id/back_arrow"
             android:layout_width="wrap_content"
             android:layout_height="17dp"
-            android:layout_marginLeft="10dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
             android:background="@drawable/back_arrow" />
-
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="新的朋友"
-            android:gravity="center"
+            android:text="申请添加好友"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:layout_marginRight="27dp"
             android:textColor="@color/black"
             android:textSize="18dp" />
+        <Button
+            android:layout_width="60dp"
+            android:layout_height="35dp"
+            android:layout_marginRight="16dp"
+            android:background="@color/btn_enable"
+            android:textColor="@color/white"
+            android:id="@+id/send"
+            android:text="发送"
+            android:layout_alignParentEnd="true"/>
+    </RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="30dp"
+        android:gravity="center"
+        android:layout_marginHorizontal="10dp">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="5dp"
+                android:text="发送添加好友验证消息"/>
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="88sp"
+                android:ems="17"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:maxLength="50"
+                android:background="@drawable/rectangle"
+                android:padding="10sp"
+                android:id="@+id/check"/>
+        </LinearLayout>
 
     </LinearLayout>
+
 </LinearLayout>

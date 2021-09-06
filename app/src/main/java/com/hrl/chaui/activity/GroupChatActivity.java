@@ -420,6 +420,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
                 Intent intent = new Intent(GroupChatActivity.this, GroupInfoActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putInt("contact_id", Integer.valueOf(targetGroupID)); // 存放的是群聊的ID 或者 用户的ID
+                bundle.putString("group_name",targetGroup.getUser_name());
                 intent.putExtras(bundle);
                 startActivity(intent);
             }
