@@ -39,8 +39,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.hrl.chaui.MyApplication.groupData;
-
 public class NewFriendActivity extends AppCompatActivity {
     ArrayList<User> users=new ArrayList<>();
     MqttServiceConnection connection;
@@ -102,7 +100,6 @@ public class NewFriendActivity extends AppCompatActivity {
                             intent.putExtras(bundle);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
                             startActivity(intent);
-                            finish();
                         }
                         else{
                             sendByPost(query);
@@ -146,7 +143,7 @@ public class NewFriendActivity extends AppCompatActivity {
             mAdapter= new NewFriendAdapter(NewFriendActivity.this,users);
             mRv.setLayoutManager(new LinearLayoutManager(NewFriendActivity.this));
             mRv.setAdapter(mAdapter);
-            mAdapter.setDatas(groupData);
+            mAdapter.setDatas(users);
             mAdapter.notifyDataSetChanged();
         }
 
@@ -193,7 +190,6 @@ public class NewFriendActivity extends AppCompatActivity {
                     intent.putExtras(bundle);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
                     startActivity(intent);
-                    finish();
                 }
             }
         });

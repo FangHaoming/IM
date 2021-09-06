@@ -9,28 +9,22 @@ import android.media.MediaMetadataRetriever;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
 import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
 import com.hrl.chaui.activity.AnswerVideoCallActivity;
 import com.hrl.chaui.activity.AnswerVoiceCallActivity;
-import com.hrl.chaui.activity.LoginActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
 import com.hrl.chaui.bean.Message;
-import com.hrl.chaui.bean.MsgBody;
 import com.hrl.chaui.bean.MsgSendStatus;
 import com.hrl.chaui.bean.MsgType;
 import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.dao.imp.MessageDaoImp;
-
-
-import static com.hrl.chaui.MyApplication.*;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -42,6 +36,9 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+
+import static com.hrl.chaui.MyApplication.getUserFromContactData;
+import static com.hrl.chaui.MyApplication.groupData;
 
 public class MqttService extends Service {
     private final IBinder mBinder = new LocalBinder();
@@ -388,6 +385,7 @@ public class MqttService extends Service {
                     // 订阅群聊topic
                     String[] topicFilter = new String[1];
                     int[] qos = new int[1];
+                    topicFilter[0] = String.valueOf(groupInfo.getUser_id());
                     if (groupInfo == null) break;
                     topicFilter[0] = String.valueOf(groupInfo.getUser_id());
                     qos[0] = groupChatQos;
