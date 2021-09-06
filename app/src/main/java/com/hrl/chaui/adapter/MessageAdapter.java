@@ -24,11 +24,9 @@ import static com.hrl.chaui.MyApplication.groupData;
 
 public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
-    Context context = null;
 
     public MessageAdapter(Context context,@Nullable List<Message> data) {
         super(R.layout.item_message,data); // 设置item样式
-        this.context = context;
     }
 
     @Override
@@ -39,7 +37,7 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
     private void setContent(BaseViewHolder helper, Message item){
 
         // 通话对象
-        String userID = "GID_test@@@" + context.getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
+        String userID = "GID_test@@@" + mContext.getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
         String otherID = null;
         String name = null;
         String imgUrl = null;

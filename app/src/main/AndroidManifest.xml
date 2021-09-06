@@ -38,39 +38,41 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
 
-        <activity android:name=".activity.SplashActivity"
+        <activity
+            android:name=".activity.SplashActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateHidden">
+            android:windowSoftInputMode="stateHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.AnswerVideoCallActivity"></activity>
+        <activity android:name=".activity.AnswerVideoCallActivity" />
         <activity android:name=".activity.AnswerVoiceCallActivity" />
         <activity
             android:name=".activity.MainActivity"
-            android:launchMode="singleTask">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:launchMode="singleTask" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <activity
             android:name=".activity.GroupChatActivity"
-            android:exported="true"></activity>
+            android:exported="true"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="fullSensor"
+            android:windowSoftInputMode="stateHidden"/>
+
         <activity
             android:name=".activity.ItemShowActivity"
             android:exported="true" />
+
         <activity
             android:name=".activity.ChatActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:launchMode="singleTask"
             android:screenOrientation="fullSensor"
-            android:windowSoftInputMode="stateHidden"></activity>
+            android:windowSoftInputMode="stateHidden" />
+
         <activity
             android:name=".activity.UserInfoActivity"
             android:launchMode="singleTask"
@@ -79,6 +81,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
+
         <activity android:name=".activity.NewFriendActivity"
             android:parentActivityName=".activity.MainActivity"
             android:launchMode="singleTask">
@@ -89,12 +92,14 @@
 
 
 
-        <activity android:name=".activity.GroupActivity"
+        <activity
+            android:name=".activity.GroupActivity"
             android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
+
         <activity android:name=".activity.GroupInfoActivity"
             android:parentActivityName=".activity.MainActivity"
             android:launchMode="singleTask">
@@ -102,24 +107,28 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
+
         <activity android:name=".activity.ModifyNameActivity"
             android:parentActivityName=".activity.ModifyActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.ModifyActivity" />
         </activity>
+
         <activity android:name=".activity.ModifyGenderActivity"
             android:parentActivityName=".activity.ModifyActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.ModifyActivity" />
         </activity>
+
         <activity android:name=".activity.ModifySignActivity"
             android:parentActivityName=".activity.ModifyActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.ModifyActivity" />
         </activity>
+
         <activity android:name=".activity.LoginActivity"
             android:parentActivityName=".activity.SplashActivity">
             <meta-data
@@ -131,22 +140,13 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activity.ResetPwdActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".activity.ModifyActivity"
-            android:launchMode="singleTask">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".activity.RegisterActivity"
+        <activity android:name=".activity.ResetPwdActivity" />
+        <activity
+            android:name=".activity.ModifyActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:name=".activity.RegisterActivity"
             android:parentActivityName=".activity.LoginActivity"
             android:launchMode="singleTask">
             <meta-data

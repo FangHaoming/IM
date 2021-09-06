@@ -145,6 +145,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+
         int user_id = getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
         userClientID = "GID_test@@@" + user_id;
 

@@ -20,6 +20,8 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -145,6 +147,13 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
         userClientID = "GID_test@@@" + sharedPreferences.getInt("user_id", -1);
         Log.e(TAG, "chatActivity onCreate()" +  "  userClientID:" + userClientID);
+
+        Window window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
+        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+
 
 
         // 权限请求
