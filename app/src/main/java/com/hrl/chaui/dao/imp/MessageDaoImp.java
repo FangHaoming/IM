@@ -28,6 +28,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class MessageDaoImp implements MessageDao {
 
     private static volatile MessageDaoImp messageDaoImp;
@@ -49,6 +50,7 @@ public class MessageDaoImp implements MessageDao {
         }
         return messageDaoImp;
     }
+
 
 
 

@@ -8,6 +8,8 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.hrl.chaui.context.MessageDBHelperContextWrapper;
+
 public class MessageDBHelper extends SQLiteOpenHelper {
 
     public final static int CURVERSION = 2;
@@ -26,11 +28,12 @@ public class MessageDBHelper extends SQLiteOpenHelper {
     // checkStatus 是是否被查看的状态栏。
 
     public MessageDBHelper(@Nullable Context context, @Nullable String name, int version) {
-        super(context, name, null, version);
+        super(new MessageDBHelperContextWrapper(context), name, null, version);
+        Log.e("MessageDBHelper", "当前数据库路径：" + (new MessageDBHelperContextWrapper(context).getDatabasePath(name)).getAbsolutePath());
     }
 
     public MessageDBHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
+        super(new MessageDBHelperContextWrapper(context), name, factory, version);
     }
 
     @Override
