@@ -427,6 +427,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
                 bundle.putInt("contact_id", Integer.valueOf(targetGroupID)); // 存放的是群聊的ID 或者 用户的ID
                 bundle.putString("group_name",targetGroup.getUser_name());
                 intent.putExtras(bundle);
+                intent.putExtra("group",targetGroup);
                 startActivity(intent);
             }
         });

@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
 import com.hrl.chaui.adapter.NewFriendAdapter;
+import com.hrl.chaui.fragment.ContactFragment;
 import com.hrl.chaui.util.Is;
 import com.hrl.chaui.util.MqttService;
 
@@ -40,6 +41,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.hrl.chaui.MyApplication.friendRequest;
+import static com.hrl.chaui.MyApplication.modifyUser;
 
 public class NewFriendActivity extends AppCompatActivity {
     MqttServiceConnection connection;
@@ -77,7 +79,7 @@ public class NewFriendActivity extends AppCompatActivity {
         back_arrow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(NewFriendActivity.this,MainActivity.class);
+                Intent intent=new Intent(NewFriendActivity.this, ContactFragment.class);
                 startActivity(intent);
                 finish();
             }
@@ -196,7 +198,11 @@ public class NewFriendActivity extends AppCompatActivity {
                 else{
                     Intent intent = new Intent(NewFriendActivity.this, UserInfoActivity.class);
                     Bundle bundle = new Bundle();
-                    bundle.putString("who","stranger");
+                    if(user_phone.equals(modifyUser.getUser_phone())){
+                        bundle.putString("who","me");
+                    }else{
+                        bundle.putString("who","stranger");
+                    }
                     bundle.putString("user_info", info);
                     bundle.putString("from","search");
                     intent.putExtras(bundle);

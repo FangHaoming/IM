@@ -146,4 +146,13 @@ public class ContactFragment extends Fragment {
             }
         });
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mAdapter = new ContactAdapter(getContext(), contactData);
+        mAdapter.setDatas(contactData);
+        mAdapter.notifyDataSetChanged();
+        //添加好友后更新通讯录，有待测试
+    }
 }

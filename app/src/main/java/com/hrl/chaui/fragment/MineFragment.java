@@ -92,6 +92,7 @@ public class MineFragment extends Fragment {
                         startActivityForResult(intent2,ResetPwd);
                         break;
                     case R.id.change:
+                        //TODO 重新登陆 结束掉mqttService
                         Intent intent3=new Intent(getActivity(), LoginActivity.class);
                         startActivity(intent3);
                         Objects.requireNonNull(getActivity()).finish();
@@ -122,7 +123,7 @@ public class MineFragment extends Fragment {
         //Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
         sign.setText("个性签名: "+sp.getString("user_sign",""));
         phone.setText("手机号: "+sp.getString("user_phone",""));
-
+        //TODO 头像显示有点问题
         Log.i("isImgChang me resu",""+isImgChange);
         Log.i("user_img in Mine",sp.getString("user_img", ""));
         if (!sp.getString("user_img", "").equals("") && !isImgChange) {
