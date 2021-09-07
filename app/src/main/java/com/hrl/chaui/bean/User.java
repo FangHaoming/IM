@@ -20,6 +20,15 @@ public class User extends BaseIndexPinyinBean implements Serializable {
     private int notice_rank;
     private String nickname;
     private String check;
+    private boolean isSelect;
+
+    public boolean isSelect() {
+        return isSelect;
+    }
+
+    public void setSelect(boolean select) {
+        isSelect = select;
+    }
 
     public String getCheck() {
         return check;

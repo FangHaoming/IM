@@ -1,6 +1,5 @@
 package com.hrl.chaui.activity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -37,7 +36,7 @@ import static com.hrl.chaui.MyApplication.groupMemberData;
 import static com.hrl.chaui.MyApplication.modifyUser;
 
 public class GroupInfoActivity extends AppCompatActivity {
-    public SharedPreferences recv;
+    public SharedPreferences sp;
     public SharedPreferences.Editor editor;
     public TextView back_arrow;
     public View group_name_view,nickname_view;
@@ -60,8 +59,9 @@ public class GroupInfoActivity extends AppCompatActivity {
         window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
-        recv = getSharedPreferences("data", Context.MODE_PRIVATE);
-        editor = recv.edit();
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
+        sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        editor = sp.edit();
         intent=getIntent();
         bundle = intent.getExtras();
         bundle_modifyName=new Bundle();
@@ -74,7 +74,7 @@ public class GroupInfoActivity extends AppCompatActivity {
         nickname=findViewById(R.id.nickname);
         nickname_view=findViewById(R.id.nickname_view);
         group_name_view=findViewById(R.id.group_name_view);
-        sendByPost(group_id,recv.getInt("user_id",0));
+        sendByPost(group_id,sp.getInt("user_id",0));
         group_name_view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

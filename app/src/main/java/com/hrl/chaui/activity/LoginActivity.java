@@ -45,8 +45,9 @@ public class LoginActivity extends AppCompatActivity {
     private CheckBox auto_login;
     private EditText phone;
     private EditText pwd;
-    private SharedPreferences sharedPreferences;
+    private SharedPreferences sp;
     private SharedPreferences.Editor editor;
+    private SharedPreferences.Editor editor_userId;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -59,8 +60,6 @@ public class LoginActivity extends AppCompatActivity {
         window.setStatusBarColor(getResources().getColor(R.color.white));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         AppManager.addActivity(this);
-        sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
-        editor=sharedPreferences.edit();
 
         loginBtn=findViewById(R.id.loginBtn);
         register =findViewById(R.id.register);
@@ -72,11 +71,14 @@ public class LoginActivity extends AppCompatActivity {
         register.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
         register.getPaint().setAntiAlias(true);
 
-        SharedPreferences sharedPreferences=getSharedPreferences("data",MODE_PRIVATE);
-        editor=sharedPreferences.edit();
-        phone.setText(sharedPreferences.getString("user_phone",""));
-        if(sharedPreferences.getBoolean("isRemember",false)){
-            pwd.setText(sharedPreferences.getString("user_pwd",""));
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        editor=sp.edit();
+        editor_userId=userId.edit();
+
+        phone.setText(sp.getString("user_phone",""));
+        if(sp.getBoolean("isRemember",false)){
+            pwd.setText(sp.getString("user_pwd",""));
             loginBtn.setEnabled(true);
             remember.setChecked(true);
         }
@@ -88,7 +90,7 @@ public class LoginActivity extends AppCompatActivity {
                     .setBtn(loginBtn)
                     .build();
         }
-        if(sharedPreferences.getBoolean("isAuto",false)){
+        if(sp.getBoolean("isAuto",false)){
             auto_login.setChecked(true);
         }
         //注册按钮
@@ -154,6 +156,9 @@ public class LoginActivity extends AppCompatActivity {
                         Intent intent2=new Intent(LoginActivity.this, MqttService.class);
                         startService(intent2);
                         http.sendByPost(LoginActivity.this,json.getInteger("user_id"));
+
+                        SharedPreferences sp=getSharedPreferences("data_"+json.getInteger("user_id"),MODE_PRIVATE); //根据ID获取用户数据文件
+                        editor=sp.edit();
                         if(remember.isChecked()){
                             editor.putBoolean("isRemember",true);
                         }
@@ -173,6 +178,8 @@ public class LoginActivity extends AppCompatActivity {
                         editor.putString("user_phone",(String)json.get("user_phone"));
                         editor.putString("user_sign",(String)json.get("user_sign"));
                         editor.putString("user_pwd",pwd.getText().toString());
+                        editor_userId.putInt("user_id",json.getInteger("user_id"));
+                        editor_userId.apply();
                         editor.apply();
 
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);

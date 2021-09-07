@@ -59,7 +59,8 @@ public class ResetPwdActivity extends AppCompatActivity {
                 .addEdittext(rein)
                 .setBtn(asure)
                 .build();
-        SharedPreferences sp=getSharedPreferences("data",MODE_PRIVATE);
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         SharedPreferences.Editor editor=sp.edit();
         //保存修改（密码）
         asure.setOnClickListener(new View.OnClickListener() {
@@ -69,7 +70,6 @@ public class ResetPwdActivity extends AppCompatActivity {
                 String str_rein=rein.getText().toString();
                 if(str_in.equals(str_rein)){
                     modifyUser.setUser_pwd(str_in);
-                    modifyUser.setUser_id(sp.getInt("user_id",-1));
                     Intent intent=new Intent(ResetPwdActivity.this, MineFragment.class);
                     Bundle bundle = new Bundle();
                     bundle.putBoolean("isModify", true);

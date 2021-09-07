@@ -20,9 +20,10 @@ import com.hrl.chaui.adapter.ContactAdapter;
 import static com.hrl.chaui.MyApplication.groupData;
 
 public class GroupActivity extends AppCompatActivity {
-    public ContactAdapter mAdapter;
-    public RecyclerView mRv;
-    public TextView back_arrow;
+    private ContactAdapter mAdapter;
+    private RecyclerView mRv;
+    private TextView back_arrow;
+    private TextView create;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -45,6 +46,14 @@ public class GroupActivity extends AppCompatActivity {
                 overridePendingTransition(0, R.anim.slide_right_out);
             }
         });
+        create=findViewById(R.id.create);
+        create.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(GroupActivity.this,CreateGroupActivity.class);
+                startActivity(intent);
+            }
+        });
 
         mAdapter= new ContactAdapter(this,groupData);
         mRv=findViewById(R.id.rv);
@@ -53,5 +62,12 @@ public class GroupActivity extends AppCompatActivity {
         mAdapter.setDatas(groupData);
         mAdapter.notifyDataSetChanged();
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mAdapter.setDatas(groupData);
+        mAdapter.notifyDataSetChanged();
     }
 }

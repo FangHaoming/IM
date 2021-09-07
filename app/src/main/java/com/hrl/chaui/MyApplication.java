@@ -2,6 +2,7 @@ package com.hrl.chaui;
 
 import android.app.Application;
 
+import com.bumptech.glide.request.target.ViewTarget;
 import com.hrl.chaui.bean.User;
 
 import java.util.ArrayList;
@@ -14,11 +15,13 @@ public class MyApplication extends Application {
     public static List<User> groupData=new ArrayList<>();
     public static List<User> friendData=new ArrayList<>();
     public static List<User> groupMemberData=new ArrayList<>();
+    public static ArrayList<User> friendRequest=new ArrayList<>();
 
     @Override
     public void onCreate() {
         super.onCreate();
         mApplication=this;
+        ViewTarget.setTagId(R.id.glide_tag);
     }
 
     public static User getUserFromContactData(int user_id) {

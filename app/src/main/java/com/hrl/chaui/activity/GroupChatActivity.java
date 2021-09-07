@@ -134,6 +134,8 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
 
     private ImageView ivAudio;
 
+    private SharedPreferences sp;
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,7 +148,9 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
         window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
-        int user_id = getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
+        sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        int user_id = sp.getInt("user_id", -1);
         userClientID = "GID_test@@@" + user_id;
 
         // 权限请求
@@ -497,8 +501,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
             case R.id.rlVideoCall:
                 Intent videoCallIntent = new Intent(this, VideoCallActivity.class);
                 String channelID = targetGroupID;
-                SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
-                String userName = sharedPreferences.getString("user_name", "unknown");
+                String userName = sp.getString("user_name", "unknown");
                 RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
                 videoCallIntent.putExtra("channel", channelID);
                 videoCallIntent.putExtra("username", userName);

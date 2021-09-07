@@ -4,7 +4,7 @@
     android:orientation="vertical"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:background="@color/top_bottom"
@@ -14,19 +14,32 @@
             android:layout_height="17dp"
             android:background="@drawable/back_arrow"
             android:layout_marginLeft="10dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
             android:layout_gravity="center"
             android:id="@+id/back_arrow"/>
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="27dp"
             android:textColor="@color/black"
             android:text="群聊"
             android:textSize="18dp"
-            android:gravity="center"
+            android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
             android:layout_gravity="center"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="16dp"
+            android:textColor="@color/black"
+            android:background="@drawable/selector_click_gray"
+            android:id="@+id/create"
+            android:text="创建群聊"/>
 
-    </LinearLayout>
+    </RelativeLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv"
         android:layout_width="match_parent"

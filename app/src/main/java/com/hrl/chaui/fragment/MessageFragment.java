@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.groupData;
 
@@ -67,11 +68,12 @@ public class MessageFragment extends Fragment {
 
         root = inflater.inflate(R.layout.layout_message,container,false);
         // 获取用户id
-        SharedPreferences sharedPreferences = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor=sharedPreferences.edit();
+        SharedPreferences userId=Objects.requireNonNull(getContext()).getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp=Objects.requireNonNull(getContext()).getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        SharedPreferences.Editor editor=sp.edit();
         editor.putBoolean("isImgChange",false);
         editor.apply();
-        int user_id = sharedPreferences.getInt("user_id", -1);
+        int user_id = sp.getInt("user_id", -1);
         userClientID = "GID_test@@@" + user_id;
 
 

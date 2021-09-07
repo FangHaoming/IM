@@ -32,7 +32,8 @@ public class ModifySignActivity extends AppCompatActivity {
         EditText Edit=findViewById(R.id.Edit);
         Button save=findViewById(R.id.save);
         TextView back_arrow=findViewById(R.id.back_arrow);
-        SharedPreferences sp=getSharedPreferences("data",MODE_PRIVATE);
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         SharedPreferences.Editor editor=sp.edit();
         if(!sp.getString("user_sign","").equals("")){
             Edit.setText(sp.getString("user_sign",""));

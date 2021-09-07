@@ -1,6 +1,7 @@
 package com.hrl.chaui.adapter;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -19,14 +20,17 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.groupData;
 
 public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
+    private Context mContext;
 
     public MessageAdapter(Context context,@Nullable List<Message> data) {
         super(R.layout.item_message,data); // 设置item样式
+        this.mContext=context;
     }
 
     @Override
@@ -37,7 +41,9 @@ public class MessageAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
     private void setContent(BaseViewHolder helper, Message item){
 
         // 通话对象
-        String userID = "GID_test@@@" + mContext.getSharedPreferences("data", Context.MODE_PRIVATE).getInt("user_id", -1);
+        SharedPreferences userId=mContext.getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
+        SharedPreferences sp=mContext.getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        String userID = "GID_test@@@" + sp.getInt("user_id", -1);
         String otherID = null;
         String name = null;
         String imgUrl = null;

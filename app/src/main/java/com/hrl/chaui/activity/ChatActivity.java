@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -31,6 +32,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -139,19 +141,22 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     // 对方不在线的Handler
     NoOnlineHandler noOnlineHandler = null;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 //        // 获取登录用户信息
-        SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
-        userClientID = "GID_test@@@" + sharedPreferences.getInt("user_id", -1);
+
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
+        SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        userClientID = "GID_test@@@" + sp.getInt("user_id", -1);
         Log.e(TAG, "chatActivity onCreate()" +  "  userClientID:" + userClientID);
 
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
+        window.setStatusBarColor(getResources().getColor(R.color.chat));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
 
@@ -535,8 +540,8 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
             case R.id.rlVideoCall: {
                 Intent videoCallIntent = new Intent(this, VideoCallActivity.class);
                 String channelID = RTCHelper.getNumsChannelID(userClientID, targetClientID);
-                SharedPreferences sharedPreferences = getSharedPreferences("data", Context.MODE_PRIVATE);
-                String userName = sharedPreferences.getString("user_name", "unknown");
+                SharedPreferences sp = getSharedPreferences("data", Context.MODE_PRIVATE);
+                String userName = sp.getString("user_name", "unknown");
                 RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
                 videoCallIntent.putExtra("channel", channelID);
                 videoCallIntent.putExtra("username", userName);

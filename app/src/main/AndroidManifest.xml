@@ -49,12 +49,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".activity.CreateGroupActivity"
+            android:parentActivityName=".activity.GroupActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activity.GroupActivity" />
+        </activity>
         <activity android:name=".activity.AnswerVideoCallActivity" />
         <activity android:name=".activity.AnswerVoiceCallActivity" />
         <activity
             android:name=".activity.MainActivity"
             android:launchMode="singleTask" />
-
         <activity
             android:name=".activity.GroupChatActivity"
             android:exported="true"
@@ -100,7 +105,8 @@
 
         <activity
             android:name=".activity.GroupActivity"
-            android:parentActivityName=".activity.MainActivity">
+            android:parentActivityName=".activity.MainActivity"
+            android:launchMode="singleTask">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />

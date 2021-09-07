@@ -41,7 +41,8 @@ public class ModifyNameActivity extends AppCompatActivity {
         bundle=intent.getExtras();
         bundle_back=new Bundle();
         TextView back_arrow=findViewById(R.id.back_arrow);
-        SharedPreferences sp=getSharedPreferences("data",MODE_PRIVATE);
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         SharedPreferences.Editor editor=sp.edit();
         if(!sp.getString("user_name","").equals("")){
             Edit.setText(sp.getString("user_name",""));
@@ -95,8 +96,17 @@ public class ModifyNameActivity extends AppCompatActivity {
         back_arrow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(ModifyNameActivity.this,ModifyActivity.class);
+                Intent intent = null;
+                if (bundle.getString("from").equals("group")) {
+                    intent = new Intent(ModifyNameActivity.this, GroupInfoActivity.class);
+                } else if (bundle.getString("from").equals("friend")) {
+                    intent = new Intent(ModifyNameActivity.this, UserInfoActivity.class);
+                } else if (bundle.getString("from").equals("me")) {
+                    intent = new Intent(ModifyNameActivity.this, NewFriendActivity.class);
+                }
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                overridePendingTransition(0, R.anim.slide_right_out);
                 finish();
             }
         });
@@ -104,8 +114,17 @@ public class ModifyNameActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK){
-            Intent intent=new Intent(ModifyNameActivity.this,ModifyActivity.class);
+            Intent intent = null;
+            if (bundle.getString("from").equals("group")) {
+                intent = new Intent(ModifyNameActivity.this, GroupInfoActivity.class);
+            } else if (bundle.getString("from").equals("friend")) {
+                intent = new Intent(ModifyNameActivity.this, UserInfoActivity.class);
+            } else if (bundle.getString("from").equals("me")) {
+                intent = new Intent(ModifyNameActivity.this, NewFriendActivity.class);
+            }
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+            overridePendingTransition(0, R.anim.slide_right_out);
             finish();
         }
         return true;

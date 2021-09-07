@@ -36,7 +36,8 @@ public class ModifyGenderActivity extends AppCompatActivity {
         male_text=findViewById(R.id.text_male);
         female_text=findViewById(R.id.text_female);
         TextView back_arrow=findViewById(R.id.back_arrow);
-        SharedPreferences sp=getSharedPreferences("data",MODE_PRIVATE);
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         SharedPreferences.Editor editor=sp.edit();
         Intent intent=new Intent(ModifyGenderActivity.this,ModifyActivity.class);
         Bundle bundle=new Bundle();

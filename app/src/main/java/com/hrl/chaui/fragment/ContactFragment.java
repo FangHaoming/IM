@@ -1,6 +1,5 @@
 package com.hrl.chaui.fragment;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
@@ -36,6 +35,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.friendData;
 import static com.hrl.chaui.MyApplication.groupData;
@@ -45,7 +45,7 @@ public class ContactFragment extends Fragment {
     private LinearLayoutManager mManager;
     private SuspensionDecoration mDecoration;
     private ContactAdapter mAdapter;
-    public SharedPreferences recv;
+    public SharedPreferences sp;
     public SharedPreferences.Editor editor;
     public TextView mTvSideBarHint;
     public IndexBar mIndexBar;
@@ -60,8 +60,9 @@ public class ContactFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root=inflater.inflate(R.layout.layout_contact,container,false);
-        recv = Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
-        editor = recv.edit();
+        SharedPreferences userId=Objects.requireNonNull(getContext()).getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        sp=Objects.requireNonNull(getContext()).getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        editor = sp.edit();
         editor.putBoolean("isImgChange",false);
         editor.apply();
         //使用indexBar
@@ -69,7 +70,7 @@ public class ContactFragment extends Fragment {
         mRv.setLayoutManager(mManager = new LinearLayoutManager(getContext()));
         mTvSideBarHint = (TextView) root.findViewById(R.id.tvSideBarHint);//HintTextView
         mIndexBar = (IndexBar) root.findViewById(R.id.indexBar);//IndexBar
-        sendByPost(recv.getInt("user_id",0));
+        sendByPost(sp.getInt("user_id",0));
 
 
         return root;

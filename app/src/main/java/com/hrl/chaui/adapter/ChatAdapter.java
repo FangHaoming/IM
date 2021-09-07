@@ -2,8 +2,6 @@ package com.hrl.chaui.adapter;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.drawable.AnimationDrawable;
-import android.media.Image;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ImageView;
@@ -26,13 +24,14 @@ import com.hrl.chaui.bean.TextMsgBody;
 import com.hrl.chaui.bean.User;
 import com.hrl.chaui.bean.VideoMsgBody;
 import com.hrl.chaui.util.GlideUtils;
-import com.hrl.chaui.widget.BubbleImageView;
-import com.hrl.chaui.widget.CircleImageView;
 
 import java.io.File;
 import java.util.List;
 
-import static com.hrl.chaui.MyApplication.*;
+import static com.hrl.chaui.MyApplication.MODE_PRIVATE;
+import static com.hrl.chaui.MyApplication.contactData;
+import static com.hrl.chaui.MyApplication.getUserFromContactData;
+import static com.hrl.chaui.MyApplication.groupMemberData;
 
 public class  ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
 
@@ -162,8 +161,9 @@ public class  ChatAdapter extends BaseQuickAdapter<Message, BaseViewHolder> {
         // 显示头像。
         if (item.getSenderId().equals(userClientID)) {
             // 用户发送的消息里显示用户的头像
-            SharedPreferences sharedPreferences = mContext.getSharedPreferences("data", Context.MODE_PRIVATE);
-            String userImg = sharedPreferences.getString("user_img", "");
+            SharedPreferences userId=mContext.getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
+            SharedPreferences sp=mContext.getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+            String userImg = sp.getString("user_img", "");
             if (!userImg.equals("")) {
                 Glide.with(mContext)
                         .load(mContext.getResources().getString(R.string.app_prefix_img)+userImg)

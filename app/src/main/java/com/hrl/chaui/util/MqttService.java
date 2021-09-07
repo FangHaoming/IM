@@ -68,9 +68,11 @@ public class MqttService extends Service {
 
     @Override
     public void onCreate() {
-        SharedPreferences sharedPreferences = getApplication().getSharedPreferences("data", MODE_PRIVATE);
-        int user_id = sharedPreferences.getInt("user_id", -1);
-        friReqMessage = (ArrayList<User>) JSONObject.parseArray(sharedPreferences.getString("friReqMessage", ""), User.class);
+        SharedPreferences userId= getApplication().getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp=getApplication().getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        int user_id = sp.getInt("user_id", -1);
+        friReqMessage = (ArrayList<User>) JSONObject.parseArray(sp.getString("friReqMessage", ""), User.class);
+        if(friReqMessage==null) friReqMessage=new ArrayList<>();
         clientID = "GID_test@@@" + user_id;
 
         try {
@@ -192,10 +194,20 @@ public class MqttService extends Service {
             Log.e(TAG, "messageArrived:" + msg + "message:" + message);
             switch (msg) {
                 case "friendRequest":  //好友申请消息
-                    //保存信息到文件中
+                    //保存信息到列表中
                     Log.e(TAG,payloadString);
-                    User user = JSONObject.parseObject(payloadString, User.class);
-                    friReqMessage.add(user);
+                    String data=new String(object.getBytes("data"));
+                    Log.e(TAG,data);
+                    User user = JSONObject.parseObject(data, User.class);
+                    boolean isExist=false;
+                    for(User u:friReqMessage){
+                        if(u.getUser_id().equals(user.getUser_id())){
+                            isExist=true;
+                            break;
+                        }
+                    }
+                    if(!isExist)
+                        friReqMessage.add(user);
                     Log.e(TAG,"added");
                     break;
 

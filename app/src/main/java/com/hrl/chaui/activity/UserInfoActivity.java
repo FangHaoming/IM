@@ -67,7 +67,7 @@ public class UserInfoActivity extends AppCompatActivity {
     public TextView setNote;
     public TextView delete;
     public User user;
-    public SharedPreferences recv;
+    public SharedPreferences sp;
     public SharedPreferences.Editor editor;
     public Drawable  drawable;
     Intent intent;
@@ -85,8 +85,9 @@ public class UserInfoActivity extends AppCompatActivity {
     protected void onCreate(@Nullable  Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initMqtt();
-        recv = getSharedPreferences("data", Context.MODE_PRIVATE);
-        editor = recv.edit();
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
+        sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        editor = sp.edit();
         user=new User();
         intent=getIntent();
         bundle = intent.getExtras();
@@ -131,7 +132,7 @@ public class UserInfoActivity extends AppCompatActivity {
                             case R.id.send_call: {
 
                                 // 获取通信双方的clientID
-                                String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
+                                String userClientID = "GID_test@@@" + sp.getInt("user_id", 0);
                                 String targetClientID = "GID_test@@@" + user.getUser_id();
                                 String channelID = RTCHelper.getChannelID(userClientID, targetClientID);
                                 AliUserInfoResponse.AliUserInfo aliUserInfo = RTCHelper.getAliUserInfo(channelID, userClientID);
@@ -166,17 +167,17 @@ public class UserInfoActivity extends AppCompatActivity {
                             }
                             case R.id.video_call: {
                                 // 如果改人是登录用户自己，提示不能与自己通话。
-                                if (bundle.getInt("contact_id") == recv.getInt("user_id", 0)) {
+                                if (bundle.getInt("contact_id") == sp.getInt("user_id", 0)) {
                                     Toast.makeText(UserInfoActivity.this, "不能与自己通话", Toast.LENGTH_SHORT).show();
                                     break;
                                 }
 
                                 Intent videoCallIntent = new Intent(UserInfoActivity.this, VideoCallActivity.class);
-                                String userClientID = "GID_test@@@" + recv.getInt("user_id", 0);
+                                String userClientID = "GID_test@@@" + sp.getInt("user_id", 0);
                                 String targetClientID = "GID_test@@@" + user.getUser_id();
                                 String channelID = RTCHelper.getNumsChannelID(userClientID, targetClientID);
                                 RTCAuthInfo info = RTCHelper.getVideoCallRTCAuthInfo(channelID, userClientID);
-                                String userName = recv.getString("user_name", "null");
+                                String userName = sp.getString("user_name", "null");
 
                                 videoCallIntent.putExtra("channel", channelID);
                                 videoCallIntent.putExtra("username", userName);
@@ -228,7 +229,7 @@ public class UserInfoActivity extends AppCompatActivity {
                 back_arrow.setOnClickListener(listener);
 
                 // 非本人则网络请求获取该用户的信息
-                sendByPost_friend(recv.getInt("user_id", 0), bundle.getInt("contact_id"));
+                sendByPost_friend(sp.getInt("user_id", 0), bundle.getInt("contact_id"));
             }
             else if(bundle.getString("who").equals("stranger")){
                 // 该用户不是朋友
@@ -304,7 +305,7 @@ public class UserInfoActivity extends AppCompatActivity {
             }
             else if(bundle.getString("who").equals("me")){ //本人
                 setContentView(R.layout.layout_user_info_me);
-                if(recv.getString("user_gender","").equals("女")){
+                if(sp.getString("user_gender","").equals("女")){
                     drawable = getResources().getDrawable(R.drawable.female);
                 }
                 else{
@@ -319,20 +320,20 @@ public class UserInfoActivity extends AppCompatActivity {
                 user_img=findViewById(R.id.user_img);
                 sendMsg = findViewById(R.id.send_message);
                 back_arrow=findViewById(R.id.back_arrow);
-                Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img) + recv.getString("user_img", "")).into(user_img);
-                user_name.setText(recv.getString("user_name", ""));
-                user_sign.setText(recv.getString("user_sign", ""));
+                Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img) + sp.getString("user_img", "")).into(user_img);
+                user_name.setText(sp.getString("user_name", ""));
+                user_sign.setText(sp.getString("user_sign", ""));
                 user_note.setText("群昵称: "+bundle.getString("nickname"));
-                user_phone.setText("手机号: " + recv.getString("user_phone", ""));
+                user_phone.setText("手机号: " + sp.getString("user_phone", ""));
                 sendMsg.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
-                        user.setUser_name(recv.getString("user_name",""));
-                        user.setUser_pwd(recv.getString("user_pwd",""));
-                        user.setUser_img(recv.getString("user_img",""));
-                        user.setUser_phone(recv.getString("user_phone",""));
-                        user.setUser_id(recv.getInt("user_id",-1));
+                        user.setUser_name(sp.getString("user_name",""));
+                        user.setUser_pwd(sp.getString("user_pwd",""));
+                        user.setUser_img(sp.getString("user_img",""));
+                        user.setUser_phone(sp.getString("user_phone",""));
+                        user.setUser_id(sp.getInt("user_id",-1));
                         chatIntent.putExtra("targetUser", user);
                         startActivity(chatIntent);
                         finish();

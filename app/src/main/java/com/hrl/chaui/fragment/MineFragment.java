@@ -2,7 +2,6 @@ package com.hrl.chaui.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,6 +30,7 @@ import com.hrl.chaui.R;
 import com.hrl.chaui.activity.LoginActivity;
 import com.hrl.chaui.activity.ModifyActivity;
 import com.hrl.chaui.activity.ResetPwdActivity;
+import com.hrl.chaui.util.http;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -44,6 +44,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.hrl.chaui.MyApplication.modifyUser;
 
 public class MineFragment extends Fragment {
@@ -71,7 +72,9 @@ public class MineFragment extends Fragment {
         TextView modify=root.findViewById(R.id.modify);
         TextView modify_pwd=root.findViewById(R.id.modify_pwd);
         TextView change=root.findViewById(R.id.change);
-        sp= Objects.requireNonNull(getContext()).getSharedPreferences("data", Context.MODE_PRIVATE);
+
+        SharedPreferences userId=Objects.requireNonNull(getContext()).getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        sp=Objects.requireNonNull(getContext()).getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         editor=sp.edit();
         isImgChange=false;
         img_uri="";
@@ -177,8 +180,10 @@ public class MineFragment extends Fragment {
             if (resultCode == Activity.RESULT_OK) {
                 //Log.i("json in Main",data.getStringExtra("json"));
                 //MineFragment.onFragmentResult(requestCode,resultCode,data);
+                http.sendByPostLogin(getContext(),modifyUser.getUser_phone(),modifyUser.getUser_pwd());
                 bundle = data.getExtras();
                 isImgChange=bundle.getBoolean("isImgChange");
+                Log.i("isImg onResult",""+isImgChange);
                 img_uri=bundle.getString("img_uri");
                 if(bundle.getBoolean("isModify")||isImgChange){
                     sendByPost_upDate(bundle.getString("json"));
@@ -241,6 +246,12 @@ public class MineFragment extends Fragment {
                             Glide.with(Objects.requireNonNull(getContext())).load(getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
                         }
                     });
+                }
+                else{
+                    modifyUser.setUser_pwd(sp.getString("user_pwd",""));
+                    Looper.prepare();
+                    Toast.makeText(getContext(),"修改密码失败!",Toast.LENGTH_SHORT).show();
+                    Looper.loop();
                 }
             }
         });

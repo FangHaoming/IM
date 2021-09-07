@@ -410,9 +410,10 @@ public class MqttByAli {
     //发送好友申请
     public void friendRequest(User user,String targetClientId){
         JSONObject object=(JSONObject)JSONObject.toJSON(user);
-        object.put("msg","friendRequest");
+        HashMap<String,Object> map=new HashMap<>();
+        map.put("msg","friendRequest");
         String message=JSONObject.toJSONString(object);
-        sendMessageP2P(message,targetClientId);
+        sendByteP2P(message.getBytes(),targetClientId,map);
     }
 
     public static String getInstanceId() {

@@ -49,7 +49,8 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main);
         AppManager.addActivity(this);
-        sp=getSharedPreferences("data",MODE_PRIVATE);
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
+        sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         editor=sp.edit();
         modifyUser.setUser_id(sp.getInt("user_id",-1));
         modifyUser.setUser_name(sp.getString("user_name",""));

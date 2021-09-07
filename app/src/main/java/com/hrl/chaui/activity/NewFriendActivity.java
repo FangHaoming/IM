@@ -27,12 +27,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
 import com.hrl.chaui.adapter.NewFriendAdapter;
-import com.hrl.chaui.bean.User;
 import com.hrl.chaui.util.Is;
 import com.hrl.chaui.util.MqttService;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -40,8 +39,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.hrl.chaui.MyApplication.friendRequest;
+
 public class NewFriendActivity extends AppCompatActivity {
-    ArrayList<User> users=new ArrayList<>();
     MqttServiceConnection connection;
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
@@ -57,7 +57,8 @@ public class NewFriendActivity extends AppCompatActivity {
     protected void onCreate(@Nullable  Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_new_friend);
-        sp=getSharedPreferences("data",MODE_PRIVATE);
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         editor=sp.edit();
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -142,12 +143,12 @@ public class NewFriendActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MqttService.LocalBinder localBinder = (MqttService.LocalBinder) service;
-            users=localBinder.getService().getFriReqMessage();
-            Log.i("friendRequest user", String.valueOf(users));
-            mAdapter= new NewFriendAdapter(NewFriendActivity.this,users);
+            friendRequest=localBinder.getService().getFriReqMessage();
+            Log.i("friendRequest user", Arrays.toString(friendRequest.toArray()));
+            mAdapter= new NewFriendAdapter(NewFriendActivity.this,friendRequest);
             mRv.setLayoutManager(new LinearLayoutManager(NewFriendActivity.this));
             mRv.setAdapter(mAdapter);
-            mAdapter.setDatas(users);
+            mAdapter.setDatas(friendRequest);
             mAdapter.notifyDataSetChanged();
         }
 

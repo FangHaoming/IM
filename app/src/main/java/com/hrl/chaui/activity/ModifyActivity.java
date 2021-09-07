@@ -69,7 +69,8 @@ public class ModifyActivity extends AppCompatActivity {
         img_uri="";
         intent_Main = new Intent(ModifyActivity.this, MineFragment.class);
         bundle_Main = new Bundle();
-        sp = getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         editor = sp.edit();
 
         img = findViewById(R.id.img);

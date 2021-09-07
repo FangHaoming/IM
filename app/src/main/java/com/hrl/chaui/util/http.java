@@ -78,12 +78,6 @@ public class http {
         JSONObject json=new JSONObject();
         json.put("user_phone",user_phone);
         json.put("user_pwd",user_pwd);
-        /*
-        json.put("user_gender","");
-        json.put("user_sign","");
-        json.put("user_img","");
-        json.put("img_data","");
-         */
         String path = mContext.getResources().getString(R.string.request_local)+"/userLogin";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
@@ -117,7 +111,6 @@ public class http {
                         http.sendByPost(mContext,json.getInteger("user_id"));
                         Intent intent2=new Intent(mContext,MqttService.class);
                         mContext.startService(intent2);
-
                         intent = new Intent(mContext, MainActivity.class);
                         mContext.startActivity(intent);
                         break;

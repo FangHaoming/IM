@@ -25,9 +25,10 @@
             android:textColor="@color/black"
             android:textSize="18dp" />
         <Button
-            android:layout_width="60dp"
-            android:layout_height="35dp"
+            android:layout_width="45dp"
+            android:layout_height="30dp"
             android:layout_marginRight="16dp"
+            android:layout_centerVertical="true"
             android:background="@color/btn_enable"
             android:textColor="@color/white"
             android:id="@+id/save"
