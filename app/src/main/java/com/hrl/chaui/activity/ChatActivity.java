@@ -149,8 +149,8 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-//        // 获取登录用户信息
 
+//        // 获取登录用户信息
         SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
         SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         userClientID = "GID_test@@@" + sp.getInt("user_id", -1);

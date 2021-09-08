@@ -19,8 +19,9 @@ public class MessageDBHelperContextWrapper extends ContextWrapper {
     public File getDatabasePath(String name) {
         // 存储路径，data/data/<package name>/{{user_id}}/name
 
-        SharedPreferences recv = context.getSharedPreferences("data", Context.MODE_PRIVATE);
-        int user_id = recv.getInt("user_id", -1);
+        SharedPreferences userId= context.getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp= context.getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        int user_id = sp.getInt("user_id", -1);
 
         // 创建文件夹
         String dirPath = "data/data/" + context.getPackageName() + "/databases/" + user_id;
