@@ -25,6 +25,7 @@ import okhttp3.Response;
 import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.friendData;
 import static com.hrl.chaui.MyApplication.groupData;
+import static com.hrl.chaui.MyApplication.modifyUser;
 
 public class http {
     public static void sendByPost(Context mContext, Integer user_id) {
@@ -107,11 +108,17 @@ public class http {
                 mContext.startService(intentService);*/ //TODO 自动登录时不在跳转页启动服务
                 switch (Integer.parseInt(json.get("status").toString())){
                     case 2:
-                        http.sendByPost(mContext,json.getInteger("user_id"));
+                        http.sendByPost(mContext,json.getInteger("user_id"));  //重新登陆更新通讯录
                         Intent intent2=new Intent(mContext,MqttService.class);
                         mContext.startService(intent2);
                         intent = new Intent(mContext, MainActivity.class);
                         mContext.startActivity(intent);
+                        modifyUser.setUser_id(json.getInteger("user_id"));     //重新登录更新modifyUser
+                        modifyUser.setUser_name(json.getString("user_name"));
+                        modifyUser.setUser_gender(json.getString("user_gender"));
+                        modifyUser.setUser_pwd(user_pwd);
+                        modifyUser.setUser_phone(json.getString("user_phone"));
+                        modifyUser.setUser_img(json.getString("user_img"));
                         break;
                     case 1:
 

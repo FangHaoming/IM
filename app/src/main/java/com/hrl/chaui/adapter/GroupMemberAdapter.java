@@ -75,6 +75,9 @@ public class GroupMemberAdapter extends BaseAdapter {
                     bundle.putString("from","group");
                     if(Is.isFriendByPhone(users.get(position).getUser_phone())){
                         bundle.putString("who","friend");
+                        bundle.putString("friend_from","group");
+                        bundle.putInt("contact_id",users.get(position).getUser_id());
+                        bundle.putString("friend_note",users.get(position).getUser_note());
                     }
                     else{
                         if(users.get(position).getUser_id().equals(modifyUser.getUser_id())){
@@ -82,10 +85,10 @@ public class GroupMemberAdapter extends BaseAdapter {
                         }
                         else{
                             bundle.putString("who","stranger");
+                            bundle.putString("user_phone",users.get(position).getUser_phone());
                         }
                     }
                     bundle.putString("nickname",users.get(position).getNickname());
-                    bundle.putString("user_phone",users.get(position).getUser_phone());
                     bundle.putString("group_name",group_name);
                     intent.putExtras(bundle);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

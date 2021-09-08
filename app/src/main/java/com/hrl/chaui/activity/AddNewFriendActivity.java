@@ -46,7 +46,12 @@ public class AddNewFriendActivity extends AppCompatActivity {
         check=findViewById(R.id.check);
         send=findViewById(R.id.send);
         Bundle bundle=getIntent().getExtras();
-        check.setText("我是来自群聊"+"\""+bundle.getString("group_name")+"\"的"+modifyUser.getUser_name());
+        if(bundle.getString("from").equals("group")){
+            check.setText("我是来自群聊"+"\""+bundle.getString("group_name")+"\"的"+modifyUser.getUser_name());
+        }else{
+            check.setText("我是"+modifyUser.getUser_name());
+        }
+
 
         String targetClientID = "GID_test@@@" + bundle.getInt("targetClientID");
         Intent intent=new Intent(AddNewFriendActivity.this,UserInfoActivity.class);

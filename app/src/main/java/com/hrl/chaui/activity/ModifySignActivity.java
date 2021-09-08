@@ -18,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.hrl.chaui.R;
 
+import static com.hrl.chaui.MyApplication.modifyUser;
+
 public class ModifySignActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -43,14 +45,11 @@ public class ModifySignActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent=new Intent(ModifySignActivity.this,ModifyActivity.class);
                 Bundle bundle=new Bundle();
-                if(!sp.getString("user_sign","").equals(Edit.getText().toString())){
-                    bundle.putBoolean("isModify",true);
-                }
-                else{
-                    bundle.putBoolean("isModify",false);
-                }
+                //TODO 判空
+                bundle.putBoolean("isModify", !Edit.getText().toString().equals(modifyUser.getUser_sign()));
                 bundle.putString("user_sign",Edit.getText().toString());
                 intent.putExtras(bundle);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 finish();
             }

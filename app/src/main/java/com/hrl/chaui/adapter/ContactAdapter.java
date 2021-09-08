@@ -81,7 +81,9 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     if(user.getType()==0){
                         intent = new Intent(mContext, UserInfoActivity.class);
                         bundle.putString("who", "friend");
-                        bundle.putString("from","contact");
+                        bundle.putString("friend_from","contact");
+                        bundle.putString("from","contact"); //用来在UserInActivity返回
+                        bundle.putInt("contact_id", user.getUser_id());
                         bundle.putString("friend_note",user.getUser_note()); //TODO 有待后端传 好友备注
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     }

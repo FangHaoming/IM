@@ -16,6 +16,7 @@ public class MyApplication extends Application {
     public static List<User> friendData=new ArrayList<>();
     public static List<User> groupMemberData=new ArrayList<>();
     public static ArrayList<User> friendRequest=new ArrayList<>();
+    public static boolean isImgChange=false;
 
     @Override
     public void onCreate() {

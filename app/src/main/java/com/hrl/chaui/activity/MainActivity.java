@@ -28,8 +28,6 @@ import com.hrl.chaui.util.http;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.hrl.chaui.MyApplication.modifyUser;
-
 
 public class MainActivity extends FragmentActivity {
 
@@ -55,13 +53,6 @@ public class MainActivity extends FragmentActivity {
         SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
         sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         editor=sp.edit();
-        modifyUser.setUser_id(sp.getInt("user_id",-1));
-        modifyUser.setUser_name(sp.getString("user_name",""));
-        modifyUser.setUser_gender(sp.getString("user_gender",""));
-        modifyUser.setUser_pwd(sp.getString("user_pwd",""));
-        modifyUser.setUser_phone(sp.getString("user_phone",""));
-        modifyUser.setUser_img(sp.getString("user_img",""));
-
         initView();
 
         MineFragment=new MineFragment();

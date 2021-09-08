@@ -80,6 +80,7 @@ public class ModifyGenderActivity extends AppCompatActivity {
                 }
                 bundle.putString("user_gender",bundle.getString("user_gender"));
                 intent.putExtras(bundle);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 finish();
             }
