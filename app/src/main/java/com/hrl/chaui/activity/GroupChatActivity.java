@@ -145,7 +145,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(getResources().getColor(R.color.top_bottom));
+        window.setStatusBarColor(getResources().getColor(R.color.white));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
         SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
@@ -427,7 +427,6 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
                 bundle.putInt("contact_id", Integer.valueOf(targetGroupID)); // 存放的是群聊的ID 或者 用户的ID
                 bundle.putString("group_name",targetGroup.getUser_name());
                 intent.putExtras(bundle);
-                intent.putExtra("group",targetGroup);
                 startActivity(intent);
             }
         });

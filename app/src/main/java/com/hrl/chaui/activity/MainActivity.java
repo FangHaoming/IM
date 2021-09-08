@@ -1,5 +1,6 @@
 package com.hrl.chaui.activity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import com.hrl.chaui.fragment.ContactFragment;
 import com.hrl.chaui.fragment.MessageFragment;
 import com.hrl.chaui.fragment.MineFragment;
 import com.hrl.chaui.util.AppManager;
+import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.http;
 
 import java.util.ArrayList;
@@ -39,9 +41,10 @@ public class MainActivity extends FragmentActivity {
     private int currentID=0;
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
-    public final int Modify = 1;
-    public final int ResetPwd = 2;
-    public MineFragment MineFragment;
+    private final int Modify = 1;
+    private final int ResetPwd = 2;
+    private MineFragment MineFragment;
+    private Intent intentService;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -75,7 +78,8 @@ public class MainActivity extends FragmentActivity {
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         window.setNavigationBarColor(getResources().getColor(R.color.top_bottom));
         http.sendByPost(MainActivity.this,sp.getInt("user_id",0));
-
+        intentService=new Intent(this, MqttService.class);
+        startService(intentService);
     }
 
     private void initView(){
@@ -175,4 +179,9 @@ public class MainActivity extends FragmentActivity {
         return true;
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(intentService);
+    }
 }

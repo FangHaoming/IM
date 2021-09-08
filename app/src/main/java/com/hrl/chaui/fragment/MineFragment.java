@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -30,6 +29,7 @@ import com.hrl.chaui.R;
 import com.hrl.chaui.activity.LoginActivity;
 import com.hrl.chaui.activity.ModifyActivity;
 import com.hrl.chaui.activity.ResetPwdActivity;
+import com.hrl.chaui.util.AppManager;
 import com.hrl.chaui.util.http;
 
 import java.io.FileInputStream;
@@ -54,7 +54,6 @@ public class MineFragment extends Fragment {
     CircleImageView img;
     SharedPreferences sp;
     SharedPreferences.Editor editor;
-    SQLiteDatabase db;
     public final int Modify = 1;
     public final int ResetPwd = 2;
     Bundle bundle;
@@ -92,9 +91,12 @@ public class MineFragment extends Fragment {
                         startActivityForResult(intent2,ResetPwd);
                         break;
                     case R.id.change:
-                        //TODO 重新登陆 结束掉mqttService
+                        //TODO 重新登陆 结束掉mqttService  有待测试
                         Intent intent3=new Intent(getActivity(), LoginActivity.class);
                         startActivity(intent3);
+                        /*Service service= Objects.requireNonNull(getContext()).getSystemService(MqttService.class);
+                        service.stopSelf();*/
+                        AppManager.AppExit(getContext());
                         Objects.requireNonNull(getActivity()).finish();
                         break;
                     case R.id.user_img:

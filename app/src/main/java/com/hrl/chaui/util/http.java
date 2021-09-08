@@ -104,8 +104,8 @@ public class http {
                 JSONObject json= JSON.parseObject(info);
                 System.out.println("**********info in splash"+info);
                 Intent intent;
-                Intent intentService=new Intent(mContext, MqttService.class);
-                mContext.startService(intentService);
+                /*Intent intentService=new Intent(mContext, MqttService.class);
+                mContext.startService(intentService);*/ //TODO 自动登录时不在跳转页启动服务
                 switch (Integer.parseInt(json.get("status").toString())){
                     case 2:
                         http.sendByPost(mContext,json.getInteger("user_id"));

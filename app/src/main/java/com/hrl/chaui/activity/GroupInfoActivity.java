@@ -74,11 +74,13 @@ public class GroupInfoActivity extends AppCompatActivity {
         nickname=findViewById(R.id.nickname);
         nickname_view=findViewById(R.id.nickname_view);
         group_name_view=findViewById(R.id.group_name_view);
+
         sendByPost(group_id,sp.getInt("user_id",0));
+
         group_name_view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(true){//TODO 如果是群主、管理员 或者 人数少于10可以改群名
+                if(modifyUser.getRank()==0||modifyUser.getRank()==1||groupMemberData.size()<10){//TODO 有待测试 修改群名权限
                     Intent intent_modifyName=new Intent(GroupInfoActivity.this,ModifyNameActivity.class);
                     bundle_modifyName.putString("which","group_name");
                     bundle_modifyName.putString("group_name",group_name.getText().toString());
@@ -132,18 +134,23 @@ public class GroupInfoActivity extends AppCompatActivity {
                 if(bundle.getString("group_name")!=null){
                     group_name.setText(bundle.getString("group_name"));
                     name=bundle.getString("group_name");
-                    //TODO 修改群名接口
+                    sendByPost_groupname(modifyUser.getUser_id(),bundle.getInt("group_id"),name,modifyUser.getRank());
+                    //TODO 修改群名接口 有待测试
                 }
                 if(bundle.getString("nickname")!=null){
                     nickname.setText(bundle.getString("nickname"));
                     name=bundle.getString("nickname");
-                    sendByPost_nickname(modifyUser.getUser_id(),bundle.getInt("group_id"),name);
+                    sendByPost_nickname(modifyUser.getUser_id(),bundle.getInt("group_id"),name,modifyUser.getRank());
                 }
-                //TODO sendByPost(user_id,bundle.getInt("group_id"),name); 修改群内昵称接口
+                //TODO 有待测试
             }
         }
     }
 
+    /** 获取单个群聊详细信息
+     * @param group_id
+     * @param user_id
+     */
     private void sendByPost(int group_id, int user_id) {
         JSONObject json=new JSONObject();
         json.put("group_id",group_id);
@@ -187,6 +194,7 @@ public class GroupInfoActivity extends AppCompatActivity {
                     }
                     if(obj.getInteger("user_id").equals(modifyUser.getUser_id())){
                         modifyUser.setNickname(obj.getString("nickname"));
+                        modifyUser.setRank(obj.getInteger("rank")); //TODO 有待测试
                     }
                     groupMemberData.add(user);
                 }
@@ -210,12 +218,19 @@ public class GroupInfoActivity extends AppCompatActivity {
         });
     }
 
-    private void sendByPost_nickname(int user_id,int group_id, String user_nickname) {
+    /**修改群昵称
+     * @param user_id 本地用户ID
+     * @param group_id 要改群昵称的群ID
+     * @param user_nickname 用户修改的群昵称
+     * @param rank  用户群聊等级（群主0、管理员1、普通成员2）
+     */
+    private void sendByPost_nickname(int user_id,int group_id, String user_nickname,Integer rank) {
         JSONObject json=new JSONObject();
         json.put("group_id",group_id);
         json.put("user_id",user_id);
         json.put("nickname",user_nickname);
-        String path = getResources().getString(R.string.request_local)+"/groupNickname";
+        json.put("rank",rank);
+        String path = getResources().getString(R.string.request_local)+"/memberUpdate";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())
@@ -242,6 +257,52 @@ public class GroupInfoActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         nickname.setText(user_nickname);
+                    }
+                });
+
+            }
+        });
+    }
+
+    /** 修改群名
+     * @param user_id
+     * @param group_id
+     * @param group_Name
+     * @param rank
+     */
+    private void sendByPost_groupname(int user_id,int group_id, String group_Name,Integer rank) {
+        JSONObject json=new JSONObject();
+        json.put("group_id",group_id);
+        json.put("user_id",user_id);
+        json.put("group_name",group_Name);
+        json.put("rank",rank);
+        String path = getResources().getString(R.string.request_local)+"/memberUpdate";
+        OkHttpClient client = new OkHttpClient();
+        final FormBody formBody = new FormBody.Builder()
+                .add("json", json.toJSONString())
+                .build();
+        System.out.println("*********"+json.toJSONString());
+        Request request = new Request.Builder()
+                .url(path)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                Looper.prepare();
+                Toast.makeText(GroupInfoActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+                Looper.loop();
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                String info = response.body().string();
+                System.out.println("***********group_info" + info);
+                JSONObject json = JSON.parseObject(info);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        group_name.setText(group_Name);
                     }
                 });
 

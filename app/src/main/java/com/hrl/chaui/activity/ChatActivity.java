@@ -156,7 +156,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(getResources().getColor(R.color.chat));
+        window.setStatusBarColor(getResources().getColor(R.color.white));
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
 
@@ -432,7 +432,20 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 ChatActivity.this.finish();
             }
         });
-
+        // title bar 右边的菜单按钮，点击后出现群聊的基本情况
+        ImageView menu = (ImageView) findViewById(R.id.chat_info);
+        menu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ChatActivity.this,UserInfoActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("from","chat");
+                bundle.putString("who","friend");
+                bundle.putInt("contact_id",targetUser.getUser_id()); // 存放的是好友的ID //TODO 在聊天框打开好友信息 有待测试
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+        });
     }
 
 

@@ -48,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
     private SharedPreferences.Editor editor_userId;
+    Intent intent2;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -153,7 +154,7 @@ public class LoginActivity extends AppCompatActivity {
                 System.out.println("**********info"+info);
                 switch (Integer.parseInt(json.get("status").toString())){
                     case 2:
-                        Intent intent2=new Intent(LoginActivity.this, MqttService.class);
+                        intent2=new Intent(LoginActivity.this, MqttService.class);
                         startService(intent2);
                         http.sendByPost(LoginActivity.this,json.getInteger("user_id"));
 
@@ -210,5 +211,11 @@ public class LoginActivity extends AppCompatActivity {
             AppManager.AppExit(this);
         }
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(intent2);
     }
 }

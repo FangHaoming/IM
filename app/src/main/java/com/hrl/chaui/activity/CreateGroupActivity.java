@@ -229,6 +229,12 @@ public class CreateGroupActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(connection);
+    }
+
     /**
      * @param user 要添加图标的user
      */

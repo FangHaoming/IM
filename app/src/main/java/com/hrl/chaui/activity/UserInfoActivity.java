@@ -50,6 +50,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.hrl.chaui.MyApplication.modifyUser;
 import static com.hrl.chaui.util.Constant.CHECKONLINEERR;
 import static com.hrl.chaui.util.Constant.NOTONLINE;
 
@@ -113,12 +114,12 @@ public class UserInfoActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         switch (v.getId()) {
                             case R.id.setNote:
-                                /*
-                                Intent intent_mn=new Intent(UserInfoActivity.this,ModifyNameActivity.class);
-                                Bundle bundle_mn=new Bundle();
-                                bundle.putString("from","friend");//TODO
-                                 */
-
+                                Intent intent_data=new Intent(UserInfoActivity.this,ModifyNameActivity.class);
+                                Bundle data=new Bundle();
+                                data.putString("from","friend");
+                                data.putString("friend_note",((User)intent.getSerializableExtra("friend")).getUser_note());
+                                intent_data.putExtras(data);
+                                startActivity(intent_data);  //设置好友备注 有待测试
                                 break;
                             case R.id.delete:
                                 //TODO 删除好友
@@ -166,11 +167,6 @@ public class UserInfoActivity extends AppCompatActivity {
                                 break;
                             }
                             case R.id.video_call: {
-                                // 如果改人是登录用户自己，提示不能与自己通话。
-                                if (bundle.getInt("contact_id") == sp.getInt("user_id", 0)) {
-                                    Toast.makeText(UserInfoActivity.this, "不能与自己通话", Toast.LENGTH_SHORT).show();
-                                    break;
-                                }
 
                                 Intent videoCallIntent = new Intent(UserInfoActivity.this, VideoCallActivity.class);
                                 String userClientID = "GID_test@@@" + sp.getInt("user_id", 0);
@@ -342,17 +338,7 @@ public class UserInfoActivity extends AppCompatActivity {
                 back_arrow.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = null;
-                        if(bundle.getString("from").equals("group")){
-                            intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
-                        }else if(bundle.getString("from").equals("contact")){
-                            intent=new Intent(UserInfoActivity.this,MainActivity.class);
-                        }else if(bundle.getString("from").equals("search")){
-                            intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
-                        }
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                        overridePendingTransition(0, R.anim.slide_right_out);
+                        back();
                     }
                 });
             }
@@ -366,21 +352,46 @@ public class UserInfoActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent=getIntent();
+        Bundle bunlde=intent.getExtras();
+        if(bundle!=null){
+            if(bundle.getBoolean("isModify")){
+                sendByPost_friendnote(modifyUser.getUser_id(),((User)intent.getSerializableExtra("friend")).getUser_id(),bundle.getString("friend_note"),0);
+                //TODO 有待测试 修改好友备注
+            }
+        }
+    }
+
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK){
-            Intent intent = null;
-            if(bundle.getString("from").equals("group")){
-                intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
-            }else if(bundle.getString("from").equals("contact")){
-                intent=new Intent(UserInfoActivity.this,MainActivity.class);
-            }else if(bundle.getString("from").equals("search")){
-                intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
-            }
-            Objects.requireNonNull(intent).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            overridePendingTransition(0, R.anim.slide_right_out);
+            back();
         }
         return true;
+    }
+
+    private void back(){
+        Intent intent = null;
+        if(bundle.getString("from").equals("group")){
+            intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
+        }else if(bundle.getString("from").equals("contact")){
+            intent=new Intent(UserInfoActivity.this,MainActivity.class);
+        }else if(bundle.getString("from").equals("search")){
+            intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
+        }else if(bundle.getString("from").equals("chat")){
+            intent=new Intent(UserInfoActivity.this,ChatActivity.class);  //返回聊天框，TODO 有待测试
+        }
+        Objects.requireNonNull(intent).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        overridePendingTransition(0, R.anim.slide_right_out);
     }
 
     private void sendByPost_friend(int user_id, int friend_id) {
@@ -514,6 +525,46 @@ public class UserInfoActivity extends AppCompatActivity {
                         if(json.getString("user_img")!=null){
                             Glide.with(UserInfoActivity.this).load(getResources().getString(R.string.app_prefix_img)+json.getString("user_img")).into(user_img);
                         }
+                    }
+                });
+
+            }
+        });
+    }
+
+    private void sendByPost_friendnote(int user_id,int friend_id, String friend_note,Integer notice_rank) {
+        JSONObject json=new JSONObject();
+        json.put("group_id",friend_id);
+        json.put("user_id",user_id);
+        json.put("group_name",friend_note);
+        json.put("notice_rank",notice_rank);
+        String path = getResources().getString(R.string.request_local)+"/friendUpdate";
+        OkHttpClient client = new OkHttpClient();
+        final FormBody formBody = new FormBody.Builder()
+                .add("json", json.toJSONString())
+                .build();
+        System.out.println("*********"+json.toJSONString());
+        Request request = new Request.Builder()
+                .url(path)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                Looper.prepare();
+                Toast.makeText(UserInfoActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+                Looper.loop();
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                String info = response.body().string();
+                System.out.println("***********group_info" + info);
+                JSONObject json = JSON.parseObject(info);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        user_note.setText(friend_note);
                     }
                 });
 

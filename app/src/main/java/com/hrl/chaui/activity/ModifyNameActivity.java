@@ -57,7 +57,7 @@ public class ModifyNameActivity extends AppCompatActivity {
                     bundle_back.putBoolean("isModify", false);
                     if(bundle.getString("from").equals("friend")){ //设置好友备注
                         intent_back= new Intent(ModifyNameActivity.this, UserInfoActivity.class);
-                        if (!bundle.getString("friend_note").equals(Edit.getText().toString())) {//TODO 设置好友备注，那边还没传备注
+                        if (!bundle.getString("friend_note").equals(Edit.getText().toString())) {
                             bundle_back.putBoolean("isModify", true);
                         }
                         bundle_back.putString("friend_note", Edit.getText().toString());
@@ -96,37 +96,30 @@ public class ModifyNameActivity extends AppCompatActivity {
         back_arrow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = null;
-                if (bundle.getString("from").equals("group")) {
-                    intent = new Intent(ModifyNameActivity.this, GroupInfoActivity.class);
-                } else if (bundle.getString("from").equals("friend")) {
-                    intent = new Intent(ModifyNameActivity.this, UserInfoActivity.class);
-                } else if (bundle.getString("from").equals("me")) {
-                    intent = new Intent(ModifyNameActivity.this, NewFriendActivity.class);
-                }
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                overridePendingTransition(0, R.anim.slide_right_out);
-                finish();
+                back();
             }
         });
     }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK){
-            Intent intent = null;
-            if (bundle.getString("from").equals("group")) {
-                intent = new Intent(ModifyNameActivity.this, GroupInfoActivity.class);
-            } else if (bundle.getString("from").equals("friend")) {
-                intent = new Intent(ModifyNameActivity.this, UserInfoActivity.class);
-            } else if (bundle.getString("from").equals("me")) {
-                intent = new Intent(ModifyNameActivity.this, NewFriendActivity.class);
-            }
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            overridePendingTransition(0, R.anim.slide_right_out);
-            finish();
+            back();
         }
         return true;
+    }
+
+    private void back(){
+        Intent intent = null;
+        if (bundle.getString("from").equals("group")) {
+            intent = new Intent(ModifyNameActivity.this, GroupInfoActivity.class);
+        } else if (bundle.getString("from").equals("friend")) {
+            intent = new Intent(ModifyNameActivity.this, UserInfoActivity.class);
+        } else if (bundle.getString("from").equals("me")) {
+            intent = new Intent(ModifyNameActivity.this, NewFriendActivity.class);
+        }
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        overridePendingTransition(0, R.anim.slide_right_out);
+        finish();
     }
 }
