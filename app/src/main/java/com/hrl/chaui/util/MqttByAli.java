@@ -377,7 +377,22 @@ public class MqttByAli {
     public void sendP2PGroupInvite(String targetClient, User groupInfo) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("msg", "GroupInvite");
-        map.put("groupInfo", groupInfo);
+
+        map.put("isTop", groupInfo.isTop());
+        map.put("user_name", groupInfo.getUser_name());
+        map.put("user_pwd", groupInfo.getUser_pwd());
+        map.put("user_id", groupInfo.getUser_id());
+        map.put("user_img", groupInfo.getUser_img());
+        map.put("user_gender", groupInfo.getUser_gender());
+        map.put("user_phone", groupInfo.getUser_phone());
+        map.put("user_sign", groupInfo.getUser_sign());
+        map.put("img_data", groupInfo.getImg_data());
+        map.put("user_note", groupInfo.getUser_note());
+        map.put("type", groupInfo.getType());
+        map.put("rank", groupInfo.getRank());
+        map.put("notice_rank", groupInfo.getNotice_rank());
+        map.put("nickname", groupInfo.getNickname());
+        map.put("check", groupInfo.getCheck());
         byte[] data = new byte[0];
         sendByteP2P(data, targetClient, map);
     }

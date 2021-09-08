@@ -15,6 +15,7 @@ import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
 import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
 import com.hrl.chaui.activity.AnswerVideoCallActivity;
 import com.hrl.chaui.activity.AnswerVoiceCallActivity;
+import com.hrl.chaui.activity.LoginActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
@@ -395,7 +396,38 @@ public class MqttService extends Service {
                     break;
                 }
                 case "GroupInvite" : {
-                    User groupInfo = (User)(object.get("groupInfo"));
+                    User groupInfo = new User();
+                    boolean isTop = (boolean) object.get("isTop");
+                    String user_name = (String) object.get("user_name");
+                    String user_pwd = (String) object.get("user_pwd");
+                    Integer user_id = (Integer) object.get("user_id");
+                    String user_img = (String) object.get("user_img");
+                    String user_gender = (String) object.get("user_gender");
+                    String user_phone = (String) object.get("user_phone");
+                    String user_sign = (String) object.get("user_sign");
+                    byte[] img_data = (byte[]) object.get("img_data");
+                    String user_note = (String) object.get("user_note");
+                    int type = (int) object.get("type");
+                    int rank = (int) object.get("rank");
+                    int notice_rank = (int) object.get("notice_rank");
+                    String nickname = (String) object.get("nickname");
+                    String check = (String) object.get("check");
+                    groupInfo.setTop(isTop);
+                    groupInfo.setUser_name(user_name);
+                    groupInfo.setUser_pwd(user_pwd);
+                    groupInfo.setUser_id(user_id);
+                    groupInfo.setUser_img(user_img);
+                    groupInfo.setUser_gender(user_gender);
+                    groupInfo.setUser_phone(user_phone);
+                    groupInfo.setUser_sign(user_sign);
+                    groupInfo.setImg_data(img_data);
+                    groupInfo.setUser_note(user_note);
+                    groupInfo.setType(type);
+                    groupInfo.setRank(rank);
+                    groupInfo.setNotice_rank(notice_rank);
+                    groupInfo.setNickname(nickname);
+                    groupInfo.setCheck(check);
+
                     // 订阅群聊topic
                     String[] topicFilter = new String[1];
                     int[] qos = new int[1];
