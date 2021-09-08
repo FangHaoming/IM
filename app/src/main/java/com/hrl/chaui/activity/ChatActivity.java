@@ -141,6 +141,9 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
     // 对方不在线的Handler
     NoOnlineHandler noOnlineHandler = null;
 
+    // 点击的Item的位置
+    int itemPos = -1;
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -212,6 +215,13 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     @Override
     public void onResume() {
+
+        if (mAdapter.getItemCount() != 0) {
+            // 当ChatActivity展厅后重新恢复，会重复显示消息。
+            super.onResume();
+            return ;
+        }
+
         // 获取通信对方的信息
         Intent intent = getIntent();
         targetUser = (User) intent.getSerializableExtra("targetUser");

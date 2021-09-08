@@ -397,21 +397,21 @@ public class MqttService extends Service {
                 }
                 case "GroupInvite" : {
                     User groupInfo = new User();
-                    boolean isTop = (boolean) object.get("isTop");
-                    String user_name = (String) object.get("user_name");
-                    String user_pwd = (String) object.get("user_pwd");
-                    Integer user_id = (Integer) object.get("user_id");
-                    String user_img = (String) object.get("user_img");
-                    String user_gender = (String) object.get("user_gender");
-                    String user_phone = (String) object.get("user_phone");
-                    String user_sign = (String) object.get("user_sign");
-                    byte[] img_data = (byte[]) object.get("img_data");
-                    String user_note = (String) object.get("user_note");
-                    int type = (int) object.get("type");
-                    int rank = (int) object.get("rank");
-                    int notice_rank = (int) object.get("notice_rank");
-                    String nickname = (String) object.get("nickname");
-                    String check = (String) object.get("check");
+                    boolean isTop = object.get("isTop") != null && (boolean) object.get("isTop");
+                    String user_name =  object.get("isTop") != null ? (String) object.get("user_name") : "";
+                    String user_pwd = object.get("user_pwd") != null? (String) object.get("user_pwd") : "";
+                    Integer user_id = object.get("user_id") != null ? (Integer) object.get("user_id") : -1;
+                    String user_img = object.get("user_img") != null ? (String) object.get("user_img") : "";
+                    String user_gender = object.get("user_gender") != null ? (String) object.get("user_gender") : "";
+                    String user_phone =  object.get("user_phone") != null ? (String) object.get("user_phone") : "";
+                    String user_sign = object.get("user_sign") != null ? (String) object.get("user_sign") : "";
+                    byte[] img_data = object.get("img_data") != null ? (byte[]) object.get("img_data") : null;
+                    String user_note = object.get("user_note") != null ?(String) object.get("user_note") : "";
+                    int type = object.get("type") != null ? (int) object.get("type") : 0;
+                    int rank = object.get("rank") != null ? (int) object.get("rank") : 0;
+                    int notice_rank =object.get("notice_rank") != null ?  (int) object.get("notice_rank") : 0;
+                    String nickname = object.get("nickname") != null ? (String) object.get("nickname") : "";
+                    String check = object.get("check") != null ? (String) object.get("check") : "";
                     groupInfo.setTop(isTop);
                     groupInfo.setUser_name(user_name);
                     groupInfo.setUser_pwd(user_pwd);

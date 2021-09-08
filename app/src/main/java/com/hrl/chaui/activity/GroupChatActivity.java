@@ -201,6 +201,12 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
 
     @Override
     public void onResume() {
+
+        if (mAdapter.getItemCount() != 0) {
+            super.onResume();
+            return;
+        }
+
         // 获取通信对方的信息
         Intent intent = getIntent();
 
