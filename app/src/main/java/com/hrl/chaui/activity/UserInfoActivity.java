@@ -50,7 +50,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static com.hrl.chaui.MyApplication.modifyUser;
 import static com.hrl.chaui.util.Constant.CHECKONLINEERR;
 import static com.hrl.chaui.util.Constant.NOTONLINE;
 
@@ -117,7 +116,7 @@ public class UserInfoActivity extends AppCompatActivity {
                                 Intent intent_data=new Intent(UserInfoActivity.this,ModifyNameActivity.class);
                                 Bundle data=new Bundle();
                                 data.putString("from","friend");
-                                data.putString("friend_note",((User)intent.getSerializableExtra("friend")).getUser_note());
+                                data.putString("friend_note",bundle.getString("friend_note"));
                                 intent_data.putExtras(data);
                                 startActivity(intent_data);  //设置好友备注 有待测试
                                 break;
@@ -202,17 +201,7 @@ public class UserInfoActivity extends AppCompatActivity {
                                 break;
                             }
                             case R.id.back_arrow:
-                                Intent intent = null;
-                                if (bundle.getString("from").equals("group")) {
-                                    intent = new Intent(UserInfoActivity.this, GroupInfoActivity.class);
-                                } else if (bundle.getString("from").equals("contact")) {
-                                    intent = new Intent(UserInfoActivity.this, MainActivity.class);
-                                } else if (bundle.getString("from").equals("search")) {
-                                    intent = new Intent(UserInfoActivity.this, NewFriendActivity.class);
-                                }
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                                overridePendingTransition(0, R.anim.slide_right_out);
+                                back();
                                 break;
                         }
                     }
@@ -285,17 +274,7 @@ public class UserInfoActivity extends AppCompatActivity {
                 back_arrow.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = null;
-                        if(bundle.getString("from").equals("group")){
-                            intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
-                        }else if(bundle.getString("from").equals("contact")){
-                            intent=new Intent(UserInfoActivity.this,MainActivity.class);
-                        }else if(bundle.getString("from").equals("search")){
-                            intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
-                        }
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                        overridePendingTransition(0, R.anim.slide_right_out);
+                        back();
                     }
                 });
             }
@@ -361,10 +340,11 @@ public class UserInfoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Intent intent=getIntent();
-        Bundle bunlde=intent.getExtras();
-        if(bundle!=null){
-            if(bundle.getBoolean("isModify")){
-                sendByPost_friendnote(modifyUser.getUser_id(),((User)intent.getSerializableExtra("friend")).getUser_id(),bundle.getString("friend_note"),0);
+        bundle=intent.getExtras();
+        Bundle bundle_return=intent.getExtras();
+        if(bundle_return!=null){
+            if(bundle_return.getBoolean("isModify")){
+                //sendByPost_friendnote(modifyUser.getUser_id(),((User)intent.getSerializableExtra("friend")).getUser_id(),bundle.getString("friend_note"),0);
                 //TODO 有待测试 修改好友备注
             }
         }
@@ -380,14 +360,18 @@ public class UserInfoActivity extends AppCompatActivity {
 
     private void back(){
         Intent intent = null;
-        if(bundle.getString("from").equals("group")){
-            intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
-        }else if(bundle.getString("from").equals("contact")){
+        if(bundle!=null){
+            if(bundle.getString("from").equals("group")){
+                intent=new Intent(UserInfoActivity.this,GroupInfoActivity.class);
+            }else if(bundle.getString("from").equals("contact")||bundle.getString("from").equals("modifyName")){
+                intent=new Intent(UserInfoActivity.this,MainActivity.class);
+            }else if(bundle.getString("from").equals("search")){
+                intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
+            }else if(bundle.getString("from").equals("chat")){
+                intent=new Intent(UserInfoActivity.this,ChatActivity.class);  //返回聊天框，TODO 有待测试
+            }
+        }else{
             intent=new Intent(UserInfoActivity.this,MainActivity.class);
-        }else if(bundle.getString("from").equals("search")){
-            intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
-        }else if(bundle.getString("from").equals("chat")){
-            intent=new Intent(UserInfoActivity.this,ChatActivity.class);  //返回聊天框，TODO 有待测试
         }
         Objects.requireNonNull(intent).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);

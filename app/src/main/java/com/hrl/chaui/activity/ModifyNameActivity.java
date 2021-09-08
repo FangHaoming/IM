@@ -44,7 +44,15 @@ public class ModifyNameActivity extends AppCompatActivity {
         SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
         SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         SharedPreferences.Editor editor=sp.edit();
-        if(!sp.getString("user_name","").equals("")){
+        if(bundle.getString("from").equals("friend")){
+            Edit.setText(bundle.getString("friend_note"));
+        }else if(bundle.getString("from").equals("group")){
+            if(bundle.getString("which").equals("group_name")){
+                Edit.setText(bundle.getString("group_name"));
+            }else{
+                Edit.setText(bundle.getString("nickname"));
+            }
+        }else if(bundle.getString("from").equals("me")){
             Edit.setText(sp.getString("user_name",""));
         }
         save.setOnClickListener(new View.OnClickListener() {
@@ -57,16 +65,18 @@ public class ModifyNameActivity extends AppCompatActivity {
                     bundle_back.putBoolean("isModify", false);
                     if(bundle.getString("from").equals("friend")){ //设置好友备注
                         intent_back= new Intent(ModifyNameActivity.this, UserInfoActivity.class);
-                        if (!bundle.getString("friend_note").equals(Edit.getText().toString())) {
+                        if (!bundle.getString("friend_note").equals(Edit.getText().toString())) { //TODO 判空
                             bundle_back.putBoolean("isModify", true);
                         }
                         bundle_back.putString("friend_note", Edit.getText().toString());
+                        bundle_back.putString("who","friend");  //以此来判断UserInfoActivity加载的布局
+                        bundle_back.putString("from","modifyName"); //以此来判断UserInfoActivity返回的Activity
                     }
                     else if(bundle.getString("from").equals("group")){
                         intent_back= new Intent(ModifyNameActivity.this, GroupInfoActivity.class);
                         bundle_back.putInt("group_id",bundle.getInt("group_id"));
                         if(bundle.getString("which").equals("nickname")){ //我在群的昵称
-                            if (!bundle.getString("nickname").equals(Edit.getText().toString())) {
+                            if (!bundle.getString("nickname").equals(Edit.getText().toString())) { //TODO判空
                                 bundle_back.putBoolean("isModify", true);
                             }
                             bundle_back.putString("nickname", Edit.getText().toString());

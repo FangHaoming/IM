@@ -110,11 +110,10 @@ public class ContactFragment extends Fragment {
                 for (int i = 0; i < contacts.size(); i++) {
                     JSONObject obj = contacts.getJSONObject(i);
                     if (obj.getInteger("type") == 0) {
-                        contactData.add(new User(obj.getInteger("contact_id"), obj.getString("contact_img"), obj.getString("contact_name"),obj.getString("user_phone"), obj.getInteger("type")));
-                        friendData.add(new User(obj.getInteger("contact_id"), obj.getString("contact_img"), obj.getString("contact_name"),obj.getString("user_phone"), obj.getInteger("type")));
+                        contactData.add(JSONObject.parseObject(obj.toJSONString(),User.class));
+                        friendData.add(JSONObject.parseObject(obj.toJSONString(),User.class));
                     } else {
-                        groupData.add(new User(obj.getInteger("contact_id"), obj.getString("contact_img"), obj.getString("contact_name"),obj.getString("user_phone"), obj.getInteger("type")));
-
+                        groupData.add(JSONObject.parseObject(obj.toJSONString(),User.class));
                     }
                 }
                 new Thread(new Runnable() {

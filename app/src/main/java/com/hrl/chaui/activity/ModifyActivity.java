@@ -110,11 +110,7 @@ public class ModifyActivity extends AppCompatActivity {
                         startActivity(intent);
                         break;
                     case R.id.back_arrow:
-                        bundle_Main.putBoolean("isModify", isModify);
-                        bundle_Main.putString("json",JSONObject.toJSONString(modifyUser));
-                        intent_Main.putExtras(bundle_Main);
-                        setResult(Activity.RESULT_OK, intent_Main);
-                        finish();
+                        back();
                         break;
 
                 }
@@ -143,16 +139,22 @@ public class ModifyActivity extends AppCompatActivity {
         if (bundle != null) {
             if(bundle.getString("user_name")!=null){
                 name.setText(bundle.getString("user_name"));
-                modifyUser.setUser_name(bundle.getString("user_name"));
+            }else{
+                name.setText("");
             }
             if(bundle.getString("user_gender")!=null){
                 gender.setText(bundle.getString("user_gender"));
-                modifyUser.setUser_gender(bundle.getString("user_gender"));
+            }else{
+                gender.setText("");
             }
             if(bundle.getString("user_sign")!=null){
                 sign.setText(bundle.getString("user_sign"));
-                modifyUser.setUser_sign(bundle.getString("user_sign"));
+            }else{
+                sign.setText("");
             }
+            modifyUser.setUser_name(bundle.getString("user_name"));
+            modifyUser.setUser_gender(bundle.getString("user_gender"));
+            modifyUser.setUser_sign(bundle.getString("user_sign"));
             isModify = bundle.getBoolean("isModify");
             System.out.println("*********isModify in Modify onResume " + isModify);
         }
@@ -173,14 +175,17 @@ public class ModifyActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK){
-            intent_Main = new Intent(ModifyActivity.this, MainActivity.class);
-            bundle_Main.putBoolean("isModify",isModify);
-            bundle_Main.putString("json",JSONObject.toJSONString(modifyUser));
-            intent_Main.putExtras(bundle_Main);
-            setResult(Activity.RESULT_OK, intent_Main);
-            finish();
+            back();
         }
         return true;
+    }
+
+    private void back(){
+        bundle_Main.putBoolean("isModify",isModify);
+        bundle_Main.putString("json",JSONObject.toJSONString(modifyUser));
+        intent_Main.putExtras(bundle_Main);
+        setResult(Activity.RESULT_OK, intent_Main);
+        finish();
     }
 
     private void modifyImg() {

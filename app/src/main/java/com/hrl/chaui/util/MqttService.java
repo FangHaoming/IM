@@ -395,7 +395,7 @@ public class MqttService extends Service {
                     break;
                 }
                 case "GroupInvite" : {
-                    User groupInfo = (User) object.get("groupInfo");
+                    User groupInfo = (User)(object.get("groupInfo"));
                     // 订阅群聊topic
                     String[] topicFilter = new String[1];
                     int[] qos = new int[1];

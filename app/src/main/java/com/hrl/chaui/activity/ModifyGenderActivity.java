@@ -45,9 +45,11 @@ public class ModifyGenderActivity extends AppCompatActivity {
         if(sp.getString("user_gender","").equals("男")){
             male_text.setBackground(getResources().getDrawable(R.drawable.chosen));
             female_text.setBackground(null);
-        }
-        else if(sp.getString("user_gender","").equals("女")){
+        }else if(sp.getString("user_gender","").equals("女")){
             female_text.setBackground(getResources().getDrawable(R.drawable.chosen));
+            male_text.setBackground(null);
+        }else {
+            female_text.setBackground(null);
             male_text.setBackground(null);
         }
 

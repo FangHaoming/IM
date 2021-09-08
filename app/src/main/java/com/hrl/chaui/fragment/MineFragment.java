@@ -112,15 +112,6 @@ public class MineFragment extends Fragment {
         change.setOnClickListener(listener);
         img.setOnClickListener(listener);
 
-
-
-        return root;
-    }
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
         name.setText(sp.getString("user_name",""));
         //Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
         sign.setText("个性签名: "+sp.getString("user_sign",""));
@@ -129,7 +120,7 @@ public class MineFragment extends Fragment {
         Log.i("isImgChang me resu",""+isImgChange);
         Log.i("user_img in Mine",sp.getString("user_img", ""));
         if (!sp.getString("user_img", "").equals("") && !isImgChange) {
-            Glide.with(this).load(getString(R.string.app_prefix_img) +sp.getString("user_img", "")).into(img);
+            Glide.with(Objects.requireNonNull(getContext())).load(getString(R.string.app_prefix_img) +sp.getString("user_img", "")).into(img);
         } else if (!Objects.equals(img_uri, "") && isImgChange) {
             Log.i("isImgChange in Modify",""+isImgChange);
             try {
@@ -139,6 +130,8 @@ public class MineFragment extends Fragment {
                 e.printStackTrace();
             }
         }
+
+        return root;
     }
 
 
@@ -183,7 +176,6 @@ public class MineFragment extends Fragment {
             if (resultCode == Activity.RESULT_OK) {
                 //Log.i("json in Main",data.getStringExtra("json"));
                 //MineFragment.onFragmentResult(requestCode,resultCode,data);
-                http.sendByPostLogin(getContext(),modifyUser.getUser_phone(),modifyUser.getUser_pwd());
                 bundle = data.getExtras();
                 isImgChange=bundle.getBoolean("isImgChange");
                 Log.i("isImg onResult",""+isImgChange);
@@ -211,13 +203,13 @@ public class MineFragment extends Fragment {
 
     }
 
-    private void sendByPost_upDate(String json) {
+    private void sendByPost_upDate(String jsonString) {
         String path = getResources().getString(R.string.request_local)+"/userUpdate";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
-                .add("json", json)
+                .add("json", jsonString)
                 .build();
-        System.out.println("*********userUpdate "+json);
+        System.out.println("*********userUpdate "+jsonString);
         Request request = new Request.Builder()
                 .url(path)
                 .post(formBody)
@@ -236,19 +228,35 @@ public class MineFragment extends Fragment {
                 JSONObject json= JSON.parseObject(info);
                 System.out.println("*****userUpdate return "+info);
                 if(json.getString("msg").equals("update success")){
+                    http.sendByPostLogin(Objects.requireNonNull(getContext()),modifyUser.getUser_phone(),modifyUser.getUser_pwd()); //重新登陆获取个人信息,主要是user_img
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            name.setText(modifyUser.getUser_name());
+                            //Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
+                            sign.setText("个性签名: "+modifyUser.getUser_sign());
+                            phone.setText("手机号: "+modifyUser.getUser_phone());
+                            //TODO 头像显示有点问题
+                            Log.i("sendby isImgChang mine",""+isImgChange);
+                            Log.i("sendby user_img mine",modifyUser.getUser_img());
+                            if (!sp.getString("user_img", "").equals(modifyUser.getUser_img()) && !isImgChange) {
+                                Glide.with(Objects.requireNonNull(getContext())).load(getString(R.string.app_prefix_img) +modifyUser.getUser_img()).into(img);
+                            } else {
+                                try {
+                                    Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(img_uri));
+                                    img.setImageBitmap(bitmap);
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                    editor.putString("user_img",modifyUser.getUser_img());
                     editor.putString("user_name",modifyUser.getUser_name());
                     editor.putString("user_sign",modifyUser.getUser_sign());
                     editor.putString("user_gender",modifyUser.getUser_gender());
                     editor.putString("user_pwd",modifyUser.getUser_pwd());
                     editor.apply();
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            name.setText(modifyUser.getUser_name());
-                            sign.setText("个性签名: "+modifyUser.getUser_sign());
-                            Glide.with(Objects.requireNonNull(getContext())).load(getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
-                        }
-                    });
                 }
                 else{
                     modifyUser.setUser_pwd(sp.getString("user_pwd",""));

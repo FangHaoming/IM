@@ -132,17 +132,17 @@ public class GroupInfoActivity extends AppCompatActivity {
             if(bundle.getBoolean("isModify")){
                 String name;
                 if(bundle.getString("group_name")!=null){
-                    group_name.setText(bundle.getString("group_name"));
                     name=bundle.getString("group_name");
+                    group_name.setText(name);
                     sendByPost_groupname(modifyUser.getUser_id(),bundle.getInt("group_id"),name,modifyUser.getRank());
                     //TODO 修改群名接口 有待测试
                 }
                 if(bundle.getString("nickname")!=null){
-                    nickname.setText(bundle.getString("nickname"));
                     name=bundle.getString("nickname");
+                    nickname.setText(name);
                     sendByPost_nickname(modifyUser.getUser_id(),bundle.getInt("group_id"),name,modifyUser.getRank());
                 }
-                //TODO 有待测试
+                //TODO 有待测试 修改群昵称
             }
         }
     }
