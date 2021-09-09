@@ -122,10 +122,10 @@ public class UserInfoActivity extends AppCompatActivity {
                                 data.putInt("contact_id",bundle.getInt("contact_id"));
                                 data.putString("friend_note",bundle.getString("friend_note"));
                                 intent_data.putExtras(data);
-                                startActivity(intent_data);  //设置好友备注 有待测试 TODO
+                                startActivity(intent_data);
                                 break;
                             case R.id.delete:
-                                //TODO 删除好友
+                                sendByPost_delete(modifyUser.getUser_id(),bundle.getInt("contact_id"));
                                 break;
                             case R.id.send_message:
                                 Intent chatIntent = new Intent(UserInfoActivity.this, ChatActivity.class);
@@ -348,7 +348,7 @@ public class UserInfoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Intent intent=getIntent();
-        Bundle bundle_note=intent.getExtras(); //TODO 设置好友备注 后 好友就是陌生人  问题应该出在这里
+        Bundle bundle_note=intent.getExtras();
         //Bundle bundle_return=intent.getExtras();
         if(bundle_note!=null){
             if(bundle_note.getBoolean("isModify")){
@@ -551,7 +551,7 @@ public class UserInfoActivity extends AppCompatActivity {
                 System.out.println("***********group_info" + info);
                 JSONObject json = JSON.parseObject(info);
                 if(Objects.equals(json.get("msg"), "update success")){
-                    http.sendByPost(UserInfoActivity.this,friend_id);
+                    http.sendByPost(UserInfoActivity.this,modifyUser.getUser_id());
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -567,6 +567,51 @@ public class UserInfoActivity extends AppCompatActivity {
                     Looper.loop();
                 }
 
+
+            }
+        });
+    }
+    private void sendByPost_delete(int user_id, int friend_id) {
+        JSONObject json=new JSONObject();
+        json.put("friend_id",friend_id);
+        json.put("user_id",user_id);
+        String path = getResources().getString(R.string.request_local)+"/friendDelete";
+        OkHttpClient client = new OkHttpClient();
+        final FormBody formBody = new FormBody.Builder()
+                .add("json", json.toJSONString())
+                .build();
+        System.out.println("*********"+json.toJSONString());
+        Request request = new Request.Builder()
+                .url(path)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                Looper.prepare();
+                Toast.makeText(UserInfoActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+                Looper.loop();
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                String info = response.body().string();
+                System.out.println("***********group_info" + info);
+                JSONObject json = JSONObject.parseObject(info);
+                if(json.getString("msg").equals("delete success")){
+                    Looper.prepare();
+                    http.sendByPost(UserInfoActivity.this,modifyUser.getUser_id());
+                    Toast.makeText(UserInfoActivity.this, "删除成功!", Toast.LENGTH_SHORT).show();
+                    Intent intent=new Intent(UserInfoActivity.this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                    Looper.loop();
+                }else{
+                    Looper.prepare();
+                    Toast.makeText(UserInfoActivity.this, "删除失败", Toast.LENGTH_SHORT).show();
+                    Looper.loop();
+                }
 
             }
         });

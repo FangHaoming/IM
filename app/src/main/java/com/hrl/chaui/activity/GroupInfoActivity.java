@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.hrl.chaui.R;
 import com.hrl.chaui.adapter.GroupMemberAdapter;
 import com.hrl.chaui.bean.User;
+import com.hrl.chaui.util.http;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ public class GroupInfoActivity extends AppCompatActivity {
     public GridView gridView;
     public Intent intent;
     public Bundle bundle;
+    public Bundle bundle1;
     Bundle bundle_modifyName;
     User group;
 
@@ -78,16 +80,17 @@ public class GroupInfoActivity extends AppCompatActivity {
         nickname_view=findViewById(R.id.nickname_view);
         group_name_view=findViewById(R.id.group_name_view);
 
-        sendByPost(group_id,sp.getInt("user_id",0));
+        sendByPost(group_id, modifyUser.getUser_id());
 
         group_name_view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(modifyUser.getRank()==0||modifyUser.getRank()==1||groupMemberData.size()<10){//TODO 有待测试 修改群名权限
+                if(modifyUser.getRank()==0||modifyUser.getRank()==1){
                     Intent intent_modifyName=new Intent(GroupInfoActivity.this,ModifyNameActivity.class);
                     bundle_modifyName.putString("which","group_name");
                     bundle_modifyName.putString("group_name",group_name.getText().toString());
                     intent_modifyName.putExtras(bundle_modifyName);
+                    intent_modifyName.putExtra("group",group);
                     startActivity(intent_modifyName);
                 }
             }
@@ -112,7 +115,7 @@ public class GroupInfoActivity extends AppCompatActivity {
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO 删除并退出群聊
+                sendByPost_delete(modifyUser.getUser_id(),group.getUser_id());
             }
         });
     }
@@ -126,7 +129,14 @@ public class GroupInfoActivity extends AppCompatActivity {
     }
     private void back(){
         Intent intent_back=new Intent(GroupInfoActivity.this, GroupChatActivity.class);
+        if(bundle1!=null){
+            if(bundle1.getString("group_name")!=null){
+                group.setUser_name(bundle1.getString("group_name"));
+                group.setSelect(true);
+            }
+        }
         intent_back.putExtra("targetUser",group);
+        intent_back.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent_back);
         overridePendingTransition(0, R.anim.slide_right_out);
         finish();
@@ -142,20 +152,19 @@ public class GroupInfoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Intent intent=getIntent();
-        Bundle bundle=intent.getExtras();
-        if(bundle!=null){
-            if(bundle.getBoolean("isModify")){
+        bundle1=intent.getExtras();
+        if(bundle1!=null){
+            if(bundle1.getBoolean("isModify")){
                 String name;
-                if(bundle.getString("group_name")!=null){
-                    name=bundle.getString("group_name");
+                if(bundle1.getString("group_name")!=null){
+                    name=bundle1.getString("group_name");
                     group_name.setText(name);
-                    sendByPost_groupname(modifyUser.getUser_id(),bundle.getInt("group_id"),name,modifyUser.getRank());
-                    //TODO 修改群名接口 有待测试
+                    sendByPost_groupname(bundle1.getInt("group_id"),name,null);
                 }
-                if(bundle.getString("nickname")!=null){
-                    name=bundle.getString("nickname");
+                if(bundle1.getString("nickname")!=null){
+                    name=bundle1.getString("nickname");
                     nickname.setText(name);
-                    sendByPost_nickname(modifyUser.getUser_id(),bundle.getInt("group_id"),name,modifyUser.getRank());
+                    sendByPost_nickname(modifyUser.getUser_id(),bundle1.getInt("group_id"),name,modifyUser.getRank());
                 }
             }
         }
@@ -208,7 +217,7 @@ public class GroupInfoActivity extends AppCompatActivity {
                     }
                     if(obj.getInteger("user_id").equals(modifyUser.getUser_id())){
                         modifyUser.setNickname(obj.getString("nickname"));
-                        modifyUser.setRank(obj.getInteger("rank")); //TODO 有待测试
+                        modifyUser.setRank(obj.getInteger("rank"));
                     }
                     groupMemberData.add(user);
                 }
@@ -279,18 +288,16 @@ public class GroupInfoActivity extends AppCompatActivity {
     }
 
     /** 修改群名
-     * @param user_id
      * @param group_id
      * @param group_Name
-     * @param rank
+     * @param group_notice
      */
-    private void sendByPost_groupname(int user_id,int group_id, String group_Name,Integer rank) {
+    private void sendByPost_groupname(int group_id, String group_Name,String group_notice) {
         JSONObject json=new JSONObject();
         json.put("group_id",group_id);
-        json.put("user_id",user_id);
         json.put("group_name",group_Name);
-        json.put("rank",rank);
-        String path = getResources().getString(R.string.request_local)+"/memberUpdate";
+        json.put("group_notice",group_notice);
+        String path = getResources().getString(R.string.request_local)+"/groupUpdate";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
                 .add("json", json.toJSONString())
@@ -312,17 +319,72 @@ public class GroupInfoActivity extends AppCompatActivity {
             public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 String info = response.body().string();
                 System.out.println("***********group_info" + info);
-                JSONObject json = JSON.parseObject(info);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        group_name.setText(group_Name);
-                    }
-                });
+                JSONObject json = JSONObject.parseObject(info);
+                if(json.getString("msg").equals("update success")){
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            group_name.setText(group_Name);
+                        }
+                    });
+                    http.sendByPost(GroupInfoActivity.this,modifyUser.getUser_id());
+                    Looper.prepare();
+                    Toast.makeText(GroupInfoActivity.this, "删除成功!", Toast.LENGTH_SHORT).show();
+                    Looper.loop();
+                }else{
+                    Looper.prepare();
+                    Toast.makeText(GroupInfoActivity.this, "删除失败", Toast.LENGTH_SHORT).show();
+                    Looper.loop();
+                }
+
 
             }
         });
     }
 
+    private void sendByPost_delete(int user_id, int group_id) {
+        JSONObject json=new JSONObject();
+        json.put("group_id",group_id);
+        json.put("user_id",user_id);
+        String path = getResources().getString(R.string.request_local)+"/memberDelete";
+        OkHttpClient client = new OkHttpClient();
+        final FormBody formBody = new FormBody.Builder()
+                .add("json", json.toJSONString())
+                .build();
+        System.out.println("*********"+json.toJSONString());
+        Request request = new Request.Builder()
+                .url(path)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                Looper.prepare();
+                Toast.makeText(GroupInfoActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+                Looper.loop();
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                String info = response.body().string();
+                System.out.println("***********group_info" + info);
+                JSONObject json = JSONObject.parseObject(info);
+                if(json.getString("msg").equals("delete success")){
+                    http.sendByPost(GroupInfoActivity.this,modifyUser.getUser_id());
+                    Looper.prepare();
+                    Toast.makeText(GroupInfoActivity.this, "删除成功!", Toast.LENGTH_SHORT).show();
+                    Looper.loop();
+                    Intent intent=new Intent(GroupInfoActivity.this,GroupActivity.class);
+                    startActivity(intent);
+                    finish();
+                }else{
+                    Looper.prepare();
+                    Toast.makeText(GroupInfoActivity.this, "删除失败", Toast.LENGTH_SHORT).show();
+                    Looper.loop();
+                }
+
+            }
+        });
+    }
 
 }

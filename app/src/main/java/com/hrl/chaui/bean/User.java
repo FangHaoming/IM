@@ -149,7 +149,7 @@ public class User extends BaseIndexPinyinBean implements Serializable {
     }
 
     public String getUser_gender() {
-        return user_gender;
+        return user_gender==null?"?":user_gender;
     }
 
     public void setUser_gender(String user_gender) {

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HRLChatUi</string>
-    <string name="app_prefix_img">http://40f730q296.qicp.vip/images/head/</string>
-    <string name="app_prefix_img_remote">http://172.16.73.48:8080/images/head/</string>
+    <string name="app_prefix_img_remote">http://40f730q296.qicp.vip/images/head/</string>
+    <string name="app_prefix_img">http://172.16.73.48:8080/images/head/</string>
     <string name="request_">https://407302b9g6.eicp.vip</string>
     <string name="request">http://40f730q296.qicp.vip</string>
-    <string name="reques">http://172.16.73.48:8080</string>
-    <string name="request_local">http://10.22.32.85:8080</string>
+    <string name="request_local">http://172.16.73.48:8080</string>
+    <string name="reques">http://10.22.32.85:8080</string>
     <string name="register"><u>新用户注册</u></string>
 
     <string name="alirtc_title">AliRTCSample</string>

@@ -60,7 +60,6 @@ public class http {
                 friendData=new ArrayList<>();
                 contactData.add((User) new User("新的朋友","-1").setTop(true).setBaseIndexTag("↑"));
                 contactData.add((User) new User("群聊","-1").setTop(true).setBaseIndexTag("↑"));
-
                 for (int i = 0; i < contacts.size(); i++) {
                     JSONObject obj = contacts.getJSONObject(i);
                     if (obj.getInteger("type") == 0) {
@@ -109,8 +108,6 @@ public class http {
                 switch (Integer.parseInt(json.get("status").toString())){
                     case 2:
                         http.sendByPost(mContext,json.getInteger("user_id"));  //重新登陆更新通讯录
-                        Intent intent2=new Intent(mContext,MqttService.class);
-                        mContext.startService(intent2);
                         intent = new Intent(mContext, MainActivity.class);
                         mContext.startActivity(intent);
                         modifyUser.setUser_id(json.getInteger("user_id"));     //重新登录更新modifyUser
@@ -119,6 +116,7 @@ public class http {
                         modifyUser.setUser_pwd(user_pwd);
                         modifyUser.setUser_phone(json.getString("user_phone"));
                         modifyUser.setUser_img(json.getString("user_img"));
+                        modifyUser.setUser_sign(json.getString("user_sign"));
                         break;
                     case 1:
 

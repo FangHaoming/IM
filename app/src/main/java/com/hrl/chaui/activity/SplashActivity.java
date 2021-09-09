@@ -27,6 +27,7 @@ import io.reactivex.functions.Consumer;
 public class SplashActivity extends AppCompatActivity {
 
     SharedPreferences sp;
+    SharedPreferences userId;
     SharedPreferences.Editor editor;
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -36,7 +37,7 @@ public class SplashActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_splash);
         AppManager.addActivity(this);
-        SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
+        userId=getSharedPreferences("data_userID",MODE_PRIVATE); //用户ID清单
         sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         editor=sp.edit();
         Window window = getWindow();
@@ -67,8 +68,8 @@ public class SplashActivity extends AppCompatActivity {
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
-                            if(sp.getBoolean("isAuto",false)){
-                                http.sendByPostLogin(SplashActivity.this,sp.getString("user_phone",""),sp.getString("user_pwd",""));
+                            if(userId.getBoolean("isAuto",false)){
+                                http.sendByPostLogin(SplashActivity.this,userId.getString("user_phone",""),userId.getString("user_pwd",""));
                             }else{
                                 startActivity(new Intent(SplashActivity.this,LoginActivity.class));
                             }

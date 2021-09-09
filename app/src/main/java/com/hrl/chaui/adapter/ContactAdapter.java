@@ -28,6 +28,9 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     protected Context mContext;
     protected List<User> mDatas;
     protected LayoutInflater mInflater;
+    public ContactAdapter(){
+
+    }
 
     public ContactAdapter(Context mContext, List<User> mDatas) {
         this.mContext = mContext;
@@ -79,12 +82,15 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     Intent intent;
                     Bundle bundle = new Bundle();
                     if(user.getType()==0){
+                        if(user.getUser_note()!=null){
+                            ((ViewHolder) holder).name.setText(user.getUser_note());
+                        }
                         intent = new Intent(mContext, UserInfoActivity.class);
                         bundle.putString("who", "friend");
                         bundle.putString("friend_from","contact");
                         bundle.putString("from","contact"); //用来在UserInActivity返回
                         bundle.putInt("contact_id", user.getUser_id());
-                        bundle.putString("friend_note",user.getUser_note()); //TODO 有待后端传 好友备注
+                        bundle.putString("friend_note",user.getUser_note());
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     }
                     else {

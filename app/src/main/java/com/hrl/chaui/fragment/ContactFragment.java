@@ -39,12 +39,13 @@ import static android.content.Context.MODE_PRIVATE;
 import static com.hrl.chaui.MyApplication.contactData;
 import static com.hrl.chaui.MyApplication.friendData;
 import static com.hrl.chaui.MyApplication.groupData;
+import static com.hrl.chaui.MyApplication.mAdapter;
 
 public class ContactFragment extends Fragment {
     private RecyclerView mRv;
     private LinearLayoutManager mManager;
     private SuspensionDecoration mDecoration;
-    private ContactAdapter mAdapter;
+
     public SharedPreferences sp;
     public SharedPreferences.Editor editor;
     public TextView mTvSideBarHint;

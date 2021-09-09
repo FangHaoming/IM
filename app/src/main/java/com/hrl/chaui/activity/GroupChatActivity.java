@@ -60,6 +60,7 @@ import com.hrl.chaui.util.MqttByAli;
 import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.PictureFileUtil;
 import com.hrl.chaui.util.RTCHelper;
+import com.hrl.chaui.util.http;
 import com.hrl.chaui.util.value;
 import com.hrl.chaui.widget.MediaManager;
 import com.hrl.chaui.widget.RecordButton;
@@ -79,6 +80,8 @@ import java.util.UUID;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+
+import static com.hrl.chaui.MyApplication.modifyUser;
 
 /**
  * 和ChatActivity界面类似，想要转入GroupChatActivity界面，需要满足下面的2个条件
@@ -214,8 +217,8 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
 
         // 获取通信对方的信息
         Intent intent = getIntent();
-
         targetGroup = (User) intent.getSerializableExtra("targetUser");
+        http.sendByPost(GroupChatActivity.this,modifyUser.getUser_id());
         Log.e(TAG, "ChatActivity onResume()" + "  targetGroup:" + targetGroup.getUser_name());
 
 
@@ -435,7 +438,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
             public void onClick(View v) {
                 Intent intent = new Intent(GroupChatActivity.this, GroupInfoActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putInt("contact_id", Integer.valueOf(targetGroupID)); // 存放的是群聊的ID 或者 用户的ID
+                bundle.putInt("contact_id", targetGroup.getUser_id()); // 存放的是群聊的ID 或者 用户的ID
                 bundle.putString("group_name",targetGroup.getUser_name());
                 intent.putExtra("targetUser",targetGroup);
                 intent.putExtras(bundle);

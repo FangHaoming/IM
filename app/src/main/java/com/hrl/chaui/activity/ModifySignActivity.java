@@ -37,15 +37,14 @@ public class ModifySignActivity extends AppCompatActivity {
         SharedPreferences userId=getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
         SharedPreferences sp=getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         SharedPreferences.Editor editor=sp.edit();
-        if(!sp.getString("user_sign","").equals("")){
-            Edit.setText(sp.getString("user_sign",""));
+        if(modifyUser.getUser_sign()!=null){
+            Edit.setText(modifyUser.getUser_sign());
         }
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(ModifySignActivity.this,ModifyActivity.class);
                 Bundle bundle=new Bundle();
-                //TODO 判空
                 bundle.putBoolean("isModify", !Edit.getText().toString().equals(modifyUser.getUser_sign()));
                 bundle.putString("user_sign",Edit.getText().toString());
                 intent.putExtras(bundle);

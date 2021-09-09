@@ -175,4 +175,5 @@ public class MainActivity extends FragmentActivity {
         super.onDestroy();
         stopService(intentService);
     }
+
 }

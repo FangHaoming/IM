@@ -35,6 +35,7 @@ import com.hrl.chaui.util.http;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -45,6 +46,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
+import static com.hrl.chaui.MyApplication.friendRequest;
 import static com.hrl.chaui.MyApplication.isImgChange;
 import static com.hrl.chaui.MyApplication.modifyUser;
 
@@ -75,6 +77,7 @@ public class MineFragment extends Fragment {
 
         SharedPreferences userId=Objects.requireNonNull(getContext()).getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
         sp=Objects.requireNonNull(getContext()).getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        SharedPreferences.Editor editorID=userId.edit();
         editor=sp.edit();
         img_uri="";
 
@@ -103,7 +106,11 @@ public class MineFragment extends Fragment {
                         editor.putString("user_sign",modifyUser.getUser_sign());
                         editor.putString("user_pwd",modifyUser.getUser_pwd());
                         editor.apply();
+                        editor.putString("friReqMessage", JSONObject.toJSONString(friendRequest));
+                        editorID.putInt("user_id",-1);
+                        editorID.apply();
                         isImgChange=false;
+                        friendRequest=new ArrayList<>();
                         AppManager.AppExit(getContext());
                         Intent intent1=new Intent(getContext(),LoginActivity.class);
                         Objects.requireNonNull(getContext()).startActivity(intent1);
@@ -124,7 +131,7 @@ public class MineFragment extends Fragment {
 
         name.setText(modifyUser.getUser_name());
         //Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
-        sign.setText("个性签名: "+modifyUser.getUser_sign());
+        sign.setText("个性签名: "+(modifyUser.getUser_sign()==null?"":modifyUser.getUser_sign()));
         phone.setText("手机号: "+modifyUser.getUser_phone());
 
 
@@ -166,6 +173,7 @@ public class MineFragment extends Fragment {
     }
 
  */
+
 
     @Override
     public void onResume() {

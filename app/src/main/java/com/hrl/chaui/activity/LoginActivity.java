@@ -79,9 +79,9 @@ public class LoginActivity extends AppCompatActivity {
         editor=sp.edit();
         editor_userId=userId.edit();
 
-        phone.setText(sp.getString("user_phone",""));
-        if(sp.getBoolean("isRemember",false)){
-            pwd.setText(sp.getString("user_pwd",""));
+        phone.setText(userId.getString("user_phone",""));
+        if(userId.getBoolean("isRemember",false)){
+            pwd.setText(userId.getString("user_pwd",""));
             loginBtn.setEnabled(true);
             remember.setChecked(true);
         }
@@ -93,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
                     .setBtn(loginBtn)
                     .build();
         }
-        if(sp.getBoolean("isAuto",false)){
+        if(userId.getBoolean("isAuto",false)){
             auto_login.setChecked(true);
         }
         //注册按钮
@@ -163,16 +163,16 @@ public class LoginActivity extends AppCompatActivity {
                         SharedPreferences sp=getSharedPreferences("data_"+json.getInteger("user_id"),MODE_PRIVATE); //根据ID获取用户数据文件
                         editor=sp.edit();
                         if(remember.isChecked()){
-                            editor.putBoolean("isRemember",true);
+                            editor_userId.putBoolean("isRemember",true);
                         }
                         else{
-                            editor.putBoolean("isRemember",false);
+                            editor_userId.putBoolean("isRemember",false);
                         }
                         if(auto_login.isChecked()){
-                            editor.putBoolean("isAuto",true);
+                            editor_userId.putBoolean("isAuto",true);
                         }
                         else{
-                            editor.putBoolean("isAuto",false);
+                            editor_userId.putBoolean("isAuto",false);
                         }
                         modifyUser.setUser_id(json.getInteger("user_id"));
                         modifyUser.setUser_name(json.getString("user_name"));
@@ -180,6 +180,7 @@ public class LoginActivity extends AppCompatActivity {
                         modifyUser.setUser_pwd(user_pwd);
                         modifyUser.setUser_phone(json.getString("user_phone"));
                         modifyUser.setUser_img(json.getString("user_img"));
+                        modifyUser.setUser_sign(json.getString("user_sign"));
                         editor.putString("user_gender", (String) json.get("user_gender"));
                         editor.putInt("user_id", json.getInteger("user_id"));
                         editor.putString("user_img",(String)json.get("user_img"));
@@ -188,6 +189,8 @@ public class LoginActivity extends AppCompatActivity {
                         editor.putString("user_sign",(String)json.get("user_sign"));
                         editor.putString("user_pwd",user_pwd);
                         editor_userId.putInt("user_id",json.getInteger("user_id"));
+                        editor_userId.putString("user_phone",json.getString("user_phone"));
+                        editor_userId.putString("user_pwd",user_pwd);
                         editor_userId.apply();
                         editor.apply();
 

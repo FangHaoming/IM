@@ -127,7 +127,7 @@ public class NewFriendAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                     Looper.prepare();
                     Toast.makeText(mContext, "添加成功!", Toast.LENGTH_SHORT).show();
                     friendRequest.remove(position);
-                    http.sendByPost(mContext,modifyUser.getUser_id());
+                    http.sendByPost(mContext,modifyUser.getUser_id()); //获取联系人
                     Looper.loop();
                 }
                 else if(json.getString("msg").equals("add failed")){

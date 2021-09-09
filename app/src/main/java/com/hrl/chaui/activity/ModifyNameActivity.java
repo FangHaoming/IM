@@ -18,6 +18,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.hrl.chaui.R;
+import com.hrl.chaui.bean.User;
 
 public class ModifyNameActivity extends AppCompatActivity {
     Bundle bundle;
@@ -59,14 +60,19 @@ public class ModifyNameActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(Edit.getText().length()==0) {
-                    Toast.makeText(ModifyNameActivity.this, "名称不能为空", Toast.LENGTH_SHORT).show();
-                }
-                else{
+                    if (bundle.getString("from").equals("group")) {
+                        if (bundle.getString("which").equals("group_name")) {
+                            Toast.makeText(ModifyNameActivity.this, "名称不能为空", Toast.LENGTH_SHORT).show();
+                        }
+                    } else if (bundle.getString("from").equals("me")) {
+                        Toast.makeText(ModifyNameActivity.this, "名称不能为空", Toast.LENGTH_SHORT).show();
+                    }
+                }else{
                     bundle_back.putBoolean("isModify", false);
                     if(bundle.getString("from").equals("friend")){ //设置好友备注
                         bundle_back.putInt("contact_id",bundle.getInt("contact_id"));
                         intent_back= new Intent(ModifyNameActivity.this, UserInfoActivity.class);
-                        if (!Edit.getText().toString().equals(bundle.getString("friend_note"))) { //TODO 判空
+                        if (!Edit.getText().toString().equals(bundle.getString("friend_note"))) {
                             bundle_back.putBoolean("isModify", true);
                         }
                         bundle_back.putString("friend_note", Edit.getText().toString());
@@ -77,7 +83,7 @@ public class ModifyNameActivity extends AppCompatActivity {
                         intent_back= new Intent(ModifyNameActivity.this, GroupInfoActivity.class);
                         bundle_back.putInt("group_id",bundle.getInt("group_id"));
                         if(bundle.getString("which").equals("nickname")){ //我在群的昵称
-                            if (!Edit.getText().toString().equals(bundle.getString("nickname"))) { //TODO判空
+                            if (!Edit.getText().toString().equals(bundle.getString("nickname"))) {
                                 bundle_back.putBoolean("isModify", true);
                             }
                             bundle_back.putString("nickname", Edit.getText().toString());
@@ -87,6 +93,8 @@ public class ModifyNameActivity extends AppCompatActivity {
                                 bundle_back.putBoolean("isModify", true);
                             }
                             bundle_back.putString("group_name", Edit.getText().toString());
+                            User group=(User)intent.getSerializableExtra("group");
+                            intent_back.putExtra("group",group);
                         }
 
                     }
@@ -126,7 +134,7 @@ public class ModifyNameActivity extends AppCompatActivity {
         } else if (bundle.getString("from").equals("friend")) {
             intent = new Intent(ModifyNameActivity.this, UserInfoActivity.class);
         } else if (bundle.getString("from").equals("me")) {
-            intent = new Intent(ModifyNameActivity.this, MainActivity.class);
+            intent = new Intent(ModifyNameActivity.this,ModifyActivity.class);
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);

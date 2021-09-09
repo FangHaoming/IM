@@ -15,7 +15,6 @@ import com.aliyun.apsaravideo.sophon.bean.RTCAuthInfo;
 import com.aliyun.rtc.voicecall.bean.AliUserInfoResponse;
 import com.hrl.chaui.activity.AnswerVideoCallActivity;
 import com.hrl.chaui.activity.AnswerVoiceCallActivity;
-import com.hrl.chaui.activity.LoginActivity;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;
 import com.hrl.chaui.bean.ImageMsgBody;
@@ -97,8 +96,9 @@ public class MqttService extends Service {
 
     @Override
     public void onDestroy() {
-        SharedPreferences preferences = getApplication().getSharedPreferences("data", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
+        SharedPreferences userId= getApplication().getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
+        SharedPreferences sp=getApplication().getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
+        SharedPreferences.Editor editor=sp.edit();
         editor.putString("friReqMessage", JSONObject.toJSONString(friReqMessage));
         //editor.putString("chatMessage",JSONObject.toJSONString(chatMessage));
         editor.apply();

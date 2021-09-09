@@ -453,7 +453,7 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
                 bundle.putString("who","friend");
                 bundle.putString("friend_from","chat");
                 bundle.putString("friend_note",targetUser.getUser_note());
-                bundle.putInt("contact_id",targetUser.getUser_id()); // 存放的是好友的ID //TODO 在聊天框打开好友信息 有待测试
+                bundle.putInt("contact_id",targetUser.getUser_id()); // 存放的是好友的ID
                 intent.putExtras(bundle);
                 startActivity(intent);
             }
