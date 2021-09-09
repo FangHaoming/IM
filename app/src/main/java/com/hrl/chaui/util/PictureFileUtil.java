@@ -127,7 +127,7 @@ public class PictureFileUtil {
                 .withActivity(mContext)
                 .withRequestCode(requestCode)
 //                .withFilter(Pattern.compile(".*\\.txt$")) // Filtering files and directories by file name using regexp
-                .withFilter(Pattern.compile(".*\\.(jpg|jpeg)$")) // 只过滤 .jpg/.jpeg文件
+//                .withFilter(Pattern.compile(".*\\.(jpg|jpeg)$")) // 只过滤 .jpg/.jpeg文件
                 .withFilterDirectories(true) // Set directories filterable (false by default)
                 .withHiddenFiles(true) // Show hidden files and folders
                 .start();
