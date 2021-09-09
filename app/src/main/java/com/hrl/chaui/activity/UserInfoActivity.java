@@ -94,7 +94,7 @@ public class UserInfoActivity extends AppCompatActivity {
         intent=getIntent();
         bundle = intent.getExtras();
         if(bundle!=null){
-            Log.i("isFriend in user", String.valueOf(bundle.getBoolean("isFriend")));
+            Log.i("who in UserInfoActivity", bundle.getString("who"));
             if(bundle.getString("who").equals("friend")) {
                 // 该用户是朋友
                 setContentView(R.layout.layout_user_info_friend);
@@ -375,7 +375,7 @@ public class UserInfoActivity extends AppCompatActivity {
             }else if(bundle.getString("from").equals("search")){
                 intent=new Intent(UserInfoActivity.this,NewFriendActivity.class);
             }else if(bundle.getString("from").equals("chat")){
-                intent=new Intent(UserInfoActivity.this,ChatActivity.class);  //返回聊天框，TODO 有待测试
+                intent=new Intent(UserInfoActivity.this,ChatActivity.class);
             }
         }else{
             intent=new Intent(UserInfoActivity.this,MainActivity.class);

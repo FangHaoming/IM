@@ -157,7 +157,6 @@ public class GroupInfoActivity extends AppCompatActivity {
                     nickname.setText(name);
                     sendByPost_nickname(modifyUser.getUser_id(),bundle.getInt("group_id"),name,modifyUser.getRank());
                 }
-                //TODO 有待测试 修改群昵称
             }
         }
     }
