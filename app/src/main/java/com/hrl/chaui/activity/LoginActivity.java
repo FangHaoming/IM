@@ -36,6 +36,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.hrl.chaui.MyApplication.modifyUser;
+
 public class LoginActivity extends AppCompatActivity {
 
     private Button loginBtn;
@@ -120,9 +122,9 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
     private void sendByPost(String user_phone, String user_pwd) {
-        JSONObject json=new JSONObject();
-        json.put("user_phone",user_phone);
-        json.put("user_pwd",user_pwd);
+        JSONObject json1=new JSONObject();
+        json1.put("user_phone",user_phone);
+        json1.put("user_pwd",user_pwd);
         /*
         json.put("user_gender","");
         json.put("user_sign","");
@@ -132,9 +134,9 @@ public class LoginActivity extends AppCompatActivity {
         String path = getResources().getString(R.string.request_local)+"/userLogin";
         OkHttpClient client = new OkHttpClient();
         final FormBody formBody = new FormBody.Builder()
-                .add("json", json.toJSONString())
+                .add("json", json1.toJSONString())
                 .build();
-        System.out.println("*********"+json.toJSONString());
+        System.out.println("*********"+json1.toJSONString());
         Request request = new Request.Builder()
                 .url(path)
                 .post(formBody)
@@ -172,13 +174,19 @@ public class LoginActivity extends AppCompatActivity {
                         else{
                             editor.putBoolean("isAuto",false);
                         }
+                        modifyUser.setUser_id(json.getInteger("user_id"));
+                        modifyUser.setUser_name(json.getString("user_name"));
+                        modifyUser.setUser_gender(json.getString("user_gender"));
+                        modifyUser.setUser_pwd(user_pwd);
+                        modifyUser.setUser_phone(json.getString("user_phone"));
+                        modifyUser.setUser_img(json.getString("user_img"));
                         editor.putString("user_gender", (String) json.get("user_gender"));
                         editor.putInt("user_id", json.getInteger("user_id"));
                         editor.putString("user_img",(String)json.get("user_img"));
                         editor.putString("user_name",(String)json.get("user_name"));
                         editor.putString("user_phone",(String)json.get("user_phone"));
                         editor.putString("user_sign",(String)json.get("user_sign"));
-                        editor.putString("user_pwd",pwd.getText().toString());
+                        editor.putString("user_pwd",user_pwd);
                         editor_userId.putInt("user_id",json.getInteger("user_id"));
                         editor_userId.apply();
                         editor.apply();

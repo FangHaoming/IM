@@ -102,6 +102,7 @@ public class NewFriendActivity extends AppCompatActivity {
                             Bundle bundle = new Bundle();
                             bundle.putString("who","friend");
                             bundle.putString("from","search");
+                            bundle.putInt("friend_id",Is.getIdByPhone(query));
                             bundle.putInt("contact_id",Is.getIdByPhone(query));
                             intent.putExtras(bundle);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );

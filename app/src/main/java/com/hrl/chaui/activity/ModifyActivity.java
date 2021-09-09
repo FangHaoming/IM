@@ -35,6 +35,7 @@ import java.io.InputStream;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static com.hrl.chaui.MyApplication.isImgChange;
 import static com.hrl.chaui.MyApplication.modifyUser;
 
 public class ModifyActivity extends AppCompatActivity {
@@ -48,7 +49,6 @@ public class ModifyActivity extends AppCompatActivity {
     Intent intent_Main;
     Bundle bundle_Main;
     Bundle bundle;
-    Boolean isImgChange;
     String img_uri;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -65,7 +65,6 @@ public class ModifyActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},1);
         }
         isModify=false;
-        isImgChange=false;
         img_uri="";
         intent_Main = new Intent(ModifyActivity.this, MineFragment.class);
         bundle_Main = new Bundle();
@@ -82,9 +81,9 @@ public class ModifyActivity extends AppCompatActivity {
         sign = findViewById(R.id.sign);
         sign_view = findViewById(R.id.sign_view);
         back_arrow=findViewById(R.id.back_arrow);
-        name.setText(sp.getString("user_name", ""));
-        sign.setText(sp.getString("user_sign", ""));
-        gender.setText(sp.getString("user_gender", ""));
+        name.setText(modifyUser.getUser_name());
+        sign.setText(modifyUser.getUser_sign());
+        gender.setText(modifyUser.getUser_gender());
 
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
@@ -98,6 +97,7 @@ public class ModifyActivity extends AppCompatActivity {
                         intent = new Intent(ModifyActivity.this, ModifyNameActivity.class);
                         Bundle bundle_modifyName=new Bundle();
                         bundle_modifyName.putString("from","me");
+                        bundle_modifyName.putString("user_name",modifyUser.getUser_name());
                         intent.putExtras(bundle_modifyName);
                         startActivity(intent);
                         break;
@@ -139,32 +139,26 @@ public class ModifyActivity extends AppCompatActivity {
         if (bundle != null) {
             if(bundle.getString("user_name")!=null){
                 name.setText(bundle.getString("user_name"));
-            }else{
-                name.setText("");
+                modifyUser.setUser_name(bundle.getString("user_name"));
             }
             if(bundle.getString("user_gender")!=null){
                 gender.setText(bundle.getString("user_gender"));
-            }else{
-                gender.setText("");
+                modifyUser.setUser_gender(bundle.getString("user_gender"));
             }
             if(bundle.getString("user_sign")!=null){
                 sign.setText(bundle.getString("user_sign"));
-            }else{
-                sign.setText("");
+                modifyUser.setUser_sign(bundle.getString("user_sign"));
             }
-            modifyUser.setUser_name(bundle.getString("user_name"));
-            modifyUser.setUser_gender(bundle.getString("user_gender"));
-            modifyUser.setUser_sign(bundle.getString("user_sign"));
-            isModify = bundle.getBoolean("isModify");
+            isModify=bundle.getBoolean("isModify");
             System.out.println("*********isModify in Modify onResume " + isModify);
         }
 
         if (!sp.getString("user_img", "").equals("") && !isImgChange) {
             Glide.with(this).load(getString(R.string.app_prefix_img) + sp.getString("user_img", "")).into(img);
-        } else if (!img_uri.equals("") && isImgChange) {
-            System.out.println("*********isImgChange in Modify" + isImgChange);
+        } else if (isImgChange) {
+            System.out.println("*********img_uri in Modify Re" + isImgChange);
             try {
-                Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(img_uri));
+                Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(sp.getString("img_uri","")));
                 img.setImageBitmap(bitmap);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -225,7 +219,6 @@ public class ModifyActivity extends AppCompatActivity {
                     isImgChange=true;
                     img_uri=uri;
                     editor.putString("img_uri",uri);
-                    editor.putBoolean("isImgChange",true);
                     editor.apply();
                     runOnUiThread(new Runnable() {
                         @Override

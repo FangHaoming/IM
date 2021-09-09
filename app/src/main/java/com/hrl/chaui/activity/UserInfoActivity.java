@@ -38,6 +38,7 @@ import com.hrl.chaui.bean.User;
 import com.hrl.chaui.util.MqttByAli;
 import com.hrl.chaui.util.MqttService;
 import com.hrl.chaui.util.RTCHelper;
+import com.hrl.chaui.util.http;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -50,6 +51,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.hrl.chaui.MyApplication.modifyUser;
 import static com.hrl.chaui.util.Constant.CHECKONLINEERR;
 import static com.hrl.chaui.util.Constant.NOTONLINE;
 
@@ -116,9 +118,11 @@ public class UserInfoActivity extends AppCompatActivity {
                                 Intent intent_data=new Intent(UserInfoActivity.this,ModifyNameActivity.class);
                                 Bundle data=new Bundle();
                                 data.putString("from","friend");
+                                data.putString("friend_from",bundle.getString("friend_from"));
+                                data.putInt("contact_id",bundle.getInt("contact_id"));
                                 data.putString("friend_note",bundle.getString("friend_note"));
                                 intent_data.putExtras(data);
-                                startActivity(intent_data);  //设置好友备注 有待测试
+                                startActivity(intent_data);  //设置好友备注 有待测试 TODO
                                 break;
                             case R.id.delete:
                                 //TODO 删除好友
@@ -214,7 +218,7 @@ public class UserInfoActivity extends AppCompatActivity {
                 back_arrow.setOnClickListener(listener);
 
                 // 非本人则网络请求获取该用户的信息
-                sendByPost_friend(sp.getInt("user_id", 0), bundle.getInt("contact_id"));
+                sendByPost_friend(modifyUser.getUser_id(), bundle.getInt("contact_id"));
             }
             else if(bundle.getString("who").equals("stranger")){
                 // 该用户不是朋友
@@ -265,8 +269,12 @@ public class UserInfoActivity extends AppCompatActivity {
                         Bundle bundle_Add=new Bundle();
                         if(bundle.getString("from").equals("group")){
                             bundle_Add.putString("group_name",bundle.getString("group_name"));
+                            bundle_Add.putString("from","group");
+                        }else{
+                            bundle_Add.putString("from","search");
                         }
                         bundle_Add.putInt("targetClientID",bundle.getInt("contact_id"));
+
                         intent_Add.putExtras(bundle_Add);
                         startActivity(intent_Add);
                     }
@@ -340,12 +348,11 @@ public class UserInfoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Intent intent=getIntent();
-        bundle=intent.getExtras();
-        Bundle bundle_return=intent.getExtras();
-        if(bundle_return!=null){
-            if(bundle_return.getBoolean("isModify")){
-                //sendByPost_friendnote(modifyUser.getUser_id(),((User)intent.getSerializableExtra("friend")).getUser_id(),bundle.getString("friend_note"),0);
-                //TODO 有待测试 修改好友备注
+        Bundle bundle_note=intent.getExtras(); //TODO 设置好友备注 后 好友就是陌生人  问题应该出在这里
+        //Bundle bundle_return=intent.getExtras();
+        if(bundle_note!=null){
+            if(bundle_note.getBoolean("isModify")){
+                sendByPost_friendnote(modifyUser.getUser_id(),bundle_note.getInt("contact_id"),bundle_note.getString("friend_note"),0);
             }
         }
     }
@@ -376,6 +383,7 @@ public class UserInfoActivity extends AppCompatActivity {
         Objects.requireNonNull(intent).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         overridePendingTransition(0, R.anim.slide_right_out);
+        finish();
     }
 
     private void sendByPost_friend(int user_id, int friend_id) {
@@ -405,13 +413,10 @@ public class UserInfoActivity extends AppCompatActivity {
                 String info=response.body().string();
                 System.out.println("***********info_this"+info);
                 JSONObject json= JSON.parseObject(info);
-                user.setUser_name(json.getString("user_name"));
-                user.setUser_gender(json.getString("user_gender"));
-                user.setUser_phone(json.getString("user_phone"));
-                user.setUser_sign(json.getString("user_sign"));
-                user.setUser_img(json.getString("user_img"));
-                user.setUser_id(json.getInteger("user_id"));
-                user.setUser_note(json.getString("friend_note"));
+                user=JSON.parseObject(info,User.class);
+                if(info.contains("friend_note")){
+                    user.setUser_note(json.getString("friend_note"));
+                }
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -518,9 +523,9 @@ public class UserInfoActivity extends AppCompatActivity {
 
     private void sendByPost_friendnote(int user_id,int friend_id, String friend_note,Integer notice_rank) {
         JSONObject json=new JSONObject();
-        json.put("group_id",friend_id);
+        json.put("friend_id",friend_id);
         json.put("user_id",user_id);
-        json.put("group_name",friend_note);
+        json.put("friend_note",friend_note);
         json.put("notice_rank",notice_rank);
         String path = getResources().getString(R.string.request_local)+"/friendUpdate";
         OkHttpClient client = new OkHttpClient();
@@ -545,12 +550,23 @@ public class UserInfoActivity extends AppCompatActivity {
                 String info = response.body().string();
                 System.out.println("***********group_info" + info);
                 JSONObject json = JSON.parseObject(info);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        user_note.setText(friend_note);
-                    }
-                });
+                if(Objects.equals(json.get("msg"), "update success")){
+                    http.sendByPost(UserInfoActivity.this,friend_id);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            user_note.setText(friend_note);
+                        }
+                    });
+                    Looper.prepare();
+                    Toast.makeText(UserInfoActivity.this,"修改成功!",Toast.LENGTH_SHORT).show();
+                    Looper.loop();
+                }else{
+                    Looper.prepare();
+                    Toast.makeText(UserInfoActivity.this,"修改失败",Toast.LENGTH_SHORT).show();
+                    Looper.loop();
+                }
+
 
             }
         });

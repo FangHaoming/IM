@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -47,6 +48,7 @@ public class GroupInfoActivity extends AppCompatActivity {
     public Intent intent;
     public Bundle bundle;
     Bundle bundle_modifyName;
+    User group;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -67,6 +69,7 @@ public class GroupInfoActivity extends AppCompatActivity {
         bundle_modifyName=new Bundle();
         bundle_modifyName.putString("from","group");
         int group_id=bundle.getInt("contact_id");
+        group= (User) intent.getSerializableExtra("targetUser");
         delete=findViewById(R.id.delete);
         gridView=findViewById(R.id.gridview);
         back_arrow=findViewById(R.id.back_arrow);
@@ -103,10 +106,7 @@ public class GroupInfoActivity extends AppCompatActivity {
         back_arrow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent_back=new Intent(GroupInfoActivity.this, GroupChatActivity.class);
-                startActivity(intent_back);
-                overridePendingTransition(0, R.anim.slide_right_out);
-                finish();
+                back();
             }
         });
         delete.setOnClickListener(new View.OnClickListener() {
@@ -115,6 +115,21 @@ public class GroupInfoActivity extends AppCompatActivity {
                 //TODO 删除并退出群聊
             }
         });
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode==KeyEvent.KEYCODE_BACK){
+            back();
+        }
+        return true;
+    }
+    private void back(){
+        Intent intent_back=new Intent(GroupInfoActivity.this, GroupChatActivity.class);
+        intent_back.putExtra("targetUser",group);
+        startActivity(intent_back);
+        overridePendingTransition(0, R.anim.slide_right_out);
+        finish();
     }
 
     @Override

@@ -45,6 +45,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
+import static com.hrl.chaui.MyApplication.isImgChange;
 import static com.hrl.chaui.MyApplication.modifyUser;
 
 public class MineFragment extends Fragment {
@@ -57,7 +58,6 @@ public class MineFragment extends Fragment {
     public final int Modify = 1;
     public final int ResetPwd = 2;
     Bundle bundle;
-    Boolean isImgChange;
     String img_uri;
 
     @Nullable
@@ -71,11 +71,11 @@ public class MineFragment extends Fragment {
         TextView modify=root.findViewById(R.id.modify);
         TextView modify_pwd=root.findViewById(R.id.modify_pwd);
         TextView change=root.findViewById(R.id.change);
+        phone.setText("手机号: "+modifyUser.getUser_phone());
 
         SharedPreferences userId=Objects.requireNonNull(getContext()).getSharedPreferences("data_userID",MODE_PRIVATE); //存用户登录ID
         sp=Objects.requireNonNull(getContext()).getSharedPreferences("data_"+userId.getInt("user_id",-1),MODE_PRIVATE); //根据ID获取用户数据文件
         editor=sp.edit();
-        isImgChange=false;
         img_uri="";
 
         View.OnClickListener listener = new View.OnClickListener() {
@@ -92,11 +92,21 @@ public class MineFragment extends Fragment {
                         break;
                     case R.id.change:
                         //TODO 重新登陆 结束掉mqttService  有待测试
-                        Intent intent3=new Intent(getActivity(), LoginActivity.class);
-                        startActivity(intent3);
                         /*Service service= Objects.requireNonNull(getContext()).getSystemService(MqttService.class);
                         service.stopSelf();*/
+                        //退出登录前把本地用户的信息保存下
+                        editor.putString("user_gender", modifyUser.getUser_gender());
+                        editor.putInt("user_id",modifyUser.getUser_id());
+                        editor.putString("user_img",modifyUser.getUser_img());
+                        editor.putString("user_name",modifyUser.getUser_name());
+                        editor.putString("user_phone",modifyUser.getUser_phone());
+                        editor.putString("user_sign",modifyUser.getUser_sign());
+                        editor.putString("user_pwd",modifyUser.getUser_pwd());
+                        editor.apply();
+                        isImgChange=false;
                         AppManager.AppExit(getContext());
+                        Intent intent1=new Intent(getContext(),LoginActivity.class);
+                        Objects.requireNonNull(getContext()).startActivity(intent1);
                         Objects.requireNonNull(getActivity()).finish();
                         break;
                     case R.id.user_img:
@@ -112,24 +122,11 @@ public class MineFragment extends Fragment {
         change.setOnClickListener(listener);
         img.setOnClickListener(listener);
 
-        name.setText(sp.getString("user_name",""));
+        name.setText(modifyUser.getUser_name());
         //Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
-        sign.setText("个性签名: "+sp.getString("user_sign",""));
-        phone.setText("手机号: "+sp.getString("user_phone",""));
-        //TODO 头像显示有点问题
-        Log.i("isImgChang me resu",""+isImgChange);
-        Log.i("user_img in Mine",sp.getString("user_img", ""));
-        if (!sp.getString("user_img", "").equals("") && !isImgChange) {
-            Glide.with(Objects.requireNonNull(getContext())).load(getString(R.string.app_prefix_img) +sp.getString("user_img", "")).into(img);
-        } else if (!Objects.equals(img_uri, "") && isImgChange) {
-            Log.i("isImgChange in Modify",""+isImgChange);
-            try {
-                Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(img_uri));
-                img.setImageBitmap(bitmap);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+        sign.setText("个性签名: "+modifyUser.getUser_sign());
+        phone.setText("手机号: "+modifyUser.getUser_phone());
+
 
         return root;
     }
@@ -169,6 +166,25 @@ public class MineFragment extends Fragment {
     }
 
  */
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.i("isImgChang me resu",""+isImgChange);
+        Log.i("user_img in Mine",sp.getString("user_img", ""));
+        if (!sp.getString("user_img", "").equals("") && !isImgChange) {
+            Glide.with(Objects.requireNonNull(getContext())).load(getString(R.string.app_prefix_img) +sp.getString("user_img", "")).into(img);
+        } else if (!"".equals(sp.getString("img_uri","")) && isImgChange) {
+            Log.i("isImgChange in Modify",""+isImgChange);
+            try {
+                Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(sp.getString("img_uri","")));
+                img.setImageBitmap(bitmap);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -180,7 +196,7 @@ public class MineFragment extends Fragment {
                 isImgChange=bundle.getBoolean("isImgChange");
                 Log.i("isImg onResult",""+isImgChange);
                 img_uri=bundle.getString("img_uri");
-                if(bundle.getBoolean("isModify")||isImgChange){
+                if(bundle.getBoolean("isModify")||bundle.getBoolean("isImgChange")){
                     sendByPost_upDate(bundle.getString("json"));
                 }
             }
@@ -232,18 +248,18 @@ public class MineFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            name.setText(modifyUser.getUser_name());
+                            JSONObject json=JSON.parseObject(jsonString);
+                            name.setText(json.getString("user_name"));
                             //Glide.with(Objects.requireNonNull(getContext())).load(getContext().getString(R.string.app_prefix_img)+sp.getString("user_img","")).into(img);
                             sign.setText("个性签名: "+modifyUser.getUser_sign());
-                            phone.setText("手机号: "+modifyUser.getUser_phone());
                             //TODO 头像显示有点问题
                             Log.i("sendby isImgChang mine",""+isImgChange);
                             Log.i("sendby user_img mine",modifyUser.getUser_img());
-                            if (!sp.getString("user_img", "").equals(modifyUser.getUser_img()) && !isImgChange) {
+                            if (!"".equals(modifyUser.getUser_img()) && !isImgChange) {
                                 Glide.with(Objects.requireNonNull(getContext())).load(getString(R.string.app_prefix_img) +modifyUser.getUser_img()).into(img);
                             } else {
                                 try {
-                                    Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(img_uri));
+                                    Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(sp.getString("img_uri","")));
                                     img.setImageBitmap(bitmap);
                                 } catch (FileNotFoundException e) {
                                     e.printStackTrace();
@@ -257,11 +273,14 @@ public class MineFragment extends Fragment {
                     editor.putString("user_gender",modifyUser.getUser_gender());
                     editor.putString("user_pwd",modifyUser.getUser_pwd());
                     editor.apply();
+                    Looper.prepare();
+                    Toast.makeText(getContext(),"修改成功!",Toast.LENGTH_SHORT).show();
+                    Looper.loop();
                 }
                 else{
                     modifyUser.setUser_pwd(sp.getString("user_pwd",""));
                     Looper.prepare();
-                    Toast.makeText(getContext(),"修改密码失败!",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(),"修改失败",Toast.LENGTH_SHORT).show();
                     Looper.loop();
                 }
             }

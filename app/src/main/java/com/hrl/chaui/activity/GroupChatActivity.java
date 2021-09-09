@@ -198,6 +198,11 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
         }
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
 
     @Override
     public void onResume() {
@@ -432,6 +437,7 @@ public class GroupChatActivity extends AppCompatActivity implements  SwipeRefres
                 Bundle bundle = new Bundle();
                 bundle.putInt("contact_id", Integer.valueOf(targetGroupID)); // 存放的是群聊的ID 或者 用户的ID
                 bundle.putString("group_name",targetGroup.getUser_name());
+                intent.putExtra("targetUser",targetGroup);
                 intent.putExtras(bundle);
                 startActivity(intent);
             }

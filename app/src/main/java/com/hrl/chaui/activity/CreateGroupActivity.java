@@ -128,8 +128,9 @@ public class CreateGroupActivity extends AppCompatActivity {
                 if(keyCode==KeyEvent.KEYCODE_DEL){
                     int size=addList.size();
                     if(size>0) {
-                        deleteImage(addList.get(addList.size() - 1));
+                        Avatar_container.removeView(Avatar_container.findViewWithTag(addList.get(addList.size() - 1)));
                     }
+
                 }
                 return false;
             }
