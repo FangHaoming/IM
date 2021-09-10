@@ -55,7 +55,12 @@ public class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull  RecyclerView.ViewHolder holder, int position) {
         User user = mDatas.get(position);
-        ((ViewHolder) holder).name.setText(user.getUser_name());
+        if(user.getUser_note()!=null){
+            ((ViewHolder) holder).name.setText(user.getUser_note());
+        }else{
+            ((ViewHolder) holder).name.setText(user.getUser_name());
+        }
+
         if (user.getUser_name().equals("新的朋友")) {
             ((ViewHolder) holder).img.setImageResource(R.drawable.friend);
             ((ViewHolder) holder).content.setOnClickListener(new View.OnClickListener() {

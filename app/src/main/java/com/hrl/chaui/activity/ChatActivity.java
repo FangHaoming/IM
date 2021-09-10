@@ -230,7 +230,12 @@ public class ChatActivity extends AppCompatActivity implements SwipeRefreshLayou
         //  设置名称
         targetClientID = "GID_test@@@" + targetUser.getUser_id();
         TextView textView =(TextView) findViewById(R.id.common_toolbar_title);
-        textView.setText(targetUser.getUser_name());
+        if(targetUser.getUser_note()!=null){
+            textView.setText(targetUser.getUser_note());
+        }else{
+            textView.setText(targetUser.getUser_name());
+        }
+
 
         // 获取通信记录并显示
         try {
